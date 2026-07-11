@@ -2,6 +2,9 @@ import {
   LayoutDashboard,
   BookOpen,
   Users,
+  CalendarClock,
+  FolderOpen,
+  NotebookPen,
   type LucideIcon,
 } from "lucide-react";
 import { PERMISSIONS, type PermissionCode } from "@/lib/permissions";
@@ -31,5 +34,23 @@ export const navLinks: NavLink[] = [
     href: "/enrollments",
     icon: Users,
     requiredPermissions: [PERMISSIONS.ENROLLMENTS_VIEW],
+  },
+  {
+    title: "Timeline",
+    href: "/timeline",
+    icon: CalendarClock,
+    requiredPermissions: [PERMISSIONS.SCHEDULE_VIEW],
+  },
+  {
+    title: "Library",
+    href: "/library",
+    icon: FolderOpen,
+    requiredPermissions: [PERMISSIONS.DOCUMENTS_VIEW],
+  },
+  {
+    title: "Notes",
+    href: "/notes",
+    icon: NotebookPen,
+    requiredPermissions: [PERMISSIONS.NOTES_VIEW],
   },
 ];
