@@ -22,7 +22,7 @@ export function AppSidebar() {
   const { hasAnyPermission } = usePermission();
 
   const visibleLinks = navLinks.filter((item) =>
-    hasAnyPermission(item.requiredPermissions)
+    hasAnyPermission(item.requiredPermissions),
   );
 
   return (
@@ -40,7 +40,10 @@ export function AppSidebar() {
             <SidebarMenu>
               {visibleLinks.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith(item.href)}
+                  >
                     <Link href={item.href}>
                       <item.icon />
                       <span>{item.title}</span>

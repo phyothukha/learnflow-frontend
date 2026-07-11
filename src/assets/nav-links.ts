@@ -1,4 +1,9 @@
-import { LayoutDashboard, BookOpen, Users, type LucideIcon } from "lucide-react";
+import {
+  LayoutDashboard,
+  BookOpen,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import { PERMISSIONS, type PermissionCode } from "@/lib/permissions";
 
 export interface NavLink {

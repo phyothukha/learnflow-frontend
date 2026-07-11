@@ -1,6 +1,11 @@
 "use client";
 
-import { createContext, useContext, useState, type PropsWithChildren } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  type PropsWithChildren,
+} from "react";
 import type { Course } from "@/store/server/courses/interface";
 
 type DialogType = "create" | "edit" | "delete" | null;
@@ -19,7 +24,9 @@ export function CoursesProvider({ children }: PropsWithChildren) {
   const [currentRow, setCurrentRow] = useState<Course | null>(null);
 
   return (
-    <CoursesContext.Provider value={{ open, setOpen, currentRow, setCurrentRow }}>
+    <CoursesContext.Provider
+      value={{ open, setOpen, currentRow, setCurrentRow }}
+    >
       {children}
     </CoursesContext.Provider>
   );

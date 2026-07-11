@@ -6,7 +6,8 @@ import { isAxiosError } from "axios";
 
 export async function GET(request: NextRequest) {
   const session = await auth();
-  if (!session) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  if (!session)
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
   const searchParams = request.nextUrl.searchParams;
   const page = Number(searchParams.get("page") ?? 0);
@@ -20,7 +21,9 @@ export async function GET(request: NextRequest) {
     limit,
     expand,
     orderby,
-    filter: search ? `contains(tolower(Title), '${search.toLowerCase().replace(/'/g, "''")}')` : undefined,
+    filter: search
+      ? `contains(tolower(Title), '${search.toLowerCase().replace(/'/g, "''")}')`
+      : undefined,
   });
 
   try {
@@ -29,14 +32,18 @@ export async function GET(request: NextRequest) {
     });
     return NextResponse.json(data);
   } catch (error) {
-    const status = isAxiosError(error) ? error.response?.status ?? 500 : 500;
-    return NextResponse.json({ message: "Failed to fetch courses" }, { status });
+    const status = isAxiosError(error) ? (error.response?.status ?? 500) : 500;
+    return NextResponse.json(
+      { message: "Failed to fetch courses" },
+      { status },
+    );
   }
 }
 
 export async function POST(request: NextRequest) {
   const session = await auth();
-  if (!session) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  if (!session)
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
   const body = await request.json();
 
@@ -46,7 +53,10 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
-    const status = isAxiosError(error) ? error.response?.status ?? 500 : 500;
-    return NextResponse.json({ message: "Failed to create course" }, { status });
+    const status = isAxiosError(error) ? (error.response?.status ?? 500) : 500;
+    return NextResponse.json(
+      { message: "Failed to create course" },
+      { status },
+    );
   }
 }

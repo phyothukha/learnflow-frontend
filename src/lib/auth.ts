@@ -26,10 +26,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!credentials?.email || !credentials?.password) return null;
 
         try {
-          const { data } = await serverAxios.post<LoginResponse>("/v1/Auth/login", {
-            email: credentials.email,
-            password: credentials.password,
-          });
+          const { data } = await serverAxios.post<LoginResponse>(
+            "/v1/Auth/login",
+            {
+              email: credentials.email,
+              password: credentials.password,
+            },
+          );
 
           return {
             id: data.user.Id,

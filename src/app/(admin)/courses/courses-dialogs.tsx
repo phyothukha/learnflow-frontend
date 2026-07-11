@@ -98,7 +98,7 @@ export function CoursesDialogs() {
             closeDialog();
           },
           onError: () => toast.error("Failed to update course."),
-        }
+        },
       );
     } else {
       createCourse.mutate(values, {
@@ -132,7 +132,9 @@ export function CoursesDialogs() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{isEdit ? "Edit course" : "Create course"}</DialogTitle>
+            <DialogTitle>
+              {isEdit ? "Edit course" : "Create course"}
+            </DialogTitle>
             <DialogDescription>
               {isEdit
                 ? "Update the course details below."
@@ -174,7 +176,10 @@ export function CoursesDialogs() {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="What is this course about?" {...field} />
+                      <Textarea
+                        placeholder="What is this course about?"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -187,7 +192,10 @@ export function CoursesDialogs() {
                   <FormItem className="flex items-center justify-between rounded-lg border p-3">
                     <FormLabel>Published</FormLabel>
                     <FormControl>
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                     </FormControl>
                   </FormItem>
                 )}

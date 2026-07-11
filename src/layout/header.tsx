@@ -41,7 +41,9 @@ export function Header() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbPage className="capitalize">{pageTitle}</BreadcrumbPage>
+              <BreadcrumbPage className="capitalize">
+                {pageTitle}
+              </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>

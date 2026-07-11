@@ -7,7 +7,8 @@ type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_request: NextRequest, { params }: Params) {
   const session = await auth();
-  if (!session) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  if (!session)
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
 
@@ -17,14 +18,15 @@ export async function GET(_request: NextRequest, { params }: Params) {
     });
     return NextResponse.json(data);
   } catch (error) {
-    const status = isAxiosError(error) ? error.response?.status ?? 500 : 500;
+    const status = isAxiosError(error) ? (error.response?.status ?? 500) : 500;
     return NextResponse.json({ message: "Failed to fetch course" }, { status });
   }
 }
 
 export async function PATCH(request: NextRequest, { params }: Params) {
   const session = await auth();
-  if (!session) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  if (!session)
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
   const body = await request.json();
@@ -35,14 +37,18 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     });
     return NextResponse.json(data);
   } catch (error) {
-    const status = isAxiosError(error) ? error.response?.status ?? 500 : 500;
-    return NextResponse.json({ message: "Failed to update course" }, { status });
+    const status = isAxiosError(error) ? (error.response?.status ?? 500) : 500;
+    return NextResponse.json(
+      { message: "Failed to update course" },
+      { status },
+    );
   }
 }
 
 export async function DELETE(_request: NextRequest, { params }: Params) {
   const session = await auth();
-  if (!session) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  if (!session)
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
 
@@ -52,7 +58,10 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
     });
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    const status = isAxiosError(error) ? error.response?.status ?? 500 : 500;
-    return NextResponse.json({ message: "Failed to delete course" }, { status });
+    const status = isAxiosError(error) ? (error.response?.status ?? 500) : 500;
+    return NextResponse.json(
+      { message: "Failed to delete course" },
+      { status },
+    );
   }
 }

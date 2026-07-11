@@ -14,7 +14,7 @@ export default function Providers({ children }: PropsWithChildren) {
             refetchOnWindowFocus: false,
           },
         },
-      })
+      }),
   );
 
   return (

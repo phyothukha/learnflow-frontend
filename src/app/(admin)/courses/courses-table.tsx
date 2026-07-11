@@ -51,12 +51,17 @@ export function CoursesTable() {
       {
         accessorKey: "Title",
         header: "Title",
-        cell: ({ row }) => <span className="font-medium">{row.original.Title}</span>,
+        cell: ({ row }) => (
+          <span className="font-medium">{row.original.Title}</span>
+        ),
       },
       {
         accessorKey: "Category",
         header: "Category",
-        cell: ({ row }) => row.original.Category ?? <span className="text-muted-foreground">—</span>,
+        cell: ({ row }) =>
+          row.original.Category ?? (
+            <span className="text-muted-foreground">—</span>
+          ),
       },
       {
         accessorKey: "IsPublished",
@@ -71,7 +76,8 @@ export function CoursesTable() {
       {
         accessorKey: "CreatedAt",
         header: "Created",
-        cell: ({ row }) => format(new Date(row.original.CreatedAt), "dd MMM yyyy"),
+        cell: ({ row }) =>
+          format(new Date(row.original.CreatedAt), "dd MMM yyyy"),
       },
       {
         id: "actions",
@@ -111,7 +117,7 @@ export function CoursesTable() {
         ),
       },
     ],
-    [hasPermission, setCurrentRow, setOpen]
+    [hasPermission, setCurrentRow, setOpen],
   );
 
   const table = useReactTable({
@@ -151,7 +157,10 @@ export function CoursesTable() {
                   <TableHead key={header.id}>
                     {header.isPlaceholder
                       ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -173,14 +182,20 @@ export function CoursesTable() {
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   No courses found.
                 </TableCell>
               </TableRow>
