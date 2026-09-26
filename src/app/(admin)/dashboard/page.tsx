@@ -7,13 +7,13 @@ import { useFetchDocuments } from "@/store/server/documents/queries";
 import { useFetchNotes } from "@/store/server/notes/queries";
 import { useFetchStudyBlocks } from "@/store/server/study-blocks/queries";
 import { FALLBACK_TOPIC_COLOR } from "@/lib/topic-colors";
-import { StatTiles } from "./stat-tiles";
-import { WeeklyFocusCard } from "./weekly-focus-card";
-import { TopicsCard } from "./topics-card";
-import { ActivityHeatmap } from "./activity-heatmap";
-import { TodayTimelineWidget } from "./today-timeline-widget";
-import { NotepadWidget } from "./notepad-widget";
-import { LibraryWidget } from "./library-widget";
+import { StatTiles } from "./components/stat-tiles";
+import { WeeklyFocusCard } from "./components/weekly-focus-card";
+import { TopicsCard } from "./components/topics-card";
+import { ActivityHeatmap } from "./components/activity-heatmap";
+import { TodayTimelineWidget } from "./components/today-timeline-widget";
+import { NotepadWidget } from "./components/notepad-widget";
+import { LibraryWidget } from "./components/library-widget";
 
 export default function DashboardPage() {
   const activeTopicId = useWorkspaceStore((s) => s.activeTopicId);

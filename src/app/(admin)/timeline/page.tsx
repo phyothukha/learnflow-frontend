@@ -142,7 +142,7 @@ export default function TimelinePage() {
           ))}
         </div>
       ) : blocks.length === 0 ? (
-        <Card>
+        <Card className="border-none shadow-none">
           <CardContent className="flex flex-col items-center gap-2 py-12 text-muted-foreground">
             <CalendarClock className="size-8" />
             <p>Nothing planned for this day.</p>

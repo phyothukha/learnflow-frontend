@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "@/styles/globals.css";
-import { fontSans, fontMono } from "@/styles/font";
+import { fontSans, fontMono, fontPoppins } from "@/styles/font";
 import Providers from "@/app/provider";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -15,8 +15,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${fontSans.variable} ${fontMono.variable} antialiased`}>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${fontSans.variable} ${fontMono.variable} ${fontPoppins.variable} antialiased`}
+      >
         <Providers>{children}</Providers>
         <Toaster richColors position="top-right" />
       </body>

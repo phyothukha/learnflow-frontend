@@ -3,6 +3,7 @@
 import { useState, type PropsWithChildren } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SessionProvider } from "next-auth/react";
+import { ThemeProvider } from "@/components/theme-provider";
 
 export default function Providers({ children }: PropsWithChildren) {
   const [queryClient] = useState(
@@ -18,8 +19,17 @@ export default function Providers({ children }: PropsWithChildren) {
   );
 
   return (
-    <SessionProvider>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    </SessionProvider>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="light"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <SessionProvider>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      </SessionProvider>
+    </ThemeProvider>
   );
 }

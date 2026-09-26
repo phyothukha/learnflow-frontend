@@ -6,6 +6,7 @@ import { LogOut, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { TopicContextSwitcher } from "@/components/topic-context-switcher";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { useWorkspaceStore } from "@/store/client/workspace";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -39,7 +40,7 @@ export function Header() {
     .toUpperCase();
 
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b px-4">
+    <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between gap-2 bg-background px-4">
       <div className="flex items-center gap-2">
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mr-2 h-4" />
@@ -55,7 +56,8 @@ export function Header() {
         <Separator orientation="vertical" className="mx-2 h-4" />
         <TopicContextSwitcher />
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
+        <ThemeToggle />
         <Button
           variant="ghost"
           size="icon"
@@ -69,6 +71,7 @@ export function Header() {
             <Volume2 className="size-4" />
           )}
         </Button>
+        <Separator orientation="vertical" className="mx-1 h-6" />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
