@@ -3,7 +3,7 @@
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import { CoursesProvider } from "./components/courses-provider";
-import { CoursesTable } from "./components/courses-table";
+import { CoursesCreateButton, CoursesTable } from "./components/courses-table";
 import { CoursesDialogs } from "./components/courses-dialogs";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -24,9 +24,14 @@ export default function CoursesPage() {
 
   return (
     <CoursesProvider>
-      <div className="space-y-6">
-        <h1 className="text-2xl font-semibold">Courses</h1>
-        <CoursesTable />
+      <div className="flex h-full min-h-0 flex-col gap-6">
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-2xl font-semibold">Courses</h1>
+          <CoursesCreateButton />
+        </div>
+        <div className="min-h-0 flex-1">
+          <CoursesTable />
+        </div>
       </div>
       <CoursesDialogs />
     </CoursesProvider>

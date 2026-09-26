@@ -1,12 +1,39 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "@/styles/globals.css";
 import { fontSans, fontMono, fontPoppins } from "@/styles/font";
 import Providers from "@/app/provider";
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
-  title: "LearnFlow",
-  description: "LearnFlow admin dashboard",
+  title: {
+    default: "LearnFlow Admin",
+    template: "%s · LearnFlow",
+  },
+  description:
+    "LearnFlow admin dashboard for managing courses, enrollments, and learner progress.",
+  applicationName: "LearnFlow",
+  keywords: [
+    "LearnFlow",
+    "learning management",
+    "admin dashboard",
+    "courses",
+    "enrollments",
+  ],
+  robots: {
+    index: false,
+    follow: false,
+  },
+  openGraph: {
+    title: "LearnFlow Admin",
+    description:
+      "LearnFlow admin dashboard for managing courses, enrollments, and learner progress.",
+    siteName: "LearnFlow",
+    type: "website",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#007C6A",
 };
 
 export default function RootLayout({

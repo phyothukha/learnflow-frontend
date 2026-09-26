@@ -3,7 +3,10 @@
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import { EnrollmentsProvider } from "./components/enrollments-provider";
-import { EnrollmentsTable } from "./components/enrollments-table";
+import {
+  EnrollmentsCreateButton,
+  EnrollmentsTable,
+} from "./components/enrollments-table";
 import { EnrollmentsDialogs } from "./components/enrollments-dialogs";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -24,9 +27,14 @@ export default function EnrollmentsPage() {
 
   return (
     <EnrollmentsProvider>
-      <div className="space-y-6">
-        <h1 className="text-2xl font-semibold">Enrollments</h1>
-        <EnrollmentsTable />
+      <div className="flex h-full min-h-0 flex-col gap-6">
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-2xl font-semibold">Enrollments</h1>
+          <EnrollmentsCreateButton />
+        </div>
+        <div className="min-h-0 flex-1">
+          <EnrollmentsTable />
+        </div>
       </div>
       <EnrollmentsDialogs />
     </EnrollmentsProvider>

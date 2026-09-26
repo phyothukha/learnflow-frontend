@@ -8,7 +8,14 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
+import {
+  BookOpen,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,11 +34,26 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { DataTablePagination } from "@/components/data-table-pagination";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import { useFetchCourses } from "@/store/server/courses/queries";
 import type { Course } from "@/store/server/courses/interface";
 import { useCourses } from "./courses-provider";
+
+export function CoursesCreateButton() {
+  const { setOpen } = useCourses();
+  const { hasPermission } = usePermission();
+
+  if (!hasPermission(PERMISSIONS.COURSES_CREATE)) return null;
+
+  return (
+    <Button onClick={() => setOpen("create")}>
+      <Plus />
+      New Course
+    </Button>
+  );
+}
 
 export function CoursesTable() {
   const { setOpen, setCurrentRow } = useCourses();
@@ -129,26 +151,24 @@ export function CoursesTable() {
   });
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-2">
-        <Input
-          placeholder="Search courses..."
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(0);
-          }}
-          className="max-w-xs"
-        />
-        {hasPermission(PERMISSIONS.COURSES_CREATE) && (
-          <Button onClick={() => setOpen("create")}>
-            <Plus />
-            New Course
-          </Button>
-        )}
+    <div className="flex h-full min-h-0 flex-col rounded-xl border bg-card">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-4">
+        <p className="font-semibold">Total Courses ({total})</p>
+        <div className="relative w-full max-w-xs">
+          <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search courses"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(0);
+            }}
+            className="rounded-full pl-9"
+          />
+        </div>
       </div>
 
-      <div className="rounded-md border">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -166,84 +186,64 @@ export function CoursesTable() {
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={i}>
-                  {columns.map((_, j) => (
-                    <TableCell key={j}>
-                      <Skeleton className="h-5 w-full" />
-                    </TableCell>
+          {(isLoading || table.getRowModel().rows.length > 0) && (
+            <TableBody>
+              {isLoading
+                ? Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      {columns.map((_, j) => (
+                        <TableCell key={j}>
+                          <Skeleton className="h-5 w-full" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                : table.getRowModel().rows.map((row) => (
+                    <TableRow key={row.id}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
                   ))}
-                </TableRow>
-              ))
-            ) : table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No courses found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
+            </TableBody>
+          )}
         </Table>
+
+        {!isLoading && table.getRowModel().rows.length === 0 && (
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
+            <div className="flex size-12 items-center justify-center rounded-full bg-muted">
+              <BookOpen className="size-6 text-muted-foreground" />
+            </div>
+            <div className="space-y-1">
+              <p className="font-medium">
+                {search ? "No matching courses" : "No courses yet"}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {search
+                  ? "Try a different search term."
+                  : "Create your first course to get started."}
+              </p>
+            </div>
+            {!search && <CoursesCreateButton />}
+          </div>
+        )}
       </div>
 
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {total} course{total === 1 ? "" : "s"} total
-        </p>
-        <div className="flex items-center gap-2">
-          <select
-            className="h-8 rounded-md border bg-transparent px-2 text-sm"
-            value={limit}
-            onChange={(e) => {
-              setLimit(Number(e.target.value));
-              setPage(0);
-            }}
-          >
-            {[10, 20, 50].map((size) => (
-              <option key={size} value={size}>
-                {size} / page
-              </option>
-            ))}
-          </select>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page === 0}
-            onClick={() => setPage((p) => p - 1)}
-          >
-            Previous
-          </Button>
-          <span className="text-sm">
-            Page {page + 1} of {pageCount}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page + 1 >= pageCount}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+      <DataTablePagination
+        page={page}
+        pageCount={pageCount}
+        limit={limit}
+        onPageChange={setPage}
+        onLimitChange={(value) => {
+          setLimit(value);
+          setPage(0);
+        }}
+      />
     </div>
   );
 }
