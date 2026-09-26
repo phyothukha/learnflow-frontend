@@ -78,7 +78,7 @@ export function EnrollmentsDialogs() {
   const { open, setOpen, currentRow, setCurrentRow } = useEnrollments();
 
   const { data: coursesData } = useFetchCourses({ page: 0, limit: 100 });
-  const courses = coursesData?.value ?? [];
+  const courses = coursesData?.Items ?? [];
 
   const createEnrollment = useCreateEnrollment();
   const updateEnrollment = useUpdateEnrollment();

@@ -1,9 +1,10 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { clientAxios } from "@/lib/axios";
-import type { ListResponse, Note, NoteListParams } from "./interface";
+import type { PagedResult } from "@/store/server/shared/paged-result";
+import type { Note, NoteListParams } from "./interface";
 
-async function fetchNotes(params: NoteListParams): Promise<ListResponse<Note>> {
-  const { data } = await clientAxios.get<ListResponse<Note>>("/notes", {
+async function fetchNotes(params: NoteListParams): Promise<PagedResult<Note>> {
+  const { data } = await clientAxios.get<PagedResult<Note>>("/notes", {
     params,
   });
   return data;

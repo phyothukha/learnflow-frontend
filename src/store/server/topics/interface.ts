@@ -1,8 +1,3 @@
-export interface ListResponse<T> {
-  "@odata.count": number;
-  value: T[];
-}
-
 export interface Topic {
   Id: string;
   Title: string;
@@ -16,9 +11,7 @@ export interface Topic {
 export interface TopicListParams {
   page?: number;
   limit?: number;
-  search?: string;
   includeArchived?: boolean;
-  orderby?: string;
 }
 
 export interface CreateTopicPayload {

@@ -1,11 +1,12 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { clientAxios } from "@/lib/axios";
-import type { Course, CourseListParams, ListResponse } from "./interface";
+import type { PagedResult } from "@/store/server/shared/paged-result";
+import type { Course, CourseListParams } from "./interface";
 
 async function fetchCourses(
   params: CourseListParams,
-): Promise<ListResponse<Course>> {
-  const { data } = await clientAxios.get<ListResponse<Course>>("/courses", {
+): Promise<PagedResult<Course>> {
+  const { data } = await clientAxios.get<PagedResult<Course>>("/courses", {
     params,
   });
   return data;

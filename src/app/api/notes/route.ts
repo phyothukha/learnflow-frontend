@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { serverAxios } from "@/lib/axios";
-import { buildQuery } from "@/lib/buildQuery";
 import { isAxiosError } from "axios";
 
 export async function GET(request: NextRequest) {
@@ -12,30 +11,17 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const page = Number(searchParams.get("page") ?? 0);
   const limit = Number(searchParams.get("limit") ?? 100);
-  const search = searchParams.get("search") ?? "";
   const topicId = searchParams.get("topicId");
   const documentId = searchParams.get("documentId");
-  const expand = searchParams.get("expand") ?? undefined;
-  const orderby = searchParams.get("orderby") ?? "UpdatedAt desc";
 
-  const filters: string[] = [];
-  if (search)
-    filters.push(
-      `contains(tolower(Title), '${search.toLowerCase().replace(/'/g, "''")}')`,
-    );
-  if (topicId) filters.push(`TopicId eq ${topicId}`);
-  if (documentId) filters.push(`DocumentId eq ${documentId}`);
-
-  const query = buildQuery({
-    page,
-    limit,
-    expand,
-    orderby,
-    filter: filters.length ? filters.join(" and ") : undefined,
-  });
+  const params = new URLSearchParams();
+  params.set("page", String(page + 1));
+  params.set("pageSize", String(limit));
+  if (topicId) params.set("topicId", topicId);
+  if (documentId) params.set("documentId", documentId);
 
   try {
-    const { data } = await serverAxios.get(`/v1/Notes?${query}`, {
+    const { data } = await serverAxios.get(`/v1/Notes?${params}`, {
       headers: { Authorization: `Bearer ${session.user.accessToken}` },
     });
     return NextResponse.json(data);

@@ -73,10 +73,7 @@ export default function TimelinePage() {
     to: day.add(1, "day").toISOString(),
     limit: 100,
   });
-  const { data: topicsData } = useFetchTopics({
-    limit: 100,
-    orderby: "Title asc",
-  });
+  const { data: topicsData } = useFetchTopics({ limit: 100 });
   const updateBlock = useUpdateStudyBlock();
   const deleteBlock = useDeleteStudyBlock();
 
@@ -87,7 +84,7 @@ export default function TimelinePage() {
   if (status !== "authenticated" || !canView) return null;
 
   const blocks = data?.value ?? [];
-  const topics = topicsData?.value ?? [];
+  const topics = topicsData?.Items ?? [];
 
   return (
     <div className="space-y-6">

@@ -1,11 +1,13 @@
-import type { Topic } from "@/store/server/topics/interface";
-
-export interface ListResponse<T> {
-  "@odata.count": number;
-  value: T[];
-}
-
 export type DocumentStatus = "Unread" | "InProgress" | "Completed";
+
+export interface Attachment {
+  Id: string;
+  FileName: string;
+  Url: string;
+  ContentType: string;
+  SizeBytes: number;
+  CreatedAt: string;
+}
 
 export interface StudyDocument {
   Id: string;
@@ -17,7 +19,8 @@ export interface StudyDocument {
   Status: DocumentStatus;
   TimeSpentMinutes: number;
   LastOpenedAt: string | null;
-  Topic?: Topic;
+  Tags: string[];
+  Attachments: Attachment[];
   CreatedAt: string;
   UpdatedAt: string;
 }
@@ -27,9 +30,9 @@ export interface DocumentListParams {
   limit?: number;
   search?: string;
   topicId?: string;
+  folderId?: string;
   status?: DocumentStatus;
-  expand?: string;
-  orderby?: string;
+  tag?: string;
 }
 
 export interface CreateDocumentPayload {
@@ -39,10 +42,11 @@ export interface CreateDocumentPayload {
   FileUrl?: string;
   FileType?: string;
   Status?: DocumentStatus;
+  Tags?: string[];
 }
 
 export type UpdateDocumentPayload = Partial<
-  Omit<CreateDocumentPayload, "TopicId"> & {
+  Omit<CreateDocumentPayload, "TopicId" | "FolderId"> & {
     TimeSpentMinutes: number;
     LastOpenedAt: string;
   }

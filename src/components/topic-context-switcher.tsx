@@ -21,11 +21,11 @@ const FALLBACK_COLOR = "#8b8b8b";
  * context-aware workspace. Notes and the library filter to this topic.
  */
 export function TopicContextSwitcher() {
-  const { data } = useFetchTopics({ limit: 100, orderby: "Title asc" });
+  const { data } = useFetchTopics({ limit: 100 });
   const activeTopicId = useWorkspaceStore((s) => s.activeTopicId);
   const setActiveTopic = useWorkspaceStore((s) => s.setActiveTopic);
 
-  const topics = data?.value ?? [];
+  const topics = data?.Items ?? [];
   const activeTopic = topics.find((t) => t.Id === activeTopicId) ?? null;
 
   return (

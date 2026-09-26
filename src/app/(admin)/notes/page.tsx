@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
@@ -24,6 +25,7 @@ import {
   useUpdateNote,
 } from "@/store/server/notes/mutations";
 import type { Note } from "@/store/server/notes/interface";
+import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
 
 const FALLBACK_COLOR = "#8b8b8b";
 
@@ -36,10 +38,7 @@ export default function NotesPage() {
   const activeTopicId = useWorkspaceStore((s) => s.activeTopicId);
   const setActiveTopic = useWorkspaceStore((s) => s.setActiveTopic);
 
-  const { data: topicsData } = useFetchTopics({
-    limit: 100,
-    orderby: "Title asc",
-  });
+  const { data: topicsData } = useFetchTopics({ limit: 100 });
 
   useEffect(() => {
     if (status === "authenticated" && !canView) router.replace("/forbidden");
@@ -47,7 +46,7 @@ export default function NotesPage() {
 
   if (status !== "authenticated" || !canView) return null;
 
-  const topics = topicsData?.value ?? [];
+  const topics = topicsData?.Items ?? [];
   const activeTopic = topics.find((t) => t.Id === activeTopicId) ?? null;
 
   // Context-aware workspace: without an active topic there is no context,
@@ -116,8 +115,8 @@ function NotesWorkspace({
   const { data: documentsData } = useFetchDocuments({ topicId, limit: 100 });
   const createNote = useCreateNote();
 
-  const notes = notesData?.value ?? [];
-  const documents = documentsData?.value ?? [];
+  const notes = notesData?.Items ?? [];
+  const documents = documentsData?.Items ?? [];
   const selectedNote = notes.find((n) => n.Id === selectedNoteId) ?? null;
 
   const handleQuickCapture = () => {
@@ -300,12 +299,32 @@ function NoteEditor({
         </div>
       </CardHeader>
       <CardContent>
-        <Textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Write in Markdown…"
-          className="min-h-[360px] resize-y font-mono text-sm"
-        />
+        <Tabs defaultValue="write">
+          <TabsList>
+            <TabsTrigger value="write">Write</TabsTrigger>
+            <TabsTrigger value="preview">Preview</TabsTrigger>
+          </TabsList>
+          <TabsContent value="write">
+            <Textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Write in Markdown…"
+              className="min-h-[360px] resize-y font-mono text-sm"
+            />
+          </TabsContent>
+          <TabsContent
+            value="preview"
+            className="min-h-[360px] rounded-md border px-4 py-3"
+          >
+            {content.trim() ? (
+              <MarkdownRenderer content={content} />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Nothing to preview yet.
+              </p>
+            )}
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );

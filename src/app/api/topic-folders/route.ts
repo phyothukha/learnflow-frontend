@@ -10,23 +10,23 @@ export async function GET(request: NextRequest) {
 
   const searchParams = request.nextUrl.searchParams;
   const page = Number(searchParams.get("page") ?? 0);
-  const limit = Number(searchParams.get("limit") ?? 10);
-  const search = searchParams.get("search") ?? "";
+  const limit = Number(searchParams.get("limit") ?? 100);
+  const topicId = searchParams.get("topicId");
 
   const params = new URLSearchParams();
   params.set("page", String(page + 1));
   params.set("pageSize", String(limit));
-  if (search) params.set("search", search);
+  if (topicId) params.set("topicId", topicId);
 
   try {
-    const { data } = await serverAxios.get(`/v1/Courses?${params}`, {
+    const { data } = await serverAxios.get(`/v1/TopicFolders?${params}`, {
       headers: { Authorization: `Bearer ${session.user.accessToken}` },
     });
     return NextResponse.json(data);
   } catch (error) {
     const status = isAxiosError(error) ? (error.response?.status ?? 500) : 500;
     return NextResponse.json(
-      { message: "Failed to fetch courses" },
+      { message: "Failed to fetch folders" },
       { status },
     );
   }
@@ -40,14 +40,14 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
 
   try {
-    const { data } = await serverAxios.post("/v1/Courses", body, {
+    const { data } = await serverAxios.post("/v1/TopicFolders", body, {
       headers: { Authorization: `Bearer ${session.user.accessToken}` },
     });
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
     const status = isAxiosError(error) ? (error.response?.status ?? 500) : 500;
     return NextResponse.json(
-      { message: "Failed to create course" },
+      { message: "Failed to create folder" },
       { status },
     );
   }

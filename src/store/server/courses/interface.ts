@@ -1,8 +1,3 @@
-export interface ListResponse<T> {
-  "@odata.count": number;
-  value: T[];
-}
-
 export interface Course {
   Id: string;
   Title: string;
@@ -18,8 +13,6 @@ export interface CourseListParams {
   page: number;
   limit: number;
   search?: string;
-  expand?: string;
-  orderby?: string;
 }
 
 export interface CreateCoursePayload {

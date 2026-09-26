@@ -13,16 +13,13 @@ export async function GET(_request: NextRequest, { params }: Params) {
   const { id } = await params;
 
   try {
-    const { data } = await serverAxios.get(`/v1/Documents/${id}`, {
+    const { data } = await serverAxios.get(`/v1/TopicFolders/${id}`, {
       headers: { Authorization: `Bearer ${session.user.accessToken}` },
     });
     return NextResponse.json(data);
   } catch (error) {
     const status = isAxiosError(error) ? (error.response?.status ?? 500) : 500;
-    return NextResponse.json(
-      { message: "Failed to fetch document" },
-      { status },
-    );
+    return NextResponse.json({ message: "Failed to fetch folder" }, { status });
   }
 }
 
@@ -35,14 +32,14 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   const body = await request.json();
 
   try {
-    const { data } = await serverAxios.patch(`/v1/Documents/${id}`, body, {
+    const { data } = await serverAxios.patch(`/v1/TopicFolders/${id}`, body, {
       headers: { Authorization: `Bearer ${session.user.accessToken}` },
     });
     return NextResponse.json(data);
   } catch (error) {
     const status = isAxiosError(error) ? (error.response?.status ?? 500) : 500;
     return NextResponse.json(
-      { message: "Failed to update document" },
+      { message: "Failed to update folder" },
       { status },
     );
   }
@@ -56,14 +53,14 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
   const { id } = await params;
 
   try {
-    await serverAxios.delete(`/v1/Documents/${id}`, {
+    await serverAxios.delete(`/v1/TopicFolders/${id}`, {
       headers: { Authorization: `Bearer ${session.user.accessToken}` },
     });
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     const status = isAxiosError(error) ? (error.response?.status ?? 500) : 500;
     return NextResponse.json(
-      { message: "Failed to delete document" },
+      { message: "Failed to delete folder" },
       { status },
     );
   }

@@ -13,7 +13,7 @@ export async function GET(_request: NextRequest, { params }: Params) {
   const { id } = await params;
 
   try {
-    const { data } = await serverAxios.get(`/v1/Courses(${id})`, {
+    const { data } = await serverAxios.get(`/v1/Courses/${id}`, {
       headers: { Authorization: `Bearer ${session.user.accessToken}` },
     });
     return NextResponse.json(data);
@@ -32,7 +32,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   const body = await request.json();
 
   try {
-    const { data } = await serverAxios.patch(`/v1/Courses(${id})`, body, {
+    const { data } = await serverAxios.patch(`/v1/Courses/${id}`, body, {
       headers: { Authorization: `Bearer ${session.user.accessToken}` },
     });
     return NextResponse.json(data);
@@ -53,7 +53,7 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
   const { id } = await params;
 
   try {
-    await serverAxios.delete(`/v1/Courses(${id})`, {
+    await serverAxios.delete(`/v1/Courses/${id}`, {
       headers: { Authorization: `Bearer ${session.user.accessToken}` },
     });
     return new NextResponse(null, { status: 204 });

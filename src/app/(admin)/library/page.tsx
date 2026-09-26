@@ -3,7 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { ExternalLink, FileText, FolderOpen, Plus, Trash2 } from "lucide-react";
+import {
+  ExternalLink,
+  FileText,
+  FolderOpen,
+  Plus,
+  Settings2,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,11 +48,29 @@ import {
   useDeleteDocument,
   useUpdateDocument,
 } from "@/store/server/documents/mutations";
-import type { DocumentStatus } from "@/store/server/documents/interface";
+import type {
+  DocumentStatus,
+  StudyDocument,
+} from "@/store/server/documents/interface";
+import { useFetchFolderTree } from "@/store/server/topic-folders/queries";
+import type { TopicFolderTreeNode } from "@/store/server/topic-folders/interface";
+import { useFetchTags } from "@/store/server/tags/queries";
+import { FolderTree } from "@/components/folder-tree/folder-tree";
+import { DocumentDetailDialog } from "./components/document-detail-dialog";
 import {
   FALLBACK_TOPIC_COLOR as FALLBACK_COLOR,
   TOPIC_COLORS,
 } from "@/lib/topic-colors";
+
+function flattenFolderNames(
+  nodes: TopicFolderTreeNode[],
+  depth = 0,
+): { id: string; label: string }[] {
+  return nodes.flatMap((node) => [
+    { id: node.Id, label: `${"— ".repeat(depth)}${node.Name}` },
+    ...flattenFolderNames(node.Children, depth + 1),
+  ]);
+}
 
 export default function LibraryPage() {
   const router = useRouter();
@@ -56,15 +81,21 @@ export default function LibraryPage() {
   const activeTopicId = useWorkspaceStore((s) => s.activeTopicId);
   const setActiveTopic = useWorkspaceStore((s) => s.setActiveTopic);
 
-  const { data: topicsData } = useFetchTopics({
-    limit: 100,
-    orderby: "Title asc",
-  });
+  const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
+  const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [detailDocument, setDetailDocument] = useState<StudyDocument | null>(
+    null,
+  );
+
+  const { data: topicsData } = useFetchTopics({ limit: 100 });
+  const { data: folderTree } = useFetchFolderTree(activeTopicId);
+  const { data: tagsData } = useFetchTags();
   const { data: documentsData, isLoading: documentsLoading } =
     useFetchDocuments({
       limit: 100,
       topicId: activeTopicId ?? undefined,
-      expand: "Topic",
+      folderId: activeFolderId ?? undefined,
+      tag: activeTag ?? undefined,
     });
   const deleteTopic = useDeleteTopic();
   const updateDocument = useUpdateDocument();
@@ -74,10 +105,16 @@ export default function LibraryPage() {
     if (status === "authenticated" && !canView) router.replace("/forbidden");
   }, [status, canView, router]);
 
+  useEffect(() => {
+    setActiveFolderId(null);
+    setActiveTag(null);
+  }, [activeTopicId]);
+
   if (status !== "authenticated" || !canView) return null;
 
-  const topics = topicsData?.value ?? [];
-  const documents = documentsData?.value ?? [];
+  const topics = topicsData?.Items ?? [];
+  const documents = documentsData?.Items ?? [];
+  const tags = tagsData ?? [];
   const activeTopic = topics.find((t) => t.Id === activeTopicId) ?? null;
 
   return (
@@ -89,6 +126,8 @@ export default function LibraryPage() {
           <CreateDocumentDialog
             topics={topics}
             defaultTopicId={activeTopicId}
+            defaultFolderId={activeFolderId}
+            folderOptions={flattenFolderNames(folderTree ?? [])}
           />
         </div>
       </div>
@@ -151,83 +190,149 @@ export default function LibraryPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-medium text-muted-foreground">
-          Documents{activeTopic ? ` — ${activeTopic.Title}` : " — all topics"}
-        </h2>
-        {documentsLoading ? null : documents.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center gap-2 py-10 text-muted-foreground">
-              <FolderOpen className="size-8" />
-              <p className="text-sm">No documents in this context yet.</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-2">
-            {documents.map((doc) => (
-              <Card key={doc.Id} className="shadow-sm">
-                <CardContent className="flex items-center gap-3 py-3">
-                  <FileText className="size-4 shrink-0 text-muted-foreground" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{doc.Title}</p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {doc.Topic?.Title ?? ""}
-                      {doc.FileType ? ` · ${doc.FileType}` : ""}
-                    </p>
-                  </div>
-                  {doc.FileUrl && (
-                    <a
-                      href={doc.FileUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-muted-foreground hover:text-foreground"
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-medium text-muted-foreground">
+            Documents{activeTopic ? ` — ${activeTopic.Title}` : " — all topics"}
+          </h2>
+          {tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {tags.map((tag) => (
+                <Badge
+                  key={tag.Id}
+                  variant={activeTag === tag.Name ? "default" : "outline"}
+                  className="cursor-pointer"
+                  onClick={() =>
+                    setActiveTag(activeTag === tag.Name ? null : tag.Name)
+                  }
+                >
+                  {tag.Name} ({tag.DocumentCount})
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div
+          className={cn(
+            "grid gap-4",
+            activeTopic && "lg:grid-cols-[220px_1fr]",
+          )}
+        >
+          {activeTopic && (
+            <Card className="h-fit shadow-sm">
+              <CardContent className="p-2">
+                <FolderTree
+                  topicId={activeTopic.Id}
+                  nodes={folderTree ?? []}
+                  activeFolderId={activeFolderId}
+                  onSelectFolder={setActiveFolderId}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          {documentsLoading ? null : documents.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center gap-2 py-10 text-muted-foreground">
+                <FolderOpen className="size-8" />
+                <p className="text-sm">No documents in this context yet.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-2">
+              {documents.map((doc) => (
+                <Card key={doc.Id} className="shadow-sm">
+                  <CardContent className="flex items-center gap-3 py-3">
+                    <FileText className="size-4 shrink-0 text-muted-foreground" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">
+                        {doc.Title}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <p className="truncate text-xs text-muted-foreground">
+                          {doc.FileType ?? ""}
+                        </p>
+                        {doc.Tags.map((tag) => (
+                          <Badge
+                            key={tag}
+                            variant="secondary"
+                            className="h-4 px-1.5 text-[10px]"
+                          >
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    {doc.FileUrl && (
+                      <a
+                        href={doc.FileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <ExternalLink className="size-4" />
+                      </a>
+                    )}
+                    <Select
+                      value={doc.Status}
+                      onValueChange={(value) =>
+                        updateDocument.mutate({
+                          id: doc.Id,
+                          payload: { Status: value as DocumentStatus },
+                        })
+                      }
                     >
-                      <ExternalLink className="size-4" />
-                    </a>
-                  )}
-                  <Select
-                    value={doc.Status}
-                    onValueChange={(value) =>
-                      updateDocument.mutate({
-                        id: doc.Id,
-                        payload: { Status: value as DocumentStatus },
-                      })
-                    }
-                  >
-                    <SelectTrigger className="h-8 w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Unread">Unread</SelectItem>
-                      <SelectItem value="InProgress">In progress</SelectItem>
-                      <SelectItem value="Completed">Completed</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Badge
-                    variant={
-                      doc.Status === "Completed" ? "outline" : "secondary"
-                    }
-                    className="hidden sm:inline-flex"
-                  >
-                    {doc.TimeSpentMinutes} min
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-8 text-muted-foreground"
-                    onClick={() =>
-                      deleteDocument.mutate(doc.Id, {
-                        onSuccess: () => toast.success("Document deleted"),
-                      })
-                    }
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                      <SelectTrigger className="h-8 w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Unread">Unread</SelectItem>
+                        <SelectItem value="InProgress">In progress</SelectItem>
+                        <SelectItem value="Completed">Completed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Badge
+                      variant={
+                        doc.Status === "Completed" ? "outline" : "secondary"
+                      }
+                      className="hidden sm:inline-flex"
+                    >
+                      {doc.TimeSpentMinutes} min
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-8 text-muted-foreground"
+                      onClick={() => setDetailDocument(doc)}
+                    >
+                      <Settings2 className="size-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-8 text-muted-foreground"
+                      onClick={() =>
+                        deleteDocument.mutate(doc.Id, {
+                          onSuccess: () => toast.success("Document deleted"),
+                        })
+                      }
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
       </section>
+
+      {detailDocument && (
+        <DocumentDetailDialog
+          document={detailDocument}
+          onClose={() => setDetailDocument(null)}
+        />
+      )}
     </div>
   );
 }
@@ -324,20 +429,28 @@ function CreateTopicDialog() {
 function CreateDocumentDialog({
   topics,
   defaultTopicId,
+  defaultFolderId,
+  folderOptions,
 }: {
   topics: { Id: string; Title: string }[];
   defaultTopicId: string | null;
+  defaultFolderId: string | null;
+  folderOptions: { id: string; label: string }[];
 }) {
   const createDocument = useCreateDocument();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [topicId, setTopicId] = useState<string>(defaultTopicId ?? "");
+  const [folderId, setFolderId] = useState<string>(defaultFolderId ?? "none");
   const [fileUrl, setFileUrl] = useState("");
   const [fileType, setFileType] = useState("Link");
 
   useEffect(() => {
-    if (open) setTopicId(defaultTopicId ?? "");
-  }, [open, defaultTopicId]);
+    if (open) {
+      setTopicId(defaultTopicId ?? "");
+      setFolderId(defaultFolderId ?? "none");
+    }
+  }, [open, defaultTopicId, defaultFolderId]);
 
   const handleSubmit = () => {
     if (!title.trim() || !topicId) {
@@ -347,6 +460,7 @@ function CreateDocumentDialog({
     createDocument.mutate(
       {
         TopicId: topicId,
+        FolderId: folderId === "none" ? undefined : folderId,
         Title: title.trim(),
         FileUrl: fileUrl.trim() || undefined,
         FileType: fileType,
@@ -399,6 +513,24 @@ function CreateDocumentDialog({
               </SelectContent>
             </Select>
           </div>
+          {topicId === defaultTopicId && folderOptions.length > 0 && (
+            <div className="space-y-2">
+              <Label>Folder</Label>
+              <Select value={folderId} onValueChange={setFolderId}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No folder</SelectItem>
+                  {folderOptions.map((f) => (
+                    <SelectItem key={f.id} value={f.id}>
+                      {f.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="doc-url">URL (optional)</Label>
             <Input

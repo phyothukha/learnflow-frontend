@@ -36,15 +36,13 @@ export default function DashboardPage() {
   const { data: notesData } = useFetchNotes({
     limit: 4,
     topicId: activeTopicId ?? undefined,
-    orderby: "UpdatedAt desc",
   });
   const { data: contextDocuments } = useFetchDocuments({
     limit: 6,
     topicId: activeTopicId ?? undefined,
-    orderby: "UpdatedAt desc",
   });
 
-  const topics = topicsData?.value ?? [];
+  const topics = topicsData?.Items ?? [];
   const activeTopic = topics.find((t) => t.Id === activeTopicId) ?? null;
   const hour = dayjs().hour();
   const greeting =
@@ -63,7 +61,7 @@ export default function DashboardPage() {
       <div className="grid gap-4 lg:grid-cols-12">
         <StatTiles
           weekBlocks={weekBlocks?.value ?? []}
-          documents={documentsData?.value ?? []}
+          documents={documentsData?.Items ?? []}
         />
 
         <WeeklyFocusCard
@@ -73,7 +71,7 @@ export default function DashboardPage() {
         />
         <TopicsCard
           weekBlocks={weekBlocks?.value ?? []}
-          documents={documentsData?.value ?? []}
+          documents={documentsData?.Items ?? []}
           topics={topics}
           className="lg:col-span-5"
         />
@@ -87,12 +85,12 @@ export default function DashboardPage() {
         <NotepadWidget
           topicTitle={activeTopic?.Title ?? null}
           topicColor={activeTopic?.Color ?? FALLBACK_TOPIC_COLOR}
-          notes={notesData?.value ?? []}
+          notes={notesData?.Items ?? []}
           className="lg:col-span-5"
         />
 
         <LibraryWidget
-          documents={contextDocuments?.value ?? []}
+          documents={contextDocuments?.Items ?? []}
           contextLabel={activeTopic?.Title ?? "All topics"}
           className="lg:col-span-12"
         />

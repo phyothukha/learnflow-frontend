@@ -65,7 +65,7 @@ export function CoursesTable() {
 
   const { data, isLoading } = useFetchCourses({ page, limit, search });
 
-  const total = data?.["@odata.count"] ?? 0;
+  const total = data?.TotalCount ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / limit));
 
   const columns = useMemo<ColumnDef<Course>[]>(
@@ -143,7 +143,7 @@ export function CoursesTable() {
   );
 
   const table = useReactTable({
-    data: data?.value ?? [],
+    data: data?.Items ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
