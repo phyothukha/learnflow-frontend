@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { MarkdownRenderer } from "./markdown-renderer";
+import { MarkdownPreview } from "./markdown-preview";
 
 type ViewMode = "write" | "split" | "preview";
 
@@ -204,7 +204,7 @@ export function MarkdownSplitEditor({
                 "# Start writing\n\nUse **Markdown** to format your document…"
               }
               spellCheck
-              className="min-h-[320px] flex-1 resize-none bg-transparent px-4 py-3 font-mono text-sm leading-relaxed outline-none placeholder:text-muted-foreground/60"
+              className="min-h-0 flex-1 resize-none bg-transparent px-4 py-3 font-mono text-sm leading-relaxed outline-none placeholder:text-muted-foreground/60"
             />
           </div>
         )}
@@ -220,10 +220,10 @@ export function MarkdownSplitEditor({
             </div>
             <div
               ref={previewRef}
-              className="min-h-[320px] flex-1 overflow-y-auto px-5 py-4"
+              className="min-h-0 flex-1 overflow-y-auto px-5 py-4"
             >
               {value.trim() ? (
-                <MarkdownRenderer content={value} />
+                <MarkdownPreview content={value} />
               ) : (
                 <p className="text-sm text-muted-foreground">
                   Nothing to preview yet.

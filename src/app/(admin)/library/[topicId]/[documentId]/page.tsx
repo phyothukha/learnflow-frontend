@@ -89,6 +89,7 @@ import { useFetchNotes } from "@/store/server/notes/queries";
 import { useCreateNote } from "@/store/server/notes/mutations";
 import { DocumentDetailDialog } from "../../components/document-detail-dialog";
 import { findFolderPath } from "../../components/folder-explorer";
+import { libraryCardClassName } from "../../components/library-card";
 import {
   CsvTable,
   csvStats,
@@ -406,7 +407,7 @@ export default function DocumentViewerPage({
               "overflow-hidden bg-card",
               fullscreen
                 ? "fixed inset-0 z-50 flex flex-col bg-background"
-                : "rounded-xl border shadow-sm",
+                : libraryCardClassName,
               !fullscreen &&
                 isTextKind &&
                 "flex h-[calc(100svh-12rem)] min-h-[420px] flex-col",
@@ -738,7 +739,7 @@ function InfoPanel({
     });
 
   return (
-    <aside className="rounded-xl border bg-card shadow-sm">
+    <aside className={libraryCardClassName}>
       <div className="flex items-center justify-between px-4 pt-4">
         <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
           Details
@@ -1041,6 +1042,7 @@ function RelatedPanel({
   topicId: string;
   className?: string;
 }) {
+  const router = useRouter();
   const [noteTitle, setNoteTitle] = useState("");
   const { data: notesData } = useFetchNotes({
     documentId: document.Id,
@@ -1063,9 +1065,10 @@ function RelatedPanel({
     createNote.mutate(
       { TopicId: topicId, DocumentId: document.Id, Title: noteTitle.trim() },
       {
-        onSuccess: () => {
+        onSuccess: (note) => {
           setNoteTitle("");
           toast.success("Note added");
+          router.push(`/notes/${note.Id}`);
         },
         onError: () => toast.error("Failed to add note"),
       },
@@ -1073,12 +1076,7 @@ function RelatedPanel({
   };
 
   return (
-    <aside
-      className={cn(
-        "space-y-6 rounded-xl border bg-card p-4 shadow-sm",
-        className,
-      )}
-    >
+    <aside className={cn("space-y-6 p-4", libraryCardClassName, className)}>
       <CollapsibleSection title="Notes" count={notes.length}>
         <div className="flex gap-2">
           <Input
@@ -1104,7 +1102,11 @@ function RelatedPanel({
         ) : (
           <div className="space-y-2">
             {notes.map((note) => (
-              <div key={note.Id} className="rounded-lg border p-3">
+              <Link
+                key={note.Id}
+                href={`/notes/${note.Id}`}
+                className="block rounded-lg border p-3 transition-colors hover:bg-accent/50"
+              >
                 <div className="flex items-start gap-2">
                   <NotebookPen className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
                   <div className="min-w-0 flex-1">
@@ -1119,7 +1121,7 @@ function RelatedPanel({
                     </p>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
             <Link
               href="/notes"

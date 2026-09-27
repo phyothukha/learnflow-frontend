@@ -10,6 +10,8 @@ import type { Enrollment } from "@/store/server/enrollments/interface";
 
 type DialogType = "create" | "edit" | "delete" | null;
 
+export type EnrollmentsDialogType = DialogType;
+
 interface EnrollmentsContextType {
   open: DialogType;
   setOpen: (type: DialogType) => void;

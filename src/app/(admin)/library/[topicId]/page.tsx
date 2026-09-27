@@ -17,14 +17,10 @@ import {
   FolderPlus,
   LayoutGrid,
   List,
-  MoreHorizontal,
   Search,
-  Settings2,
   Tag,
-  Trash2,
   X,
 } from "lucide-react";
-import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,9 +28,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -54,17 +47,16 @@ import {
 import { useWorkspaceStore } from "@/store/client/workspace";
 import { useFetchTopics } from "@/store/server/topics/queries";
 import { useFetchDocuments } from "@/store/server/documents/queries";
-import {
-  useDeleteDocument,
-  useUpdateDocument,
-} from "@/store/server/documents/mutations";
-import type {
-  DocumentStatus,
-  StudyDocument,
-} from "@/store/server/documents/interface";
+import type { StudyDocument } from "@/store/server/documents/interface";
 import { useFetchFolderTree } from "@/store/server/topic-folders/queries";
 import { CreateDocumentDialog } from "../components/create-document-dialog";
 import { DocumentDetailDialog } from "../components/document-detail-dialog";
+import {
+  DocumentActions,
+  DocumentStatusPill,
+} from "../components/documents-columns";
+import { DocumentsTable } from "../components/documents-table";
+import { libraryCardClassName } from "../components/library-card";
 import {
   collectFolderIds,
   findFolderPath,
@@ -76,24 +68,6 @@ import {
   FolderNameDialog,
   NewFolderCard,
 } from "../components/folder-explorer";
-
-const STATUS_LABEL: Record<DocumentStatus, string> = {
-  Unread: "Unread",
-  InProgress: "In progress",
-  Completed: "Completed",
-};
-
-const STATUS_DOT: Record<DocumentStatus, string> = {
-  Unread: "bg-slate-400",
-  InProgress: "bg-amber-500",
-  Completed: "bg-emerald-500",
-};
-
-const STATUS_STYLE: Record<DocumentStatus, string> = {
-  Unread: "bg-slate-500/10 text-slate-600 dark:text-slate-300",
-  InProgress: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
-  Completed: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-};
 
 const KIND_FILTERS: DocumentKind[] = [
   "markdown",
@@ -378,7 +352,7 @@ export default function TopicDocumentsPage({
             </section>
           )}
 
-          <section className="overflow-hidden rounded-xl border bg-card shadow-sm">
+          <section className={cn("overflow-hidden", libraryCardClassName)}>
             <div className="flex flex-wrap items-center justify-between gap-2 px-4 pt-4">
               <SectionTitle
                 title={isSearching ? `Results for “${search.trim()}”` : "Files"}
@@ -511,7 +485,7 @@ export default function TopicDocumentsPage({
                   ))}
                 </div>
               ) : (
-                <DocumentTable
+                <DocumentsTable
                   documents={files}
                   topicId={topicId}
                   onSettings={setSettingsDocument}
@@ -580,90 +554,6 @@ function KindTab({
   );
 }
 
-function StatusPill({ status }: { status: DocumentStatus }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-md px-1.5 py-0.5 text-[11px] font-medium",
-        STATUS_STYLE[status],
-      )}
-    >
-      <span className={cn("size-1.5 rounded-full", STATUS_DOT[status])} />
-      {STATUS_LABEL[status]}
-    </span>
-  );
-}
-
-function DocumentActions({
-  document,
-  onSettings,
-  className,
-}: {
-  document: StudyDocument;
-  onSettings: () => void;
-  className?: string;
-}) {
-  const updateDocument = useUpdateDocument();
-  const deleteDocument = useDeleteDocument();
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn("size-7 text-muted-foreground", className)}
-          onClick={(e) => e.preventDefault()}
-        >
-          <MoreHorizontal className="size-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        className="w-44"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <DropdownMenuLabel className="text-xs text-muted-foreground">
-          Status
-        </DropdownMenuLabel>
-        <DropdownMenuRadioGroup
-          value={document.Status}
-          onValueChange={(value) =>
-            updateDocument.mutate({
-              id: document.Id,
-              payload: { Status: value as DocumentStatus },
-            })
-          }
-        >
-          {(Object.keys(STATUS_LABEL) as DocumentStatus[]).map((value) => (
-            <DropdownMenuRadioItem key={value} value={value}>
-              {STATUS_LABEL[value]}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={onSettings}>
-          <Settings2 />
-          Settings
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          variant="destructive"
-          onClick={() => {
-            if (!window.confirm(`Delete "${document.Title}"?`)) return;
-            deleteDocument.mutate(document.Id, {
-              onSuccess: () => toast.success("Document deleted"),
-              onError: () => toast.error("Failed to delete document"),
-            });
-          }}
-        >
-          <Trash2 />
-          Delete
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
 function DocumentCard({
   document,
   href,
@@ -679,7 +569,10 @@ function DocumentCard({
   return (
     <Link
       href={href}
-      className="group flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
+      className={cn(
+        "group flex flex-col gap-3 p-4 transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_44px_rgba(15,23,42,0.1)]",
+        libraryCardClassName,
+      )}
     >
       <div className="flex items-start gap-3">
         <div className={cn("shrink-0 rounded-lg p-2", meta.className)}>
@@ -723,7 +616,7 @@ function DocumentCard({
             Status
           </dt>
           <dd>
-            <StatusPill status={document.Status} />
+            <DocumentStatusPill status={document.Status} />
           </dd>
         </div>
       </dl>
@@ -748,113 +641,5 @@ function DocumentCard({
         <ArrowUpRight className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
       </div>
     </Link>
-  );
-}
-
-function DocumentTable({
-  documents,
-  topicId,
-  onSettings,
-}: {
-  documents: StudyDocument[];
-  topicId: string;
-  onSettings: (document: StudyDocument) => void;
-}) {
-  const router = useRouter();
-
-  return (
-    <div className="overflow-hidden rounded-xl border bg-card">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="border-b bg-muted/40 text-xs text-muted-foreground">
-            <tr>
-              <th className="px-4 py-2.5 text-left font-medium">Name</th>
-              <th className="hidden px-4 py-2.5 text-left font-medium md:table-cell">
-                Type
-              </th>
-              <th className="px-4 py-2.5 text-left font-medium">Status</th>
-              <th className="hidden px-4 py-2.5 text-left font-medium lg:table-cell">
-                Tags
-              </th>
-              <th className="hidden px-4 py-2.5 text-left font-medium sm:table-cell">
-                Updated
-              </th>
-              <th className="w-12" />
-            </tr>
-          </thead>
-          <tbody>
-            {documents.map((doc) => {
-              const kind = getDocumentKind(doc.FileType);
-              const meta = KIND_META[kind];
-              const href = `/library/${topicId}/${doc.Id}`;
-              return (
-                <tr
-                  key={doc.Id}
-                  onClick={() => router.push(href)}
-                  className="group cursor-pointer border-b transition-colors last:border-0 hover:bg-accent/50"
-                >
-                  <td className="px-4 py-2.5">
-                    <div className="flex min-w-0 items-center gap-3">
-                      <div
-                        className={cn(
-                          "shrink-0 rounded-md p-1.5",
-                          meta.className,
-                        )}
-                      >
-                        <DocumentKindIcon kind={kind} size={16} />
-                      </div>
-                      <Link
-                        href={href}
-                        className="truncate font-medium group-hover:underline group-hover:underline-offset-2"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {doc.Title}
-                      </Link>
-                    </div>
-                  </td>
-                  <td className="hidden px-4 py-2.5 text-muted-foreground md:table-cell">
-                    {meta.label}
-                    <span className="ml-1.5 rounded border px-1 py-px text-[10px]">
-                      {getExtensionLabel(doc.FileType)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <StatusPill status={doc.Status} />
-                  </td>
-                  <td className="hidden px-4 py-2.5 lg:table-cell">
-                    <div className="flex flex-wrap gap-1">
-                      {doc.Tags.slice(0, 3).map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant="secondary"
-                          className="h-5 px-1.5 text-[10px]"
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
-                      {doc.Tags.length === 0 && (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="hidden px-4 py-2.5 whitespace-nowrap text-muted-foreground sm:table-cell">
-                    {dayjs(doc.UpdatedAt).format("MMM D, YYYY")}
-                  </td>
-                  <td
-                    className="px-2 py-2.5 text-right"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <DocumentActions
-                      document={doc}
-                      onSettings={() => onSettings(doc)}
-                    />
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
   );
 }

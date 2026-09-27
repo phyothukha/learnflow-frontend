@@ -1,22 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Check,
-  Copy,
-  ExternalLink,
-  FileWarning,
-  Loader2,
-  Save,
-  X,
-} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ExternalLink, FileWarning, Loader2, Save, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
 import { MarkdownSplitEditor } from "@/components/markdown/markdown-split-editor";
+import {
+  MarkdownPreview,
+  uniqueSlug,
+} from "@/components/markdown/markdown-preview";
 import { cn } from "@/lib/utils";
 import { useUpdateDocument } from "@/store/server/documents/mutations";
 import type { StudyDocument } from "@/store/server/documents/interface";
+
+export { MarkdownPreview };
 
 const MAX_CSV_ROWS = 1000;
 
@@ -29,71 +26,7 @@ export function downloadText(content: string, fileName: string, type: string) {
   URL.revokeObjectURL(url);
 }
 
-/** Long-form reading styles layered on top of the base renderer. */
-const DOCUMENT_PROSE = cn(
-  "mx-auto max-w-4xl min-w-0 text-[15px] leading-7 break-words text-foreground/90 [overflow-wrap:anywhere]",
-  "[&_h1]:scroll-mt-4 [&_h2]:scroll-mt-4 [&_h3]:scroll-mt-4 [&_h1]:mt-0 [&_h1]:mb-5 [&_h1]:border-b [&_h1]:pb-3 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:tracking-tight [&_h1]:text-foreground",
-  "[&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-foreground",
-  "[&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-foreground",
-  "[&_p]:mb-4 [&_li]:mb-1.5 [&_li::marker]:text-muted-foreground",
-  "[&_strong]:font-semibold [&_strong]:text-foreground",
-  "[&_blockquote]:my-5 [&_blockquote]:rounded-r-lg [&_blockquote]:border-l-4 [&_blockquote]:border-primary/40 [&_blockquote]:bg-muted/50 [&_blockquote]:py-2 [&_blockquote]:pr-4 [&_blockquote]:pl-4 [&_blockquote]:italic",
-  "[&_pre]:my-5 [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:border [&_pre]:bg-muted/60 [&_pre]:p-4 [&_pre]:text-[13px] [&_pre]:leading-6 [&_pre]:[overflow-wrap:normal]",
-  "[&_:not(pre)>code]:rounded-md [&_:not(pre)>code]:border [&_:not(pre)>code]:bg-muted/60 [&_:not(pre)>code]:px-1.5 [&_:not(pre)>code]:py-0.5 [&_:not(pre)>code]:text-[13px]",
-  "[&_table]:my-5 [&_table]:block [&_table]:w-max [&_table]:max-w-full [&_table]:overflow-x-auto [&_table]:rounded-lg [&_td]:[overflow-wrap:normal] [&_table]:text-sm [&_th]:bg-muted/60 [&_th]:px-3 [&_th]:py-2 [&_th]:font-semibold [&_td]:px-3 [&_td]:py-2",
-  "[&_img]:my-5 [&_img]:h-auto [&_img]:max-w-full [&_img]:rounded-xl [&_img]:border",
-  "[&_hr]:my-8 [&_a]:font-medium",
-);
-
 export type OutlineHeading = { id: string; text: string; level: number };
-
-function slugify(text: string) {
-  return (
-    text
-      .toLowerCase()
-      .trim()
-      .replace(/[^\p{L}\p{M}\p{N}\s-]/gu, "")
-      .replace(/\s+/g, "-") || "section"
-  );
-}
-
-function uniqueSlug(text: string, seen: Map<string, number>) {
-  const base = slugify(text);
-  const count = seen.get(base) ?? 0;
-  seen.set(base, count + 1);
-  return count ? `${base}-${count}` : base;
-}
-
-type HastNode = {
-  type: string;
-  tagName?: string;
-  value?: string;
-  properties?: Record<string, unknown>;
-  children?: HastNode[];
-};
-
-function hastText(node: HastNode): string {
-  if (node.type === "text") return node.value ?? "";
-  return (node.children ?? []).map(hastText).join("");
-}
-
-// Ids are assigned on the parsed tree (not during React render) so they stay
-// stable under StrictMode double rendering and match extractHeadings().
-function rehypeHeadingIds() {
-  return (tree: HastNode) => {
-    const seen = new Map<string, number>();
-    const walk = (node: HastNode) => {
-      if (node.type === "element" && /^h[1-3]$/.test(node.tagName ?? "")) {
-        node.properties = {
-          ...node.properties,
-          id: uniqueSlug(hastText(node).trim(), seen),
-        };
-      }
-      node.children?.forEach(walk);
-    };
-    walk(tree);
-  };
-}
 
 export function extractHeadings(content: string): OutlineHeading[] {
   const seen = new Map<string, number>();
@@ -115,39 +48,6 @@ export function extractHeadings(content: string): OutlineHeading[] {
     });
   }
   return headings;
-}
-
-function CodeBlock({ children }: { children?: React.ReactNode }) {
-  const ref = useRef<HTMLPreElement>(null);
-  const [copied, setCopied] = useState(false);
-  return (
-    <div className="group/code relative">
-      <pre ref={ref}>{children}</pre>
-      <button
-        type="button"
-        onClick={async () => {
-          await navigator.clipboard.writeText(ref.current?.innerText ?? "");
-          setCopied(true);
-          setTimeout(() => setCopied(false), 1500);
-        }}
-        className="absolute top-2.5 right-2.5 inline-flex items-center gap-1 rounded-md border bg-background/90 px-2 py-1 text-[11px] font-medium text-muted-foreground opacity-0 shadow-xs transition-opacity group-hover/code:opacity-100 hover:text-foreground focus-visible:opacity-100"
-      >
-        {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
-        {copied ? "Copied" : "Copy"}
-      </button>
-    </div>
-  );
-}
-
-export function MarkdownPreview({ content }: { content: string }) {
-  return (
-    <MarkdownRenderer
-      content={content}
-      className={DOCUMENT_PROSE}
-      rehypePlugins={[rehypeHeadingIds]}
-      components={{ pre: CodeBlock }}
-    />
-  );
 }
 
 export function DocumentOutline({

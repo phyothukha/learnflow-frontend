@@ -36,6 +36,7 @@ import {
   useUpdateFolder,
 } from "@/store/server/topic-folders/mutations";
 import type { TopicFolderTreeNode } from "@/store/server/topic-folders/interface";
+import { libraryCardClassName } from "./library-card";
 
 const FOLDER_COLORS = [
   "#3b82f6",
@@ -243,7 +244,7 @@ export function FolderSidebar({
   };
 
   return (
-    <aside className={cn("rounded-xl border bg-card shadow-sm", className)}>
+    <aside className={cn(libraryCardClassName, className)}>
       <div className="flex items-center justify-between border-b px-4 py-3">
         <p className="text-sm font-semibold">Folders</p>
         <Button
@@ -310,7 +311,10 @@ export function FolderCard({
       tabIndex={0}
       onClick={onOpen}
       onKeyDown={(e) => e.key === "Enter" && onOpen()}
-      className="group relative flex cursor-pointer flex-col gap-5 rounded-xl border bg-card p-4 shadow-sm transition-all outline-none hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring"
+      className={cn(
+        "group relative flex cursor-pointer flex-col gap-5 p-4 transition-all outline-none hover:-translate-y-0.5 hover:shadow-[0_14px_44px_rgba(15,23,42,0.1)] focus-visible:ring-2 focus-visible:ring-ring",
+        libraryCardClassName,
+      )}
     >
       <div className="flex items-start justify-between">
         <FolderGlyph color={folderColor(node.Id)} />

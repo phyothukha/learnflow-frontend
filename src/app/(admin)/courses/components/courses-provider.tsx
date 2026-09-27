@@ -7,12 +7,11 @@ import {
   type PropsWithChildren,
 } from "react";
 import type { Course } from "@/store/server/courses/interface";
-
-type DialogType = "create" | "edit" | "delete" | null;
+import type { CoursesDialogType } from "./courses-columns.props";
 
 interface CoursesContextType {
-  open: DialogType;
-  setOpen: (type: DialogType) => void;
+  open: CoursesDialogType;
+  setOpen: (type: CoursesDialogType) => void;
   currentRow: Course | null;
   setCurrentRow: (row: Course | null) => void;
 }
@@ -20,7 +19,7 @@ interface CoursesContextType {
 const CoursesContext = createContext<CoursesContextType>(null!);
 
 export function CoursesProvider({ children }: PropsWithChildren) {
-  const [open, setOpen] = useState<DialogType>(null);
+  const [open, setOpen] = useState<CoursesDialogType>(null);
   const [currentRow, setCurrentRow] = useState<Course | null>(null);
 
   return (

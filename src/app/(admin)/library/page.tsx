@@ -1,20 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 import {
-  ArrowRight,
-  Calendar,
-  Clock,
-  FileText,
+  BookOpen,
+  Code2,
+  FlaskConical,
   Library,
+  Lightbulb,
+  Palette,
   Plus,
   Search,
   Trash2,
+  type LucideIcon,
 } from "lucide-react";
+
+dayjs.extend(relativeTime);
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +39,7 @@ import { PERMISSIONS } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 import { useWorkspaceStore } from "@/store/client/workspace";
 import { useFetchTopics } from "@/store/server/topics/queries";
+import { useFetchDocuments } from "@/store/server/documents/queries";
 import {
   useCreateTopic,
   useDeleteTopic,
@@ -43,6 +49,7 @@ import {
   FALLBACK_TOPIC_COLOR as FALLBACK_COLOR,
   TOPIC_COLORS,
 } from "@/lib/topic-colors";
+import { libraryCardClassName } from "./components/library-card";
 
 type SortMode = "recent" | "name" | "created";
 
@@ -72,7 +79,16 @@ export default function LibraryPage() {
   const [sort, setSort] = useState<SortMode>("recent");
 
   const { data: topicsData, isLoading } = useFetchTopics({ limit: 100 });
+  const { data: documentsData } = useFetchDocuments({ limit: 500 });
   const deleteTopic = useDeleteTopic();
+
+  const fileCountByTopic = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const doc of documentsData?.Items ?? []) {
+      counts.set(doc.TopicId, (counts.get(doc.TopicId) ?? 0) + 1);
+    }
+    return counts;
+  }, [documentsData?.Items]);
 
   useEffect(() => {
     if (status === "authenticated" && !canView) router.replace("/forbidden");
@@ -123,7 +139,7 @@ export default function LibraryPage() {
         <CreateTopicDialog />
       </div>
 
-      <div className="space-y-3 rounded-xl border bg-card p-3 shadow-sm">
+      <div className={cn("space-y-3 p-3", libraryCardClassName)}>
         <div className="relative">
           <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -152,9 +168,9 @@ export default function LibraryPage() {
       </div>
 
       {isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-52 rounded-xl" />
+            <Skeleton key={i} className="h-[220px] rounded-xl" />
           ))}
         </div>
       ) : topics.length === 0 ? (
@@ -172,11 +188,12 @@ export default function LibraryPage() {
           No topics match “{search}”.
         </p>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {visibleTopics.map((topic) => (
             <TopicCard
               key={topic.Id}
               topic={topic}
+              fileCount={fileCountByTopic.get(topic.Id) ?? 0}
               isActive={activeTopicId === topic.Id}
               onOpen={() => setActiveTopic(topic.Id)}
               onDelete={() => handleDelete(topic)}
@@ -188,92 +205,129 @@ export default function LibraryPage() {
   );
 }
 
+const TOPIC_ICONS: LucideIcon[] = [
+  Palette,
+  BookOpen,
+  Code2,
+  FlaskConical,
+  Lightbulb,
+  Library,
+];
+
+function topicIcon(topicId: string): LucideIcon {
+  let hash = 0;
+  for (let i = 0; i < topicId.length; i++)
+    hash = (hash + topicId.charCodeAt(i) * (i + 1)) % TOPIC_ICONS.length;
+  return TOPIC_ICONS[hash]!;
+}
+
+function topicInitials(title: string) {
+  return title
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 4)
+    .map((word) => word.charAt(0).toUpperCase());
+}
+
 function TopicCard({
   topic,
+  fileCount,
   isActive,
   onOpen,
   onDelete,
 }: {
   topic: Topic;
+  fileCount: number;
   isActive: boolean;
   onOpen: () => void;
   onDelete: () => void;
 }) {
   const color = topic.Color ?? FALLBACK_COLOR;
+  const Icon = topicIcon(topic.Id);
+  const initials = topicInitials(topic.Title);
+  const shown = initials.slice(0, 3);
+  const extra = Math.max(0, initials.length - shown.length);
 
   return (
     <Link
       href={`/library/${topic.Id}`}
       onClick={onOpen}
-      className="group flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
+      className={cn(
+        "group relative flex flex-col gap-5 p-5 transition-all hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(15,23,42,0.12)]",
+        libraryCardClassName,
+        isActive && "ring-2 ring-primary/30",
+      )}
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-start justify-between gap-3">
+        <h2 className="line-clamp-2 min-w-0 text-base leading-snug font-semibold text-foreground">
+          {topic.Title}
+        </h2>
+        <div className="flex shrink-0 items-center gap-1">
+          <span className="text-xs whitespace-nowrap text-muted-foreground">
+            {fileCount.toLocaleString()} {fileCount === 1 ? "File" : "Files"}
+          </span>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-7 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive"
+            title="Delete topic"
+            aria-label={`Delete ${topic.Title}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete();
+            }}
+          >
+            <Trash2 className="size-3.5" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex items-end justify-between gap-3">
+        <div className="min-w-0 space-y-2">
+          <p className="text-[11px] font-medium text-muted-foreground">
+            {isActive ? "Current context" : "Topic"}
+          </p>
+          <div className="flex items-center">
+            {shown.map((letter, i) => (
+              <span
+                key={`${letter}-${i}`}
+                className="flex size-7 items-center justify-center rounded-full border-2 border-card text-[11px] font-semibold text-white"
+                style={{
+                  backgroundColor: color,
+                  marginLeft: i === 0 ? 0 : -8,
+                  filter: i ? `brightness(${1 - i * 0.08})` : undefined,
+                }}
+              >
+                {letter}
+              </span>
+            ))}
+            {(extra > 0 || fileCount > 3) && (
+              <span
+                className="flex size-7 items-center justify-center rounded-full border-2 border-card text-[10px] font-semibold"
+                style={{
+                  marginLeft: -8,
+                  backgroundColor: `${color}22`,
+                  color,
+                }}
+              >
+                +{extra > 0 ? extra : Math.min(fileCount, 9)}
+              </span>
+            )}
+          </div>
+        </div>
+
         <div
-          className="flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold ring-4"
-          style={
-            {
-              backgroundColor: `${color}1f`,
-              color,
-              "--tw-ring-color": `${color}14`,
-            } as React.CSSProperties
-          }
+          className="flex size-14 shrink-0 items-center justify-center rounded-2xl"
+          style={{ backgroundColor: `${color}1f`, color }}
         >
-          {topic.Title.charAt(0).toUpperCase()}
+          <Icon className="size-7" strokeWidth={1.75} />
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold">{topic.Title}</p>
-          {isActive && (
-            <p className="text-[11px] font-medium text-primary">
-              Current context
-            </p>
-          )}
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-8 shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-          title="Delete topic"
-          aria-label={`Delete ${topic.Title}`}
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onDelete();
-          }}
-        >
-          <Trash2 className="size-4" />
-        </Button>
       </div>
 
-      <dl className="space-y-2 rounded-lg border bg-muted/40 p-3 text-sm">
-        <div className="flex items-start gap-2.5">
-          <FileText className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
-          <dd className="line-clamp-2 text-muted-foreground">
-            {topic.Description || "No description"}
-          </dd>
-        </div>
-        <div className="flex items-center gap-2.5">
-          <Calendar className="size-3.5 shrink-0 text-muted-foreground" />
-          <dd>Created {dayjs(topic.CreatedAt).format("MMM D, YYYY")}</dd>
-        </div>
-        <div className="flex items-center gap-2.5">
-          <Clock className="size-3.5 shrink-0 text-muted-foreground" />
-          <dd>Updated {dayjs(topic.UpdatedAt).format("MMM D, YYYY")}</dd>
-        </div>
-      </dl>
-
-      <div className="flex items-center justify-between text-xs">
-        <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-          <span
-            className="size-2 rounded-full"
-            style={{ backgroundColor: color }}
-          />
-          Topic
-        </span>
-        <span className="inline-flex items-center gap-1 font-medium text-muted-foreground transition-colors group-hover:text-foreground">
-          Open topic
-          <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
-        </span>
-      </div>
+      <p className="text-xs text-muted-foreground">
+        Last updated — {dayjs(topic.UpdatedAt).fromNow()}
+      </p>
     </Link>
   );
 }
