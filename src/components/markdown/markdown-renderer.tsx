@@ -1,4 +1,4 @@
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { type Components, type Options } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 
@@ -11,9 +11,13 @@ import { cn } from "@/lib/utils";
 export function MarkdownRenderer({
   content,
   className,
+  components,
+  rehypePlugins,
 }: {
   content: string;
   className?: string;
+  components?: Components;
+  rehypePlugins?: Options["rehypePlugins"];
 }) {
   return (
     <div
@@ -38,7 +42,13 @@ export function MarkdownRenderer({
         className,
       )}
     >
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={components}
+        rehypePlugins={rehypePlugins}
+      >
+        {content}
+      </ReactMarkdown>
     </div>
   );
 }

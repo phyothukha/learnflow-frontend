@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import dayjs from "dayjs";
@@ -26,6 +27,7 @@ import {
 } from "@/store/server/notes/mutations";
 import type { Note } from "@/store/server/notes/interface";
 import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
+import { TopicContextSwitcher } from "@/components/topic-context-switcher";
 
 const FALLBACK_COLOR = "#8b8b8b";
 
@@ -135,12 +137,15 @@ function NotesWorkspace({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <span
-          className="size-3 rounded-full"
-          style={{ backgroundColor: topicColor }}
-        />
-        <h1 className="text-2xl font-semibold">Notes — {topicTitle}</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span
+            className="size-3 rounded-full"
+            style={{ backgroundColor: topicColor }}
+          />
+          <h1 className="text-2xl font-semibold">Notes — {topicTitle}</h1>
+        </div>
+        <TopicContextSwitcher />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
@@ -216,16 +221,14 @@ function NotesWorkspace({
               </h2>
               <div className="flex flex-wrap gap-2">
                 {documents.map((doc) => (
-                  <a
+                  <Link
                     key={doc.Id}
-                    href={doc.FileUrl ?? "#"}
-                    target={doc.FileUrl ? "_blank" : undefined}
-                    rel="noreferrer"
+                    href={`/library/${doc.TopicId}/${doc.Id}`}
                     className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs hover:bg-accent"
                   >
                     <FileText className="size-3" />
                     {doc.Title}
-                  </a>
+                  </Link>
                 ))}
               </div>
             </div>

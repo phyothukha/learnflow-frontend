@@ -7,6 +7,7 @@ import { useFetchDocuments } from "@/store/server/documents/queries";
 import { useFetchNotes } from "@/store/server/notes/queries";
 import { useFetchStudyBlocks } from "@/store/server/study-blocks/queries";
 import { FALLBACK_TOPIC_COLOR } from "@/lib/topic-colors";
+import { TopicContextSwitcher } from "@/components/topic-context-switcher";
 import { StatTiles } from "./components/stat-tiles";
 import { WeeklyFocusCard } from "./components/weekly-focus-card";
 import { TopicsCard } from "./components/topics-card";
@@ -50,12 +51,15 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-semibold">{greeting} 👋</h1>
-        <p className="text-sm text-muted-foreground">
-          {dayjs().format("dddd, MMMM D YYYY")} — here&apos;s your learning at a
-          glance.
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">{greeting} 👋</h1>
+          <p className="text-sm text-muted-foreground">
+            {dayjs().format("dddd, MMMM D YYYY")} — here&apos;s your learning at
+            a glance.
+          </p>
+        </div>
+        <TopicContextSwitcher />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-12">

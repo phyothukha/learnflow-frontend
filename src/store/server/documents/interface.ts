@@ -16,6 +16,7 @@ export interface StudyDocument {
   Title: string;
   FileUrl: string | null;
   FileType: string | null;
+  Content: string | null;
   Status: DocumentStatus;
   TimeSpentMinutes: number;
   LastOpenedAt: string | null;
@@ -41,6 +42,7 @@ export interface CreateDocumentPayload {
   Title: string;
   FileUrl?: string;
   FileType?: string;
+  Content?: string;
   Status?: DocumentStatus;
   Tags?: string[];
 }

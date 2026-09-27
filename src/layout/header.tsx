@@ -5,7 +5,6 @@ import { useSession, signOut } from "next-auth/react";
 import { LogOut, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { TopicContextSwitcher } from "@/components/topic-context-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useWorkspaceStore } from "@/store/client/workspace";
 import { Separator } from "@/components/ui/separator";
@@ -31,7 +30,7 @@ export function Header() {
   const soundMuted = useWorkspaceStore((s) => s.soundMuted);
   const toggleSoundMuted = useWorkspaceStore((s) => s.toggleSoundMuted);
 
-  const pageTitle = pathname.split("/").filter(Boolean).pop() ?? "";
+  const pageTitle = pathname.split("/").filter(Boolean)[0] ?? "";
   const initials = (session?.user?.name ?? "?")
     .split(" ")
     .map((part) => part[0])
@@ -53,8 +52,6 @@ export function Header() {
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
-        <Separator orientation="vertical" className="mx-2 h-4" />
-        <TopicContextSwitcher />
       </div>
       <div className="flex items-center gap-1">
         <ThemeToggle />

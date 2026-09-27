@@ -1,0 +1,246 @@
+"use client";
+
+import { useRef, useState } from "react";
+import {
+  Bold,
+  Code,
+  Columns2,
+  Eye,
+  Heading2,
+  Italic,
+  Link2,
+  List,
+  ListOrdered,
+  PenLine,
+  Quote,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { MarkdownRenderer } from "./markdown-renderer";
+
+type ViewMode = "write" | "split" | "preview";
+
+type Format = {
+  icon: typeof Bold;
+  label: string;
+  prefix: string;
+  suffix?: string;
+  placeholder: string;
+  block?: boolean;
+};
+
+const FORMATS: Format[] = [
+  {
+    icon: Heading2,
+    label: "Heading",
+    prefix: "## ",
+    placeholder: "Heading",
+    block: true,
+  },
+  {
+    icon: Bold,
+    label: "Bold",
+    prefix: "**",
+    suffix: "**",
+    placeholder: "bold text",
+  },
+  {
+    icon: Italic,
+    label: "Italic",
+    prefix: "_",
+    suffix: "_",
+    placeholder: "italic text",
+  },
+  { icon: Code, label: "Code", prefix: "`", suffix: "`", placeholder: "code" },
+  {
+    icon: Link2,
+    label: "Link",
+    prefix: "[",
+    suffix: "](https://)",
+    placeholder: "link text",
+  },
+  {
+    icon: List,
+    label: "Bulleted list",
+    prefix: "- ",
+    placeholder: "List item",
+    block: true,
+  },
+  {
+    icon: ListOrdered,
+    label: "Numbered list",
+    prefix: "1. ",
+    placeholder: "List item",
+    block: true,
+  },
+  {
+    icon: Quote,
+    label: "Quote",
+    prefix: "> ",
+    placeholder: "Quote",
+    block: true,
+  },
+];
+
+const VIEW_MODES: { value: ViewMode; label: string; icon: typeof Eye }[] = [
+  { value: "write", label: "Write", icon: PenLine },
+  { value: "split", label: "Split", icon: Columns2 },
+  { value: "preview", label: "Preview", icon: Eye },
+];
+
+export function MarkdownSplitEditor({
+  value,
+  onChange,
+  onSave,
+  className,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  onSave?: () => void;
+  className?: string;
+}) {
+  const [mode, setMode] = useState<ViewMode>("split");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
+
+  const wordCount = value.trim() ? value.trim().split(/\s+/).length : 0;
+
+  const applyFormat = (format: Format) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    const { selectionStart: start, selectionEnd: end } = textarea;
+    const selected = value.slice(start, end) || format.placeholder;
+    const needsNewline = format.block && start > 0 && value[start - 1] !== "\n";
+    const prefix = `${needsNewline ? "\n" : ""}${format.prefix}`;
+    const suffix = format.suffix ?? "";
+    const next =
+      value.slice(0, start) + prefix + selected + suffix + value.slice(end);
+    onChange(next);
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.setSelectionRange(
+        start + prefix.length,
+        start + prefix.length + selected.length,
+      );
+    });
+  };
+
+  // Keep the preview roughly aligned with the editor while scrolling.
+  const syncScroll = () => {
+    const textarea = textareaRef.current;
+    const preview = previewRef.current;
+    if (!textarea || !preview || mode !== "split") return;
+    const maxScroll = textarea.scrollHeight - textarea.clientHeight;
+    const ratio = maxScroll > 0 ? textarea.scrollTop / maxScroll : 0;
+    preview.scrollTop = ratio * (preview.scrollHeight - preview.clientHeight);
+  };
+
+  return (
+    <div
+      className={cn(
+        "flex min-h-0 flex-col overflow-hidden rounded-lg border bg-card",
+        className,
+      )}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/40 px-2 py-1.5">
+        <div className="flex flex-wrap items-center gap-0.5">
+          {FORMATS.map((format) => (
+            <Button
+              key={format.label}
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground"
+              title={format.label}
+              disabled={mode === "preview"}
+              onClick={() => applyFormat(format)}
+            >
+              <format.icon className="size-3.5" />
+            </Button>
+          ))}
+        </div>
+        <div className="flex items-center rounded-md border bg-background p-0.5">
+          {VIEW_MODES.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => setMode(option.value)}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground",
+                mode === option.value && "bg-accent text-foreground shadow-xs",
+                option.value === "split" && "hidden md:inline-flex",
+              )}
+            >
+              <option.icon className="size-3.5" />
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div
+        className={cn(
+          "grid min-h-0 flex-1",
+          mode === "split" && "md:grid-cols-2 md:divide-x",
+        )}
+      >
+        {mode !== "preview" && (
+          <div className="flex min-h-0 flex-col">
+            <div className="border-b px-4 py-1.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+              Markdown
+            </div>
+            <textarea
+              ref={textareaRef}
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              onScroll={syncScroll}
+              onKeyDown={(e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+                  e.preventDefault();
+                  onSave?.();
+                }
+              }}
+              placeholder={
+                "# Start writing\n\nUse **Markdown** to format your document…"
+              }
+              spellCheck
+              className="min-h-[320px] flex-1 resize-none bg-transparent px-4 py-3 font-mono text-sm leading-relaxed outline-none placeholder:text-muted-foreground/60"
+            />
+          </div>
+        )}
+        {mode !== "write" && (
+          <div
+            className={cn(
+              "flex min-h-0 flex-col",
+              mode === "split" && "hidden md:flex",
+            )}
+          >
+            <div className="border-b px-4 py-1.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+              Preview
+            </div>
+            <div
+              ref={previewRef}
+              className="min-h-[320px] flex-1 overflow-y-auto px-5 py-4"
+            >
+              {value.trim() ? (
+                <MarkdownRenderer content={value} />
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Nothing to preview yet.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between border-t px-4 py-1.5 text-[11px] text-muted-foreground">
+        <span>Markdown supported · GitHub flavored</span>
+        <span>
+          {wordCount} {wordCount === 1 ? "word" : "words"}
+          {onSave && " · ⌘S to save"}
+        </span>
+      </div>
+    </div>
+  );
+}

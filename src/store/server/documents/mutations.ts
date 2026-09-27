@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  type QueryClient,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { clientAxios } from "@/lib/axios";
 import type {
   Attachment,
@@ -77,12 +81,18 @@ async function deleteAttachment({
   );
 }
 
+function invalidateDocuments(queryClient: QueryClient) {
+  return Promise.all([
+    queryClient.invalidateQueries({ queryKey: ["document-list"] }),
+    queryClient.invalidateQueries({ queryKey: ["document-detail"] }),
+  ]);
+}
+
 export function useCreateDocument() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createDocument,
-    onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: ["document-list"] }),
+    onSettled: () => invalidateDocuments(queryClient),
   });
 }
 
@@ -90,8 +100,7 @@ export function useUpdateDocument() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateDocument,
-    onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: ["document-list"] }),
+    onSettled: () => invalidateDocuments(queryClient),
   });
 }
 
@@ -99,8 +108,7 @@ export function useMoveDocument() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: moveDocument,
-    onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: ["document-list"] }),
+    onSettled: () => invalidateDocuments(queryClient),
   });
 }
 
@@ -108,8 +116,7 @@ export function useDeleteDocument() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteDocument,
-    onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: ["document-list"] }),
+    onSettled: () => invalidateDocuments(queryClient),
   });
 }
 
@@ -117,8 +124,7 @@ export function useUploadAttachment() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: uploadAttachment,
-    onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: ["document-list"] }),
+    onSettled: () => invalidateDocuments(queryClient),
   });
 }
 
@@ -126,7 +132,6 @@ export function useDeleteAttachment() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteAttachment,
-    onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: ["document-list"] }),
+    onSettled: () => invalidateDocuments(queryClient),
   });
 }
