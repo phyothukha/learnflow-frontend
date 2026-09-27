@@ -58,6 +58,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DocumentKindIcon } from "@/components/document-kind-icon";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
@@ -265,7 +266,6 @@ export default function DocumentViewerPage({
           { value: "normal", label: "Normal", icon: Code2 },
         ]
       : [{ value: "preview", label: "Preview", icon: Eye }];
-  const KindIcon = KIND_META[kind].icon;
   const headings = kind === "markdown" ? extractHeadings(content) : [];
   const scrollBody = fullscreen || isTextKind;
   const showOutlinePanel =
@@ -426,7 +426,7 @@ export default function DocumentViewerPage({
                       KIND_META[kind].className,
                     )}
                   >
-                    <KindIcon className="size-4" />
+                    <DocumentKindIcon kind={kind} size={16} />
                   </div>
                 ) : (
                   <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
@@ -730,7 +730,6 @@ function InfoPanel({
   const updateDocument = useUpdateDocument();
   const kind = getDocumentKind(document.FileType);
   const meta = KIND_META[kind];
-  const Icon = meta.icon;
 
   const setStatus = (value: string) =>
     updateDocument.mutate({
@@ -783,7 +782,7 @@ function InfoPanel({
 
       <div className="flex items-center gap-3 px-4 pt-5">
         <div className={cn("shrink-0 rounded-2xl p-3.5", meta.className)}>
-          <Icon className="size-7" />
+          <DocumentKindIcon kind={kind} size={28} />
         </div>
         <div className="min-w-0">
           <h1 className="line-clamp-2 text-base leading-snug font-semibold">
@@ -1141,7 +1140,6 @@ function RelatedPanel({
           <div className="space-y-2">
             {siblings.map((doc) => {
               const kind = getDocumentKind(doc.FileType);
-              const SiblingIcon = KIND_META[kind].icon;
               return (
                 <Link
                   key={doc.Id}
@@ -1157,7 +1155,7 @@ function RelatedPanel({
                   <dl className="mt-2 space-y-1.5 text-xs">
                     <div className="flex items-center gap-2">
                       <dt className="flex w-20 items-center gap-1.5 text-muted-foreground">
-                        <SiblingIcon className="size-3.5" />
+                        <DocumentKindIcon kind={kind} size={14} />
                         Type
                       </dt>
                       <dd>{KIND_META[kind].label}</dd>

@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DocumentKindIcon } from "@/components/document-kind-icon";
 import { TagInput } from "@/components/tags/tag-input";
 import { cn } from "@/lib/utils";
 import {
@@ -218,7 +219,6 @@ export function CreateDocumentDialog({
   };
 
   const fileKind = file ? getDocumentKind(getExtension(file.name)) : null;
-  const FileIcon = fileKind ? KIND_META[fileKind].icon : null;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -260,7 +260,7 @@ export function CreateDocumentDialog({
         <div className="space-y-4">
           {mode === "upload" && (
             <div className="space-y-2">
-              {file && FileIcon && fileKind ? (
+              {file && fileKind ? (
                 <div className="flex items-center gap-3 rounded-lg border p-3">
                   <div
                     className={cn(
@@ -268,7 +268,7 @@ export function CreateDocumentDialog({
                       KIND_META[fileKind].className,
                     )}
                   >
-                    <FileIcon className="size-5" />
+                    <DocumentKindIcon kind={fileKind} size={20} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{file.name}</p>

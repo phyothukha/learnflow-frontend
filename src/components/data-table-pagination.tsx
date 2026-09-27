@@ -26,9 +26,9 @@ export function DataTablePagination({
   onLimitChange: (limit: number) => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+    <div className="relative z-20 flex flex-wrap items-center justify-between gap-3 px-4 py-3">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        Result per page
+        Results per page
         <Select
           value={String(limit)}
           onValueChange={(value) => onLimitChange(Number(value))}
@@ -36,7 +36,13 @@ export function DataTablePagination({
           <SelectTrigger size="sm" className="w-[70px]">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent
+            position="popper"
+            side="top"
+            align="start"
+            sideOffset={6}
+            className="z-[200]"
+          >
             {PAGE_SIZE_OPTIONS.map((size) => (
               <SelectItem key={size} value={String(size)}>
                 {size}
@@ -49,8 +55,7 @@ export function DataTablePagination({
       <div className="flex items-center gap-1">
         <Button
           variant="outline"
-          size="icon"
-          className="size-8 rounded-md"
+          size="icon-sm"
           disabled={page === 0}
           onClick={() => onPageChange(page - 1)}
         >
@@ -61,8 +66,7 @@ export function DataTablePagination({
         </span>
         <Button
           variant="outline"
-          size="icon"
-          className="size-8 rounded-md"
+          size="icon-sm"
           disabled={page + 1 >= pageCount}
           onClick={() => onPageChange(page + 1)}
         >

@@ -92,7 +92,7 @@ export default function TimelinePage() {
         <h1 className="text-2xl font-semibold">Timeline</h1>
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
           <DialogTrigger asChild>
-            <Button size="sm">
+            <Button>
               <Plus className="size-4" />
               Add block
             </Button>

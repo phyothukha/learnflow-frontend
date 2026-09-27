@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DocumentKindIcon } from "@/components/document-kind-icon";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
@@ -458,27 +459,24 @@ export default function TopicDocumentsPage({
               >
                 All
               </KindTab>
-              {KIND_FILTERS.map((kind) => {
-                const Icon = KIND_META[kind].icon;
-                return (
-                  <KindTab
-                    key={kind}
-                    active={activeKind === kind}
-                    onClick={() =>
-                      setActiveKind(activeKind === kind ? null : kind)
-                    }
-                    count={kindCounts[kind] ?? 0}
-                  >
-                    <Icon className="size-4" />
-                    {KIND_META[kind].label}
-                  </KindTab>
-                );
-              })}
+              {KIND_FILTERS.map((kind) => (
+                <KindTab
+                  key={kind}
+                  active={activeKind === kind}
+                  onClick={() =>
+                    setActiveKind(activeKind === kind ? null : kind)
+                  }
+                  count={kindCounts[kind] ?? 0}
+                >
+                  <DocumentKindIcon kind={kind} size={16} />
+                  {KIND_META[kind].label}
+                </KindTab>
+              ))}
             </div>
 
             <div className="bg-muted/20 p-4">
               {documentsLoading ? (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {Array.from({ length: 4 }).map((_, i) => (
                     <Skeleton key={i} className="h-44 rounded-xl" />
                   ))}
@@ -502,7 +500,7 @@ export default function TopicDocumentsPage({
                   </p>
                 </div>
               ) : layout === "grid" ? (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {files.map((doc) => (
                     <DocumentCard
                       key={doc.Id}
@@ -677,7 +675,6 @@ function DocumentCard({
 }) {
   const kind = getDocumentKind(document.FileType);
   const meta = KIND_META[kind];
-  const Icon = meta.icon;
 
   return (
     <Link
@@ -686,7 +683,7 @@ function DocumentCard({
     >
       <div className="flex items-start gap-3">
         <div className={cn("shrink-0 rounded-lg p-2", meta.className)}>
-          <Icon className="size-5" />
+          <DocumentKindIcon kind={kind} size={20} />
         </div>
         <p className="line-clamp-2 min-w-0 flex-1 pt-0.5 text-sm leading-snug font-semibold">
           {document.Title}
@@ -789,7 +786,6 @@ function DocumentTable({
             {documents.map((doc) => {
               const kind = getDocumentKind(doc.FileType);
               const meta = KIND_META[kind];
-              const Icon = meta.icon;
               const href = `/library/${topicId}/${doc.Id}`;
               return (
                 <tr
@@ -805,7 +801,7 @@ function DocumentTable({
                           meta.className,
                         )}
                       >
-                        <Icon className="size-4" />
+                        <DocumentKindIcon kind={kind} size={16} />
                       </div>
                       <Link
                         href={href}

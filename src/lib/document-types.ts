@@ -1,12 +1,11 @@
-import {
-  FileSpreadsheet,
-  FileText,
-  FileType2,
-  Link2,
-  NotebookText,
-  Presentation,
-  type LucideIcon,
-} from "lucide-react";
+import type { StaticImageData } from "next/image";
+import { FileText, Link2, type LucideIcon } from "lucide-react";
+
+import csvIcon from "@/assets/icons/csv.png";
+import mdIcon from "@/assets/icons/md.png";
+import pdfIcon from "@/assets/icons/pdf.png";
+import pptIcon from "@/assets/icons/ppt.png";
+import wordIcon from "@/assets/icons/docx-file.png";
 
 export type DocumentKind =
   "markdown" | "csv" | "pdf" | "word" | "powerpoint" | "link" | "other";
@@ -37,43 +36,56 @@ const KIND_BY_EXTENSION: Record<string, DocumentKind> = {
   link: "link",
 };
 
-export const KIND_META: Record<
-  DocumentKind,
-  { label: string; icon: LucideIcon; className: string }
-> = {
+export type KindMeta = {
+  label: string;
+  /** PNG file-type icon when available. */
+  icon: StaticImageData | null;
+  /** Lucide fallback when no PNG exists (link / other). */
+  fallbackIcon: LucideIcon;
+  className: string;
+};
+
+export const KIND_META: Record<DocumentKind, KindMeta> = {
   markdown: {
     label: "Markdown",
-    icon: NotebookText,
+    icon: mdIcon,
+    fallbackIcon: FileText,
     className: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
   },
   csv: {
     label: "CSV",
-    icon: FileSpreadsheet,
+    icon: csvIcon,
+    fallbackIcon: FileText,
     className: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
   },
   pdf: {
     label: "PDF",
-    icon: FileType2,
+    icon: pdfIcon,
+    fallbackIcon: FileText,
     className: "bg-red-500/10 text-red-600 dark:text-red-400",
   },
   word: {
     label: "Word",
-    icon: FileText,
+    icon: wordIcon,
+    fallbackIcon: FileText,
     className: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
   },
   powerpoint: {
     label: "PowerPoint",
-    icon: Presentation,
+    icon: pptIcon,
+    fallbackIcon: FileText,
     className: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
   },
   link: {
     label: "Link",
-    icon: Link2,
+    icon: null,
+    fallbackIcon: Link2,
     className: "bg-slate-500/10 text-slate-600 dark:text-slate-300",
   },
   other: {
     label: "File",
-    icon: FileText,
+    icon: null,
+    fallbackIcon: FileText,
     className: "bg-muted text-muted-foreground",
   },
 };
