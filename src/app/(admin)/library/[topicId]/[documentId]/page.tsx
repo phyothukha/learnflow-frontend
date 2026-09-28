@@ -1,18 +1,16 @@
 "use client";
 
-import { Fragment, use, useCallback, useEffect, useRef, useState } from "react";
+import { use, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import dayjs from "dayjs";
 import {
   ArrowUpRight,
-  Calendar,
   Check,
   ChevronDown,
   ChevronsLeft,
   ChevronsRight,
-  Clock,
   Code2,
   Copy,
   Download,
@@ -23,28 +21,17 @@ import {
   Maximize2,
   Minimize2,
   MoreHorizontal,
-  NotebookPen,
   PanelLeft,
   Paperclip,
   PenLine,
-  Plus,
   Settings2,
   Table2,
-  Tag,
   Trash2,
   Upload,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   DropdownMenu,
@@ -56,7 +43,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DocumentKindIcon } from "@/components/document-kind-icon";
 import { usePermission } from "@/hooks/use-permission";
@@ -85,8 +71,6 @@ import type {
 } from "@/store/server/documents/interface";
 import { useFetchTopics } from "@/store/server/topics/queries";
 import { useFetchFolderTree } from "@/store/server/topic-folders/queries";
-import { useFetchNotes } from "@/store/server/notes/queries";
-import { useCreateNote } from "@/store/server/notes/mutations";
 import { DocumentDetailDialog } from "../../components/document-detail-dialog";
 import { findFolderPath } from "../../components/folder-explorer";
 import { libraryCardClassName } from "../../components/library-card";
@@ -123,12 +107,6 @@ function formatSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function formatMinutes(minutes: number) {
-  if (minutes < 60) return `${minutes} min`;
-  const hours = Math.floor(minutes / 60);
-  return `${hours} h ${minutes % 60} min`;
 }
 
 export default function DocumentViewerPage({
@@ -197,9 +175,9 @@ export default function DocumentViewerPage({
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <Skeleton className="h-[70vh] rounded-xl" />
-        <Skeleton className="hidden h-[70vh] rounded-xl lg:block" />
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px]">
+        <Skeleton className="h-[calc(100svh-6rem)] rounded-xl" />
+        <Skeleton className="hidden h-[calc(100svh-6rem)] rounded-xl lg:block" />
       </div>
     );
   }
@@ -225,11 +203,6 @@ export default function DocumentViewerPage({
     ? (findFolderPath(folderTree ?? [], document.FolderId) ?? [])
     : [];
   const fileName = `${document.Title}.${getExtensionLabel(document.FileType).toLowerCase()}`;
-
-  const guardLeave = (e: React.MouseEvent) => {
-    if (dirtyRef.current && !window.confirm("Discard unsaved changes?"))
-      e.preventDefault();
-  };
 
   const handleDownload = () => {
     if (isTextKind) {
@@ -306,72 +279,51 @@ export default function DocumentViewerPage({
   );
 
   return (
-    <div className="space-y-4">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/library" onClick={guardLeave}>
-                Library
-              </Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link
-                href={topicHref}
-                onClick={guardLeave}
-                className="inline-flex items-center gap-1.5"
-              >
-                <span
-                  className="size-2 rounded-full"
-                  style={{ backgroundColor: topicColor }}
-                />
-                {topic?.Title ?? "Topic"}
-              </Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          {folderPath.map((folder) => (
-            <Fragment key={folder.Id}>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link
-                    href={`${topicHref}?folder=${folder.Id}`}
-                    onClick={guardLeave}
-                    className="inline-flex items-center gap-1.5"
-                  >
-                    <Folder className="size-3.5" />
-                    {folder.Name}
-                  </Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-            </Fragment>
-          ))}
-          <BreadcrumbSeparator />
-          <BreadcrumbItem className="min-w-0">
-            <BreadcrumbPage className="truncate">
-              {document.Title}
-            </BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
+    <>
       <div
         className={cn(
-          "grid items-start gap-4",
-          showRelated && "lg:grid-cols-[minmax(0,1fr)_320px]",
+          "grid items-start gap-3",
+          showRelated && "lg:grid-cols-[minmax(0,1fr)_220px]",
         )}
       >
-        <main className="min-w-0 space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            {viewTabs}
-            <div className="flex items-center gap-2">
+        <main className="min-w-0 space-y-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0 space-y-1">
+              <h1 className="truncate text-xl font-semibold tracking-tight">
+                {document.Title}
+              </h1>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5">
+                  <span
+                    className="size-1.5 rounded-full"
+                    style={{ backgroundColor: topicColor }}
+                  />
+                  {topic?.Title ?? "Topic"}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <Folder className="size-3" />
+                  {folderPath.length
+                    ? folderPath.map((f) => f.Name).join(" / ")
+                    : "Top level"}
+                </span>
+                <span>{dayjs(document.UpdatedAt).format("MMM D, YYYY")}</span>
+                {document.Tags.slice(0, 3).map((tag) => (
+                  <Badge
+                    key={tag}
+                    variant="secondary"
+                    className="h-5 px-1.5 text-[10px]"
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {viewTabs}
               {kind === "markdown" && !editing && (
                 <Button size="sm" onClick={() => setEditing(true)}>
                   <PenLine className="size-4" />
-                  Edit document
+                  Edit
                 </Button>
               )}
               {isTextKind && (
@@ -409,14 +361,13 @@ export default function DocumentViewerPage({
                 ? "fixed inset-0 z-50 flex flex-col bg-background"
                 : libraryCardClassName,
               !fullscreen &&
-                isTextKind &&
-                "flex h-[calc(100svh-12rem)] min-h-[420px] flex-col",
+                "flex h-[calc(100svh-7.5rem)] min-h-[480px] flex-col",
             )}
           >
             <div
               className={cn(
-                "flex shrink-0 items-center justify-between gap-3 border-b px-4 py-3",
-                fullscreen && "shrink-0 bg-card px-6",
+                "flex shrink-0 items-center justify-between gap-3 border-b px-3 py-2",
+                fullscreen && "shrink-0 bg-card px-6 py-3",
               )}
             >
               <div className="flex min-w-0 items-center gap-2">
@@ -464,10 +415,6 @@ export default function DocumentViewerPage({
                 </div>
               )}
               <div className="flex shrink-0 items-center gap-2">
-                <span className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:inline-flex">
-                  <Calendar className="size-3.5" />
-                  {dayjs(document.UpdatedAt).format("MMM D, YYYY")}
-                </span>
                 {isTextKind && content && !editing && (
                   <Button
                     variant="outline"
@@ -574,12 +521,9 @@ export default function DocumentViewerPage({
         </main>
 
         {showRelated && (
-          <div className="min-w-0 space-y-4">
+          <div className="min-w-0 space-y-3 lg:sticky lg:top-18">
             <InfoPanel
               document={document}
-              topicTitle={topic?.Title}
-              topicColor={topicColor}
-              folderPath={folderPath.map((f) => f.Name)}
               canEdit={kind === "markdown"}
               canDownload={canDownload}
               onEdit={() => setEditing(true)}
@@ -598,7 +542,7 @@ export default function DocumentViewerPage({
           onClose={() => setShowSettings(false)}
         />
       )}
-    </div>
+    </>
   );
 }
 
@@ -673,42 +617,20 @@ function QuickAction({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="group flex flex-col items-center gap-1.5 disabled:pointer-events-none disabled:opacity-40"
+      title={label}
+      aria-label={label}
+      className={cn(
+        "inline-flex size-8 items-center justify-center rounded-md border bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-40",
+        destructive && "hover:border-destructive/40 hover:text-destructive",
+      )}
     >
-      <span
-        className={cn(
-          "flex size-10 items-center justify-center rounded-full border bg-background transition-colors group-hover:bg-accent",
-          destructive &&
-            "group-hover:border-destructive/40 group-hover:text-destructive",
-        )}
-      >
-        <Icon className="size-4" />
-      </span>
-      <span className="text-xs text-muted-foreground">{label}</span>
+      <Icon className="size-3.5" />
     </button>
-  );
-}
-
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="space-y-1">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <div className="text-sm">{children}</div>
-    </div>
   );
 }
 
 function InfoPanel({
   document,
-  topicTitle,
-  topicColor,
-  folderPath,
   canEdit,
   canDownload,
   onEdit,
@@ -717,9 +639,6 @@ function InfoPanel({
   onDelete,
 }: {
   document: StudyDocument;
-  topicTitle?: string;
-  topicColor: string;
-  folderPath: string[];
   canEdit: boolean;
   canDownload: boolean;
   onEdit: () => void;
@@ -727,7 +646,6 @@ function InfoPanel({
   onSettings: () => void;
   onDelete: () => void;
 }) {
-  const [tab, setTab] = useState<"about" | "attachments">("about");
   const updateDocument = useUpdateDocument();
   const kind = getDocumentKind(document.FileType);
   const meta = KIND_META[kind];
@@ -739,19 +657,26 @@ function InfoPanel({
     });
 
   return (
-    <aside className={libraryCardClassName}>
-      <div className="flex items-center justify-between px-4 pt-4">
-        <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-          Details
-        </p>
+    <aside className={cn("p-3", libraryCardClassName)}>
+      <div className="flex items-start gap-2.5">
+        <div className={cn("shrink-0 rounded-lg p-2", meta.className)}>
+          <DocumentKindIcon kind={kind} size={18} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="line-clamp-2 text-sm leading-snug font-semibold">
+            {document.Title}
+          </p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
+            {meta.label} · {getExtensionLabel(document.FileType)}
+          </p>
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className="inline-flex shrink-0 items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              className="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
             >
-              Actions
-              <ChevronDown className="size-3.5" />
+              <MoreHorizontal className="size-4" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44">
@@ -781,132 +706,56 @@ function InfoPanel({
         </DropdownMenu>
       </div>
 
-      <div className="flex items-center gap-3 px-4 pt-5">
-        <div className={cn("shrink-0 rounded-2xl p-3.5", meta.className)}>
-          <DocumentKindIcon kind={kind} size={28} />
-        </div>
-        <div className="min-w-0">
-          <h1 className="line-clamp-2 text-base leading-snug font-semibold">
-            {document.Title}
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            {meta.label} · {getExtensionLabel(document.FileType)}
-          </p>
-          <span
-            className={cn(
-              "mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium",
-              STATUS_STYLE[document.Status],
-            )}
-          >
-            {STATUS_LABEL[document.Status]}
-          </span>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-4 gap-2 px-4 pt-5">
-        <QuickAction
-          icon={PenLine}
-          label="Edit"
-          onClick={onEdit}
-          disabled={!canEdit}
-        />
-        <QuickAction
-          icon={Download}
-          label="Download"
-          onClick={onDownload}
-          disabled={!canDownload}
-        />
-        <QuickAction icon={Settings2} label="Settings" onClick={onSettings} />
-        <QuickAction
-          icon={Trash2}
-          label="Delete"
-          onClick={onDelete}
-          destructive
-        />
-      </div>
-
-      <div className="mt-5 flex border-b px-4">
-        {(
-          [
-            ["about", "About document"],
-            ["attachments", `Attachments (${document.Attachments.length})`],
-          ] as const
-        ).map(([value, label]) => (
-          <button
-            key={value}
-            type="button"
-            onClick={() => setTab(value)}
-            className={cn(
-              "-mb-px flex-1 border-b-2 border-transparent py-2.5 text-sm text-muted-foreground transition-colors hover:text-foreground",
-              tab === value && "border-primary font-medium text-foreground",
-            )}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {tab === "about" ? (
-        <div className="space-y-4 p-4">
-          <Field label="Topic">
-            <span className="inline-flex items-center gap-2">
-              <span
-                className="size-2 rounded-full"
-                style={{ backgroundColor: topicColor }}
-              />
-              {topicTitle ?? "—"}
-            </span>
-          </Field>
-          <Field label="Folder">
-            <span className="inline-flex items-center gap-1.5">
-              <Folder className="size-3.5 text-muted-foreground" />
-              {folderPath.length ? folderPath.join(" / ") : "Top level"}
-            </span>
-          </Field>
-          <Field label="Tags">
-            {document.Tags.length ? (
-              <div className="flex flex-wrap gap-1">
-                {document.Tags.map((tag) => (
-                  <Badge key={tag} variant="secondary" className="text-[11px]">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-            ) : (
-              "—"
-            )}
-          </Field>
-          <Field label="Time spent">
-            {formatMinutes(document.TimeSpentMinutes)}
-          </Field>
-          <Field label="Last opened">
-            {document.LastOpenedAt
-              ? dayjs(document.LastOpenedAt).format("MMM D, YYYY HH:mm")
-              : "—"}
-          </Field>
-          <Field label="Created">
-            {dayjs(document.CreatedAt).format("MMM D, YYYY HH:mm")}
-          </Field>
-          <Field label="Last updated">
-            {dayjs(document.UpdatedAt).format("MMM D, YYYY HH:mm")}
-          </Field>
-          {document.FileUrl && (
-            <Field label="Source">
-              <a
-                href={document.FileUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex max-w-full items-center gap-1 text-primary hover:underline"
-              >
-                <span className="truncate">{document.FileUrl}</span>
-                <ArrowUpRight className="size-3.5 shrink-0" />
-              </a>
-            </Field>
+      <div className="mt-2.5 flex items-center justify-between gap-2">
+        <span
+          className={cn(
+            "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium",
+            STATUS_STYLE[document.Status],
           )}
+        >
+          {STATUS_LABEL[document.Status]}
+        </span>
+        <div className="flex items-center gap-1">
+          <QuickAction
+            icon={PenLine}
+            label="Edit"
+            onClick={onEdit}
+            disabled={!canEdit}
+          />
+          <QuickAction
+            icon={Download}
+            label="Download"
+            onClick={onDownload}
+            disabled={!canDownload}
+          />
+          <QuickAction icon={Settings2} label="Settings" onClick={onSettings} />
+          <QuickAction
+            icon={Trash2}
+            label="Delete"
+            onClick={onDelete}
+            destructive
+          />
         </div>
-      ) : (
-        <AttachmentsTab document={document} />
+      </div>
+
+      {document.FileUrl && (
+        <a
+          href={document.FileUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-2.5 inline-flex max-w-full items-center gap-1 truncate text-[11px] text-primary hover:underline"
+        >
+          <span className="truncate">{document.FileUrl}</span>
+          <ArrowUpRight className="size-3 shrink-0" />
+        </a>
       )}
+
+      <div className="mt-3 border-t pt-2.5">
+        <p className="mb-2 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+          Attachments ({document.Attachments.length})
+        </p>
+        <AttachmentsTab document={document} />
+      </div>
     </aside>
   );
 }
@@ -917,16 +766,16 @@ function AttachmentsTab({ document }: { document: StudyDocument }) {
   const deleteAttachment = useDeleteAttachment();
 
   return (
-    <div className="space-y-2 p-4">
+    <div className="space-y-1.5">
       <Button
         variant="outline"
         size="sm"
-        className="w-full"
+        className="h-7 w-full text-xs"
         disabled={uploadAttachment.isPending}
         onClick={() => fileInputRef.current?.click()}
       >
-        <Upload className="size-4" />
-        {uploadAttachment.isPending ? "Uploading…" : "Upload attachment"}
+        <Upload className="size-3.5" />
+        {uploadAttachment.isPending ? "Uploading…" : "Upload"}
       </Button>
       <input
         ref={fileInputRef}
@@ -950,19 +799,19 @@ function AttachmentsTab({ document }: { document: StudyDocument }) {
         }}
       />
       {document.Attachments.length === 0 ? (
-        <p className="py-6 text-center text-xs text-muted-foreground">
-          No attachments yet.
+        <p className="rounded-md border border-dashed py-3 text-center text-[11px] text-muted-foreground">
+          No attachments
         </p>
       ) : (
         document.Attachments.map((attachment) => (
           <div
             key={attachment.Id}
-            className="group flex items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2"
+            className="group flex items-center gap-1.5 rounded-md border bg-muted/30 px-2 py-1.5"
           >
-            <Paperclip className="size-3.5 shrink-0 text-muted-foreground" />
+            <Paperclip className="size-3 shrink-0 text-muted-foreground" />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm">{attachment.FileName}</p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="truncate text-xs">{attachment.FileName}</p>
+              <p className="text-[10px] text-muted-foreground">
                 {formatSize(attachment.SizeBytes)}
               </p>
             </div>
@@ -996,43 +845,6 @@ function AttachmentsTab({ document }: { document: StudyDocument }) {
   );
 }
 
-function CollapsibleSection({
-  title,
-  count,
-  defaultOpen = true,
-  children,
-}: {
-  title: string;
-  count: number;
-  defaultOpen?: boolean;
-  children: React.ReactNode;
-}) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <section className="space-y-3">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between"
-      >
-        <span className="flex items-center gap-2 text-sm font-semibold">
-          {title}
-          <span className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">
-            {count}
-          </span>
-        </span>
-        <ChevronDown
-          className={cn(
-            "size-4 text-muted-foreground transition-transform",
-            open && "rotate-180",
-          )}
-        />
-      </button>
-      {open && children}
-    </section>
-  );
-}
-
 function RelatedPanel({
   document,
   topicId,
@@ -1042,16 +854,8 @@ function RelatedPanel({
   topicId: string;
   className?: string;
 }) {
-  const router = useRouter();
-  const [noteTitle, setNoteTitle] = useState("");
-  const { data: notesData } = useFetchNotes({
-    documentId: document.Id,
-    limit: 50,
-  });
   const { data: documentsData } = useFetchDocuments({ limit: 500, topicId });
-  const createNote = useCreateNote();
 
-  const notes = notesData?.Items ?? [];
   const siblings = (documentsData?.Items ?? [])
     .filter(
       (d) =>
@@ -1060,138 +864,45 @@ function RelatedPanel({
     )
     .slice(0, 6);
 
-  const addNote = () => {
-    if (!noteTitle.trim()) return;
-    createNote.mutate(
-      { TopicId: topicId, DocumentId: document.Id, Title: noteTitle.trim() },
-      {
-        onSuccess: (note) => {
-          setNoteTitle("");
-          toast.success("Note added");
-          router.push(`/notes/${note.Id}`);
-        },
-        onError: () => toast.error("Failed to add note"),
-      },
-    );
-  };
-
   return (
-    <aside className={cn("space-y-6 p-4", libraryCardClassName, className)}>
-      <CollapsibleSection title="Notes" count={notes.length}>
-        <div className="flex gap-2">
-          <Input
-            value={noteTitle}
-            onChange={(e) => setNoteTitle(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && addNote()}
-            placeholder="Add a quick note…"
-            className="h-8"
-          />
-          <Button
-            size="icon"
-            className="size-8 shrink-0"
-            onClick={addNote}
-            disabled={createNote.isPending}
-          >
-            <Plus className="size-4" />
-          </Button>
-        </div>
-        {notes.length === 0 ? (
-          <p className="rounded-lg border border-dashed py-5 text-center text-xs text-muted-foreground">
-            No notes linked to this document.
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {notes.map((note) => (
+    <aside className={cn("p-3", libraryCardClassName, className)}>
+      <p className="mb-2 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+        In this folder ({siblings.length})
+      </p>
+      {siblings.length === 0 ? (
+        <p className="rounded-md border border-dashed py-3 text-center text-[11px] text-muted-foreground">
+          No other files
+        </p>
+      ) : (
+        <div className="space-y-1">
+          {siblings.map((doc) => {
+            const kind = getDocumentKind(doc.FileType);
+            return (
               <Link
-                key={note.Id}
-                href={`/notes/${note.Id}`}
-                className="block rounded-lg border p-3 transition-colors hover:bg-accent/50"
+                key={doc.Id}
+                href={`/library/${topicId}/${doc.Id}`}
+                className="group flex items-center gap-2 rounded-md px-1.5 py-1.5 transition-colors hover:bg-accent/50"
               >
-                <div className="flex items-start gap-2">
-                  <NotebookPen className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{note.Title}</p>
-                    {note.Content && (
-                      <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
-                        {note.Content.replace(/[#*_>`[\]()-]/g, "").trim()}
-                      </p>
-                    )}
-                    <p className="mt-1.5 text-[11px] text-muted-foreground">
-                      {dayjs(note.UpdatedAt).format("MMM D, HH:mm")}
-                    </p>
-                  </div>
-                </div>
-              </Link>
-            ))}
-            <Link
-              href="/notes"
-              className="block text-center text-xs font-medium text-primary hover:underline"
-            >
-              Open in Notes
-            </Link>
-          </div>
-        )}
-      </CollapsibleSection>
-
-      <CollapsibleSection title="In this folder" count={siblings.length}>
-        {siblings.length === 0 ? (
-          <p className="rounded-lg border border-dashed py-5 text-center text-xs text-muted-foreground">
-            No other files here.
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {siblings.map((doc) => {
-              const kind = getDocumentKind(doc.FileType);
-              return (
-                <Link
-                  key={doc.Id}
-                  href={`/library/${topicId}/${doc.Id}`}
-                  className="group block rounded-lg border p-3 transition-colors hover:bg-accent/50"
+                <div
+                  className={cn(
+                    "shrink-0 rounded p-1",
+                    KIND_META[kind].className,
+                  )}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="line-clamp-1 text-sm font-medium">
-                      {doc.Title}
-                    </p>
-                    <ArrowUpRight className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground" />
-                  </div>
-                  <dl className="mt-2 space-y-1.5 text-xs">
-                    <div className="flex items-center gap-2">
-                      <dt className="flex w-20 items-center gap-1.5 text-muted-foreground">
-                        <DocumentKindIcon kind={kind} size={14} />
-                        Type
-                      </dt>
-                      <dd>{KIND_META[kind].label}</dd>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <dt className="flex w-20 items-center gap-1.5 text-muted-foreground">
-                        <Clock className="size-3.5" />
-                        Updated
-                      </dt>
-                      <dd>{dayjs(doc.UpdatedAt).format("MMM D, YYYY")}</dd>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <dt className="flex w-20 items-center gap-1.5 text-muted-foreground">
-                        <Tag className="size-3.5" />
-                        Status
-                      </dt>
-                      <dd>
-                        <span
-                          className={cn(
-                            "rounded px-1.5 py-0.5 text-[11px] font-medium",
-                            STATUS_STYLE[doc.Status],
-                          )}
-                        >
-                          {STATUS_LABEL[doc.Status]}
-                        </span>
-                      </dd>
-                    </div>
-                  </dl>
-                </Link>
-              );
-            })}
-          </div>
-        )}
-      </CollapsibleSection>
+                  <DocumentKindIcon kind={kind} size={12} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-medium">{doc.Title}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {dayjs(doc.UpdatedAt).format("MMM D")}
+                  </p>
+                </div>
+                <ArrowUpRight className="size-3 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100" />
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </aside>
   );
 }

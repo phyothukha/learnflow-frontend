@@ -25,7 +25,12 @@ export function getCoursesColumns({
       accessorKey: "Title",
       header: "Title",
       cell: ({ row }) => (
-        <span className="font-medium">{row.original.Title}</span>
+        <span
+          className="block w-full truncate font-medium"
+          title={row.original.Title}
+        >
+          {row.original.Title}
+        </span>
       ),
     },
     {

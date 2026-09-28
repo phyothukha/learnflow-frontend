@@ -6,18 +6,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import {
-  BookOpen,
-  Code2,
-  FlaskConical,
-  Library,
-  Lightbulb,
-  Palette,
-  Plus,
-  Search,
-  Trash2,
-  type LucideIcon,
-} from "lucide-react";
+import { Library, Plus, Search, Trash2 } from "lucide-react";
 
 dayjs.extend(relativeTime);
 import { toast } from "sonner";
@@ -122,19 +111,18 @@ export default function LibraryPage() {
   };
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Library className="size-5" />
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b pb-5">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl font-semibold tracking-tight">Library</h1>
+            <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary tabular-nums">
+              {topics.length} {topics.length === 1 ? "topic" : "topics"}
+            </span>
           </div>
-          <div>
-            <h1 className="text-2xl font-semibold">Library</h1>
-            <p className="text-sm text-muted-foreground">
-              {topics.length} {topics.length === 1 ? "topic" : "topics"} · pick
-              one to open its folders and documents
-            </p>
-          </div>
+          <p className="text-sm text-muted-foreground">
+            Browse topics and open folders to manage your files
+          </p>
         </div>
         <CreateTopicDialog />
       </div>
@@ -149,7 +137,7 @@ export default function LibraryPage() {
             className="h-10 bg-background pl-9"
           />
         </div>
-        <div className="flex gap-1 border-b">
+        <div className="flex gap-1 border-b border-border/80">
           {SORT_TABS.map((tab) => (
             <button
               key={tab.value}
@@ -170,7 +158,7 @@ export default function LibraryPage() {
       {isLoading ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-[220px] rounded-xl" />
+            <Skeleton key={i} className="h-[160px] rounded-xl" />
           ))}
         </div>
       ) : topics.length === 0 ? (
@@ -205,30 +193,6 @@ export default function LibraryPage() {
   );
 }
 
-const TOPIC_ICONS: LucideIcon[] = [
-  Palette,
-  BookOpen,
-  Code2,
-  FlaskConical,
-  Lightbulb,
-  Library,
-];
-
-function topicIcon(topicId: string): LucideIcon {
-  let hash = 0;
-  for (let i = 0; i < topicId.length; i++)
-    hash = (hash + topicId.charCodeAt(i) * (i + 1)) % TOPIC_ICONS.length;
-  return TOPIC_ICONS[hash]!;
-}
-
-function topicInitials(title: string) {
-  return title
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 4)
-    .map((word) => word.charAt(0).toUpperCase());
-}
-
 function TopicCard({
   topic,
   fileCount,
@@ -243,33 +207,39 @@ function TopicCard({
   onDelete: () => void;
 }) {
   const color = topic.Color ?? FALLBACK_COLOR;
-  const Icon = topicIcon(topic.Id);
-  const initials = topicInitials(topic.Title);
-  const shown = initials.slice(0, 3);
-  const extra = Math.max(0, initials.length - shown.length);
 
   return (
     <Link
       href={`/library/${topic.Id}`}
       onClick={onOpen}
       className={cn(
-        "group relative flex flex-col gap-5 p-5 transition-all hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(15,23,42,0.12)]",
         libraryCardClassName,
-        isActive && "ring-2 ring-primary/30",
+        "group relative flex flex-col border-2 border-transparent transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_44px_rgba(15,23,42,0.1)]",
+        isActive &&
+          "border-primary ring-2 ring-primary/30 dark:border-primary dark:ring-primary/50",
       )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <h2 className="line-clamp-2 min-w-0 text-base leading-snug font-semibold text-foreground">
-          {topic.Title}
-        </h2>
-        <div className="flex shrink-0 items-center gap-1">
-          <span className="text-xs whitespace-nowrap text-muted-foreground">
-            {fileCount.toLocaleString()} {fileCount === 1 ? "File" : "Files"}
-          </span>
+      <div className="flex flex-1 flex-col gap-4 p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 space-y-1.5">
+            <div className="flex items-center gap-2">
+              <span
+                className="size-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: color }}
+              />
+              <h2 className="truncate text-base font-semibold text-foreground">
+                {topic.Title}
+              </h2>
+            </div>
+            <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+              {topic.Description?.trim() ||
+                "No description yet for this topic."}
+            </p>
+          </div>
           <Button
             variant="ghost"
             size="icon"
-            className="size-7 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive"
+            className="size-7 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive"
             title="Delete topic"
             aria-label={`Delete ${topic.Title}`}
             onClick={(e) => {
@@ -281,53 +251,16 @@ function TopicCard({
             <Trash2 className="size-3.5" />
           </Button>
         </div>
-      </div>
 
-      <div className="flex items-end justify-between gap-3">
-        <div className="min-w-0 space-y-2">
-          <p className="text-[11px] font-medium text-muted-foreground">
-            {isActive ? "Current context" : "Topic"}
-          </p>
-          <div className="flex items-center">
-            {shown.map((letter, i) => (
-              <span
-                key={`${letter}-${i}`}
-                className="flex size-7 items-center justify-center rounded-full border-2 border-card text-[11px] font-semibold text-white"
-                style={{
-                  backgroundColor: color,
-                  marginLeft: i === 0 ? 0 : -8,
-                  filter: i ? `brightness(${1 - i * 0.08})` : undefined,
-                }}
-              >
-                {letter}
-              </span>
-            ))}
-            {(extra > 0 || fileCount > 3) && (
-              <span
-                className="flex size-7 items-center justify-center rounded-full border-2 border-card text-[10px] font-semibold"
-                style={{
-                  marginLeft: -8,
-                  backgroundColor: `${color}22`,
-                  color,
-                }}
-              >
-                +{extra > 0 ? extra : Math.min(fileCount, 9)}
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div
-          className="flex size-14 shrink-0 items-center justify-center rounded-2xl"
-          style={{ backgroundColor: `${color}1f`, color }}
-        >
-          <Icon className="size-7" strokeWidth={1.75} />
+        <div className="mt-auto flex items-center justify-between gap-2 border-t pt-3 text-xs text-muted-foreground">
+          <span>
+            {fileCount.toLocaleString()} {fileCount === 1 ? "file" : "files"}
+          </span>
+          <span className="truncate">
+            Updated {dayjs(topic.UpdatedAt).fromNow()}
+          </span>
         </div>
       </div>
-
-      <p className="text-xs text-muted-foreground">
-        Last updated — {dayjs(topic.UpdatedAt).fromNow()}
-      </p>
     </Link>
   );
 }

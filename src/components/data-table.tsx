@@ -146,7 +146,7 @@ export function DataTable<TData>({
       )}
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-        <Table>
+        <Table className="table-fixed">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>

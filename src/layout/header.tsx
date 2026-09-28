@@ -1,18 +1,22 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { LogOut, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { TopicContextSwitcher } from "@/components/topic-context-switcher";
 import { useWorkspaceStore } from "@/store/client/workspace";
 import { Separator } from "@/components/ui/separator";
 import {
   Breadcrumb,
   BreadcrumbItem,
+  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
+  BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -23,14 +27,75 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { navLinks } from "@/assets/nav-links";
+import { useFetchTopic } from "@/store/server/topics/queries";
+import { useFetchNote } from "@/store/server/notes/queries";
+import { useFetchDocument } from "@/store/server/documents/queries";
+import { Fragment } from "react";
+
+const ROUTE_LABELS = Object.fromEntries(
+  navLinks.flatMap((group) =>
+    group.items.map((item) => [item.href.replace(/^\//, ""), item.title]),
+  ),
+) as Record<string, string>;
+
+function useHeaderCrumbs(pathname: string) {
+  const parts = pathname.split("/").filter(Boolean);
+  const section = parts[0] ?? "dashboard";
+  const sectionLabel =
+    ROUTE_LABELS[section] ?? section.charAt(0).toUpperCase() + section.slice(1);
+
+  const topicId = section === "library" && parts[1] ? parts[1] : null;
+  const documentId = section === "library" && parts[2] ? parts[2] : null;
+  const noteId =
+    section === "notes" && parts[1] && parts[1] !== "new" ? parts[1] : null;
+
+  const { data: topic } = useFetchTopic(topicId);
+  const { data: document } = useFetchDocument(documentId);
+  const { data: note } = useFetchNote(noteId);
+
+  const crumbs: { label: string; href?: string }[] = [
+    {
+      label: "Dashboard",
+      href: section === "dashboard" ? undefined : "/dashboard",
+    },
+  ];
+
+  if (section !== "dashboard") {
+    crumbs.push({
+      label: sectionLabel,
+      href: parts.length > 1 ? `/${section}` : undefined,
+    });
+  }
+
+  if (topicId) {
+    crumbs.push({
+      label: topic?.Title ?? "Topic",
+      href: documentId ? `/library/${topicId}` : undefined,
+    });
+  }
+
+  if (documentId) {
+    crumbs.push({ label: document?.Title ?? "Document" });
+  }
+
+  if (section === "notes" && parts[1] === "new") {
+    crumbs.push({ label: "New note" });
+  } else if (noteId) {
+    crumbs.push({ label: note?.Title ?? "Note" });
+  }
+
+  return crumbs;
+}
 
 export function Header() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const soundMuted = useWorkspaceStore((s) => s.soundMuted);
   const toggleSoundMuted = useWorkspaceStore((s) => s.toggleSoundMuted);
+  const crumbs = useHeaderCrumbs(pathname);
 
-  const pageTitle = pathname.split("/").filter(Boolean)[0] ?? "";
+  const showTopicSwitcher = pathname.startsWith("/notes");
   const initials = (session?.user?.name ?? "?")
     .split(" ")
     .map((part) => part[0])
@@ -40,20 +105,50 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between gap-2 bg-background px-4">
-      <div className="flex items-center gap-2">
-        <SidebarTrigger className="-ml-1" />
+      <div className="flex min-w-0 items-center gap-2">
+        <SidebarTrigger className="-ml-1 shrink-0" />
         <Separator orientation="vertical" className="mr-2 h-4" />
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbPage className="capitalize">
-                {pageTitle}
-              </BreadcrumbPage>
-            </BreadcrumbItem>
+        <Breadcrumb className="min-w-0">
+          <BreadcrumbList className="flex-nowrap">
+            {crumbs.map((crumb, index) => {
+              const isLast = index === crumbs.length - 1;
+              return (
+                <Fragment key={`${crumb.label}-${index}`}>
+                  {index > 0 && <BreadcrumbSeparator />}
+                  <BreadcrumbItem className="min-w-0">
+                    {isLast || !crumb.href ? (
+                      <BreadcrumbPage className="max-w-[10rem] truncate sm:max-w-[16rem]">
+                        {crumb.label}
+                      </BreadcrumbPage>
+                    ) : (
+                      <BreadcrumbLink asChild>
+                        <Link
+                          href={crumb.href}
+                          className="max-w-[8rem] truncate sm:max-w-[12rem]"
+                        >
+                          {crumb.label}
+                        </Link>
+                      </BreadcrumbLink>
+                    )}
+                  </BreadcrumbItem>
+                </Fragment>
+              );
+            })}
           </BreadcrumbList>
         </Breadcrumb>
+        {showTopicSwitcher && (
+          <>
+            <Separator
+              orientation="vertical"
+              className="hidden h-4 shrink-0 sm:block"
+            />
+            <div className="hidden min-w-0 max-w-56 sm:block">
+              <TopicContextSwitcher />
+            </div>
+          </>
+        )}
       </div>
-      <div className="flex items-center gap-1">
+      <div className="flex shrink-0 items-center gap-1">
         <ThemeToggle />
         <Button
           variant="ghost"
@@ -79,9 +174,9 @@ export function Header() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>
-              <div className="flex flex-col">
-                <span>{session?.user?.name}</span>
-                <span className="text-xs font-normal text-muted-foreground">
+              <div className="flex min-w-0 flex-col">
+                <span className="truncate">{session?.user?.name}</span>
+                <span className="truncate text-xs font-normal text-muted-foreground">
                   {session?.user?.email}
                 </span>
               </div>

@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import dayjs from "dayjs";
 import {
-  ArrowLeft,
   ArrowUpRight,
   Calendar,
   Check,
@@ -78,20 +77,24 @@ const KIND_FILTERS: DocumentKind[] = [
   "link",
 ];
 
+type TopicTab = "folders" | "files";
+
 export default function TopicDocumentsPage({
   params,
   searchParams,
 }: {
   params: Promise<{ topicId: string }>;
-  searchParams: Promise<{ folder?: string }>;
+  searchParams: Promise<{ folder?: string; tab?: string }>;
 }) {
   const { topicId } = use(params);
-  const { folder: folderParam } = use(searchParams);
+  const { folder: folderParam, tab: tabParam } = use(searchParams);
   const router = useRouter();
   const { status } = useSession();
   const { hasPermission } = usePermission();
   const canView = hasPermission(PERMISSIONS.DOCUMENTS_VIEW);
   const setActiveTopic = useWorkspaceStore((s) => s.setActiveTopic);
+
+  const activeTab: TopicTab = tabParam === "files" ? "files" : "folders";
 
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [activeKind, setActiveKind] = useState<DocumentKind | null>(null);
@@ -178,13 +181,25 @@ export default function TopicDocumentsPage({
     ? scopedFiles.filter((doc) => getDocumentKind(doc.FileType) === activeKind)
     : scopedFiles;
 
-  const navigate = (folderId: string | null) => {
+  const buildHref = (next: { folderId?: string | null; tab?: TopicTab }) => {
+    const params = new URLSearchParams();
+    const folderId =
+      next.folderId !== undefined ? next.folderId : (folderParam ?? null);
+    const tab = next.tab ?? activeTab;
+    if (folderId) params.set("folder", folderId);
+    if (tab === "files") params.set("tab", "files");
+    const qs = params.toString();
+    return `/library/${topicId}${qs ? `?${qs}` : ""}`;
+  };
+
+  const navigateFolder = (folderId: string | null) => {
     setSearch("");
-    router.push(
-      folderId
-        ? `/library/${topicId}?folder=${folderId}`
-        : `/library/${topicId}`,
-    );
+    router.push(buildHref({ folderId }));
+  };
+
+  const setTab = (tab: TopicTab) => {
+    setSearch("");
+    router.push(buildHref({ tab }));
   };
 
   if (!topicsLoading && !topic) {
@@ -194,51 +209,40 @@ export default function TopicDocumentsPage({
           <FolderOpen className="size-8" />
           <p className="text-sm">This topic could not be found.</p>
           <Button variant="outline" size="sm" asChild>
-            <Link href="/library">Back to library</Link>
+            <Link href="/library">Open library</Link>
           </Button>
         </CardContent>
       </Card>
     );
   }
 
+  const filesInCurrent = allDocuments.filter(
+    (doc) => (doc.FolderId ?? null) === (currentFolder?.Id ?? null),
+  ).length;
+
   return (
     <div className="space-y-6">
-      <div className="space-y-3">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-fit gap-1.5 px-2 text-muted-foreground"
-          asChild
-        >
-          <Link href="/library">
-            <ArrowLeft className="size-4" />
-            Library
-          </Link>
-        </Button>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
-            <div
-              className="flex size-11 shrink-0 items-center justify-center rounded-xl text-lg font-semibold"
-              style={{ backgroundColor: `${color}1a`, color }}
-            >
-              {topic?.Title.charAt(0).toUpperCase() ?? "·"}
-            </div>
-            <div className="min-w-0">
-              {topic ? (
-                <>
-                  <h1 className="truncate text-2xl font-semibold">
-                    {topic.Title}
-                  </h1>
-                  <p className="truncate text-sm text-muted-foreground">
-                    {topic.Description || "Documents in this topic"}
-                  </p>
-                </>
-              ) : (
-                <Skeleton className="h-8 w-48" />
-              )}
-            </div>
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b pb-5">
+        <div className="min-w-0 space-y-1.5">
+          <div className="flex items-center gap-2.5">
+            <span
+              className="size-2.5 shrink-0 rounded-full"
+              style={{ backgroundColor: color }}
+            />
+            {topic ? (
+              <h1 className="truncate text-2xl font-semibold tracking-tight">
+                {topic.Title}
+              </h1>
+            ) : (
+              <Skeleton className="h-8 w-48" />
+            )}
           </div>
-          <div className="flex gap-2">
+          <p className="truncate text-sm text-muted-foreground">
+            {topic?.Description || "Folders and documents in this topic"}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          {activeTab === "folders" ? (
             <Button
               variant="outline"
               size="sm"
@@ -252,6 +256,7 @@ export default function TopicDocumentsPage({
               <FolderPlus className="size-4" />
               New folder
             </Button>
+          ) : (
             <CreateDocumentDialog
               topicId={topicId}
               defaultFolderId={currentFolder?.Id ?? null}
@@ -265,236 +270,271 @@ export default function TopicDocumentsPage({
                 )
               }
             />
-          </div>
+          )}
         </div>
       </div>
 
-      <div className="grid items-start gap-5 lg:grid-cols-[250px_minmax(0,1fr)]">
-        <FolderSidebar
-          tree={tree}
-          currentPath={path}
-          totalFiles={allDocuments.length}
-          countByFolder={countByFolder}
-          onNavigate={navigate}
-          onCreate={(parentFolderId) =>
-            setFolderDialog({ type: "create", parentFolderId })
-          }
-          className="lg:sticky lg:top-18"
-        />
-        <div className="min-w-0 space-y-6">
+      <div className="flex gap-1 border-b">
+        {(
+          [
+            {
+              value: "folders" as const,
+              label: "Folders",
+              count: childFolders.length,
+            },
+            {
+              value: "files" as const,
+              label: "Files",
+              count: filesInCurrent,
+            },
+          ] as const
+        ).map((tab) => (
+          <button
+            key={tab.value}
+            type="button"
+            onClick={() => setTab(tab.value)}
+            className={cn(
+              "-mb-px inline-flex items-center gap-2 border-b-2 border-transparent px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:text-foreground",
+              activeTab === tab.value &&
+                "border-primary font-medium text-foreground",
+            )}
+          >
+            {tab.label}
+            <span className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-medium tabular-nums text-muted-foreground">
+              {tab.count}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "folders" ? (
+        <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/30 px-3 py-2">
-            <FolderBreadcrumb path={path} onNavigate={navigate} />
-            <div className="relative">
-              <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search in this topic…"
-                className="h-8 w-64 bg-background pr-8 pl-8"
-              />
-              {isSearching && (
-                <button
-                  type="button"
-                  onClick={() => setSearch("")}
-                  className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  <X className="size-3.5" />
-                </button>
-              )}
-            </div>
+            <FolderBreadcrumb path={path} onNavigate={navigateFolder} />
           </div>
 
-          {!isSearching && (
-            <section className="space-y-3">
-              <SectionTitle
-                title="Folders"
-                count={foldersLoading ? undefined : childFolders.length}
+          {foldersLoading ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-[116px] rounded-xl" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+              {childFolders.map((node) => (
+                <FolderCard
+                  key={node.Id}
+                  node={node}
+                  fileCount={countByFolder.get(node.Id) ?? 0}
+                  onOpen={() => navigateFolder(node.Id)}
+                  onAddSubfolder={() =>
+                    setFolderDialog({
+                      type: "create",
+                      parentFolderId: node.Id,
+                    })
+                  }
+                  onRename={() =>
+                    setFolderDialog({ type: "rename", folder: node })
+                  }
+                  onDeleted={() => {
+                    if (path.some((p) => p.Id === node.Id))
+                      navigateFolder(currentFolder?.ParentFolderId ?? null);
+                  }}
+                />
+              ))}
+              <NewFolderCard
+                onClick={() =>
+                  setFolderDialog({
+                    type: "create",
+                    parentFolderId: currentFolder?.Id ?? null,
+                  })
+                }
               />
-              {foldersLoading ? (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <Skeleton key={i} className="h-[116px] rounded-xl" />
-                  ))}
-                </div>
-              ) : (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-                  {childFolders.map((node) => (
-                    <FolderCard
-                      key={node.Id}
-                      node={node}
-                      fileCount={countByFolder.get(node.Id) ?? 0}
-                      onOpen={() => navigate(node.Id)}
-                      onAddSubfolder={() =>
-                        setFolderDialog({
-                          type: "create",
-                          parentFolderId: node.Id,
-                        })
-                      }
-                      onRename={() =>
-                        setFolderDialog({ type: "rename", folder: node })
-                      }
-                      onDeleted={() => {
-                        if (path.some((p) => p.Id === node.Id))
-                          navigate(currentFolder?.ParentFolderId ?? null);
-                      }}
-                    />
-                  ))}
-                  <NewFolderCard
-                    onClick={() =>
-                      setFolderDialog({
-                        type: "create",
-                        parentFolderId: currentFolder?.Id ?? null,
-                      })
-                    }
-                  />
-                </div>
-              )}
-            </section>
+            </div>
           )}
-
-          <section className={cn("overflow-hidden", libraryCardClassName)}>
-            <div className="flex flex-wrap items-center justify-between gap-2 px-4 pt-4">
-              <SectionTitle
-                title={isSearching ? `Results for “${search.trim()}”` : "Files"}
-                count={documentsLoading ? undefined : files.length}
-              />
-              <div className="flex items-center gap-2">
-                {usedTags.length > 0 && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant={activeTag ? "default" : "outline"}
-                        size="sm"
-                        className="h-8"
-                      >
-                        <Tag className="size-3.5" />
-                        {activeTag ?? "All tags"}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      align="end"
-                      className="max-h-72 w-48 overflow-y-auto"
-                    >
-                      <DropdownMenuItem onClick={() => setActiveTag(null)}>
-                        <Check
-                          className={cn(
-                            !activeTag ? "opacity-100" : "opacity-0",
-                          )}
-                        />
-                        All tags
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      {usedTags.map((tag) => (
-                        <DropdownMenuItem
-                          key={tag}
-                          onClick={() => setActiveTag(tag)}
-                        >
-                          <Check
-                            className={cn(
-                              activeTag === tag ? "opacity-100" : "opacity-0",
-                            )}
-                          />
-                          {tag}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+        </div>
+      ) : (
+        <div className="grid items-start gap-5 lg:grid-cols-[250px_minmax(0,1fr)]">
+          <FolderSidebar
+            tree={tree}
+            currentPath={path}
+            totalFiles={allDocuments.length}
+            countByFolder={countByFolder}
+            onNavigate={navigateFolder}
+            onCreate={(parentFolderId) =>
+              setFolderDialog({ type: "create", parentFolderId })
+            }
+            className="lg:sticky lg:top-18"
+          />
+          <div className="min-w-0 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/30 px-3 py-2">
+              <FolderBreadcrumb path={path} onNavigate={navigateFolder} />
+              <div className="relative">
+                <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search files…"
+                  className="h-8 w-64 bg-background pr-8 pl-8"
+                />
+                {isSearching && (
+                  <button
+                    type="button"
+                    onClick={() => setSearch("")}
+                    className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="size-3.5" />
+                  </button>
                 )}
-                <div className="inline-flex items-center rounded-lg border bg-muted/40 p-0.5">
-                  {(
-                    [
-                      ["grid", LayoutGrid, "Grid view"],
-                      ["list", List, "List view"],
-                    ] as const
-                  ).map(([value, Icon, label]) => (
-                    <button
-                      key={value}
-                      type="button"
-                      title={label}
-                      onClick={() => setLayout(value)}
-                      className={cn(
-                        "rounded-md p-1.5 text-muted-foreground transition-colors hover:text-foreground",
-                        layout === value &&
-                          "bg-background text-foreground shadow-xs",
-                      )}
-                    >
-                      <Icon className="size-4" />
-                    </button>
-                  ))}
-                </div>
               </div>
             </div>
 
-            <div className="mt-3 flex gap-1 overflow-x-auto border-b px-4">
-              <KindTab
-                active={activeKind === null}
-                onClick={() => setActiveKind(null)}
-                count={kindCounts.total}
-              >
-                All
-              </KindTab>
-              {KIND_FILTERS.map((kind) => (
-                <KindTab
-                  key={kind}
-                  active={activeKind === kind}
-                  onClick={() =>
-                    setActiveKind(activeKind === kind ? null : kind)
+            <section className={cn("overflow-hidden", libraryCardClassName)}>
+              <div className="flex flex-wrap items-center justify-between gap-2 px-5 pt-5">
+                <SectionTitle
+                  title={
+                    isSearching ? `Results for “${search.trim()}”` : "Files"
                   }
-                  count={kindCounts[kind] ?? 0}
-                >
-                  <DocumentKindIcon kind={kind} size={16} />
-                  {KIND_META[kind].label}
-                </KindTab>
-              ))}
-            </div>
-
-            <div className="bg-muted/20 p-4">
-              {documentsLoading ? (
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <Skeleton key={i} className="h-44 rounded-xl" />
-                  ))}
-                </div>
-              ) : files.length === 0 ? (
-                <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed bg-card py-14 text-center text-muted-foreground">
-                  {isSearching ? (
-                    <FileSearch className="size-8" />
-                  ) : (
-                    <FolderOpen className="size-8" />
-                  )}
-                  <p className="text-sm font-medium text-foreground">
-                    {isSearching || activeKind || activeTag
-                      ? "No matching files"
-                      : "No files here yet"}
-                  </p>
-                  <p className="text-xs">
-                    {isSearching || activeKind || activeTag
-                      ? "Try a different search or clear the filters."
-                      : "Write a Markdown page or upload a PDF, Word, PowerPoint or CSV file."}
-                  </p>
-                </div>
-              ) : layout === "grid" ? (
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {files.map((doc) => (
-                    <DocumentCard
-                      key={doc.Id}
-                      document={doc}
-                      href={`/library/${topicId}/${doc.Id}`}
-                      onSettings={() => setSettingsDocument(doc)}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <DocumentsTable
-                  documents={files}
-                  topicId={topicId}
-                  onSettings={setSettingsDocument}
+                  count={documentsLoading ? undefined : files.length}
                 />
-              )}
-            </div>
-          </section>
+                <div className="flex items-center gap-2">
+                  {usedTags.length > 0 && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant={activeTag ? "default" : "outline"}
+                          size="sm"
+                          className="h-8"
+                        >
+                          <Tag className="size-3.5" />
+                          {activeTag ?? "All tags"}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="end"
+                        className="max-h-72 w-48 overflow-y-auto"
+                      >
+                        <DropdownMenuItem onClick={() => setActiveTag(null)}>
+                          <Check
+                            className={cn(
+                              !activeTag ? "opacity-100" : "opacity-0",
+                            )}
+                          />
+                          All tags
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        {usedTags.map((tag) => (
+                          <DropdownMenuItem
+                            key={tag}
+                            onClick={() => setActiveTag(tag)}
+                          >
+                            <Check
+                              className={cn(
+                                activeTag === tag ? "opacity-100" : "opacity-0",
+                              )}
+                            />
+                            {tag}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                  <div className="inline-flex items-center rounded-lg border bg-muted/40 p-0.5">
+                    {(
+                      [
+                        ["grid", LayoutGrid, "Grid view"],
+                        ["list", List, "List view"],
+                      ] as const
+                    ).map(([value, Icon, label]) => (
+                      <button
+                        key={value}
+                        type="button"
+                        title={label}
+                        onClick={() => setLayout(value)}
+                        className={cn(
+                          "rounded-md p-1.5 text-muted-foreground transition-colors hover:text-foreground",
+                          layout === value &&
+                            "bg-background text-foreground shadow-xs",
+                        )}
+                      >
+                        <Icon className="size-4" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 flex gap-1 overflow-x-auto border-b px-5">
+                <KindTab
+                  active={activeKind === null}
+                  onClick={() => setActiveKind(null)}
+                  count={kindCounts.total}
+                >
+                  All
+                </KindTab>
+                {KIND_FILTERS.map((kind) => (
+                  <KindTab
+                    key={kind}
+                    active={activeKind === kind}
+                    onClick={() =>
+                      setActiveKind(activeKind === kind ? null : kind)
+                    }
+                    count={kindCounts[kind] ?? 0}
+                  >
+                    <DocumentKindIcon kind={kind} size={16} />
+                    {KIND_META[kind].label}
+                  </KindTab>
+                ))}
+              </div>
+
+              <div className="bg-muted/20 p-5">
+                {documentsLoading ? (
+                  <div className="grid gap-5 md:grid-cols-2">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <Skeleton key={i} className="h-56 rounded-xl" />
+                    ))}
+                  </div>
+                ) : files.length === 0 ? (
+                  <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed bg-card py-16 text-center text-muted-foreground">
+                    {isSearching ? (
+                      <FileSearch className="size-8" />
+                    ) : (
+                      <FolderOpen className="size-8" />
+                    )}
+                    <p className="text-sm font-medium text-foreground">
+                      {isSearching || activeKind || activeTag
+                        ? "No matching files"
+                        : "No files here yet"}
+                    </p>
+                    <p className="text-xs">
+                      {isSearching || activeKind || activeTag
+                        ? "Try a different search or clear the filters."
+                        : "Write a Markdown page or upload a PDF, Word, PowerPoint or CSV file."}
+                    </p>
+                  </div>
+                ) : layout === "grid" ? (
+                  <div className="grid gap-5 md:grid-cols-2">
+                    {files.map((doc) => (
+                      <DocumentCard
+                        key={doc.Id}
+                        document={doc}
+                        href={`/library/${topicId}/${doc.Id}`}
+                        onSettings={() => setSettingsDocument(doc)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <DocumentsTable
+                    documents={files}
+                    topicId={topicId}
+                    onSettings={setSettingsDocument}
+                  />
+                )}
+              </div>
+            </section>
+          </div>
         </div>
-      </div>
+      )}
 
       {folderDialog && (
         <FolderNameDialog
@@ -570,17 +610,22 @@ function DocumentCard({
     <Link
       href={href}
       className={cn(
-        "group flex flex-col gap-3 p-4 transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_44px_rgba(15,23,42,0.1)]",
+        "group flex min-h-[220px] flex-col gap-4 p-5 transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_44px_rgba(15,23,42,0.1)]",
         libraryCardClassName,
       )}
     >
-      <div className="flex items-start gap-3">
-        <div className={cn("shrink-0 rounded-lg p-2", meta.className)}>
-          <DocumentKindIcon kind={kind} size={20} />
+      <div className="flex items-start gap-4">
+        <div className={cn("shrink-0 rounded-xl p-3", meta.className)}>
+          <DocumentKindIcon kind={kind} size={28} />
         </div>
-        <p className="line-clamp-2 min-w-0 flex-1 pt-0.5 text-sm leading-snug font-semibold">
-          {document.Title}
-        </p>
+        <div className="min-w-0 flex-1 space-y-1">
+          <p className="line-clamp-2 text-base leading-snug font-semibold">
+            {document.Title}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {meta.label} · {getExtensionLabel(document.FileType)}
+          </p>
+        </div>
         <DocumentActions
           document={document}
           onSettings={onSettings}
@@ -588,22 +633,22 @@ function DocumentCard({
         />
       </div>
 
-      <dl className="space-y-2 rounded-lg border bg-muted/40 p-3 text-xs">
+      <dl className="space-y-2.5 rounded-xl border bg-muted/40 p-4 text-sm">
         <div className="flex items-center">
-          <dt className="flex w-20 items-center gap-1.5 text-muted-foreground">
-            <FileType className="size-3.5" />
+          <dt className="flex w-24 items-center gap-1.5 text-muted-foreground">
+            <FileType className="size-4" />
             Type
           </dt>
           <dd className="font-medium">
             {meta.label}
-            <span className="ml-1.5 rounded border bg-background px-1 py-px text-[10px] text-muted-foreground">
+            <span className="ml-1.5 rounded border bg-background px-1.5 py-0.5 text-[11px] text-muted-foreground">
               {getExtensionLabel(document.FileType)}
             </span>
           </dd>
         </div>
         <div className="flex items-center">
-          <dt className="flex w-20 items-center gap-1.5 text-muted-foreground">
-            <Calendar className="size-3.5" />
+          <dt className="flex w-24 items-center gap-1.5 text-muted-foreground">
+            <Calendar className="size-4" />
             Updated
           </dt>
           <dd className="font-medium">
@@ -611,8 +656,8 @@ function DocumentCard({
           </dd>
         </div>
         <div className="flex items-center">
-          <dt className="flex w-20 items-center gap-1.5 text-muted-foreground">
-            <CircleDashed className="size-3.5" />
+          <dt className="flex w-24 items-center gap-1.5 text-muted-foreground">
+            <CircleDashed className="size-4" />
             Status
           </dt>
           <dd>
@@ -622,18 +667,18 @@ function DocumentCard({
       </dl>
 
       <div className="mt-auto flex items-center justify-between gap-2">
-        <div className="flex min-w-0 flex-wrap gap-1">
+        <div className="flex min-w-0 flex-wrap gap-1.5">
           {document.Tags.slice(0, 2).map((tag) => (
             <Badge
               key={tag}
               variant="secondary"
-              className="h-5 max-w-24 truncate px-1.5 text-[10px]"
+              className="h-6 max-w-28 truncate px-2 text-[11px]"
             >
               {tag}
             </Badge>
           ))}
           {document.Tags.length > 2 && (
-            <span className="text-[10px] leading-5 text-muted-foreground">
+            <span className="text-[11px] leading-6 text-muted-foreground">
               +{document.Tags.length - 2}
             </span>
           )}

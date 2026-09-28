@@ -38,7 +38,12 @@ export function getEnrollmentsColumns({
       accessorKey: "StudentName",
       header: "Student",
       cell: ({ row }) => (
-        <span className="font-medium">{row.original.StudentName}</span>
+        <span
+          className="block w-full truncate font-medium"
+          title={row.original.StudentName}
+        >
+          {row.original.StudentName}
+        </span>
       ),
     },
     {
@@ -46,7 +51,10 @@ export function getEnrollmentsColumns({
       accessorKey: "StudentEmail",
       header: "Email",
       cell: ({ row }) => (
-        <span className="text-muted-foreground">
+        <span
+          className="block w-full truncate text-muted-foreground"
+          title={row.original.StudentEmail}
+        >
           {row.original.StudentEmail}
         </span>
       ),
@@ -55,7 +63,14 @@ export function getEnrollmentsColumns({
       accessorKey: "Course",
       header: "Course",
       cell: ({ row }) =>
-        row.original.Course?.Title ?? (
+        row.original.Course?.Title ? (
+          <span
+            className="block w-full truncate"
+            title={row.original.Course.Title}
+          >
+            {row.original.Course.Title}
+          </span>
+        ) : (
           <span className="text-muted-foreground">—</span>
         ),
     },

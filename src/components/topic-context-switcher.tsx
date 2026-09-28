@@ -31,19 +31,23 @@ export function TopicContextSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 rounded-full">
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 w-full min-w-0 max-w-full shrink justify-start gap-2 overflow-hidden rounded-full"
+        >
           {activeTopic ? (
             <span
-              className="size-2 rounded-full"
+              className="size-2 shrink-0 rounded-full"
               style={{ backgroundColor: activeTopic.Color ?? FALLBACK_COLOR }}
             />
           ) : (
-            <Layers className="size-3.5 text-muted-foreground" />
+            <Layers className="size-3.5 shrink-0 text-muted-foreground" />
           )}
-          <span className="max-w-36 truncate">
+          <span className="min-w-0 flex-1 truncate text-left">
             {activeTopic?.Title ?? "All topics"}
           </span>
-          <ChevronsUpDown className="size-3.5 text-muted-foreground" />
+          <ChevronsUpDown className="size-3.5 shrink-0 text-muted-foreground" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
@@ -68,7 +72,7 @@ export function TopicContextSwitcher() {
               className="size-2 rounded-full"
               style={{ backgroundColor: topic.Color ?? FALLBACK_COLOR }}
             />
-            <span className="truncate">{topic.Title}</span>
+            <span className="min-w-0 flex-1 truncate">{topic.Title}</span>
             <Check
               className={cn(
                 "ml-auto size-4",
