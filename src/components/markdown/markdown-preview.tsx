@@ -3,8 +3,6 @@
 import { useRef, useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
-import { MARKDOWN_PROSE } from "@/components/markdown/markdown-prose";
-
 interface HastNode {
   type: string;
   tagName?: string;
@@ -85,7 +83,7 @@ export function MarkdownPreview({ content }: MarkdownPreviewProps) {
   return (
     <MarkdownRenderer
       content={content}
-      className={MARKDOWN_PROSE}
+      className="markdown-prose"
       rehypePlugins={[rehypeHeadingIds]}
       components={{ pre: CodeBlock }}
     />

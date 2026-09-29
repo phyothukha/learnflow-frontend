@@ -13,7 +13,6 @@ import { useWorkspaceStore } from "@/store/client/workspace";
 import { useFetchTopics } from "@/store/server/topics/queries";
 import { useFetchNotes } from "@/store/server/notes/queries";
 import { useCreateNote } from "@/store/server/notes/mutations";
-import { libraryCardClassName } from "@/app/(admin)/library/components/library-card";
 
 const FALLBACK_COLOR = "#8b8b8b";
 
@@ -84,7 +83,7 @@ export default function NotesPage() {
     <div
       className={cn(
         "flex h-full min-h-0 flex-col items-center justify-center gap-3 text-center text-muted-foreground",
-        libraryCardClassName,
+        "library-card",
       )}
     >
       <NotebookPen className="size-8" />

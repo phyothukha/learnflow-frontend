@@ -10,6 +10,8 @@ import {
   uniqueSlug,
 } from "@/components/markdown/markdown-preview";
 import { cn } from "@/lib/utils";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useUpdateDocument } from "@/store/server/documents/mutations";
 import type { StudyDocument } from "@/store/server/documents/interface";
 
@@ -358,6 +360,7 @@ export function MarkdownEditorPanel({
 }: MarkdownEditorPanelProps) {
   const [content, setContent] = useState(document.Content ?? "");
   const updateDocument = useUpdateDocument();
+  const { confirmDiscardChanges, dialogProps } = useConfirmDialog();
   const isDirty = content !== (document.Content ?? "");
 
   useEffect(() => {
@@ -383,63 +386,65 @@ export function MarkdownEditorPanel({
   };
 
   return (
-    <div
-      className={cn(
-        "flex h-[calc(100svh-16rem)] min-h-[520px] flex-col",
-        className,
-      )}
-    >
-      <MarkdownSplitEditor
-        value={content}
-        onChange={setContent}
-        onSave={() => save(false)}
-        className="flex-1 rounded-none border-0 border-b"
-      />
-      <div className="flex items-center justify-between gap-2 px-4 py-3">
-        <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
-          <span
-            className={cn(
-              "size-2 rounded-full",
-              updateDocument.isPending
-                ? "animate-pulse bg-amber-500"
-                : isDirty
-                  ? "bg-amber-500"
-                  : "bg-emerald-500",
-            )}
-          />
-          {updateDocument.isPending
-            ? "Saving…"
-            : isDirty
-              ? "Unsaved changes"
-              : "All changes saved"}
-        </span>
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => {
-              if (isDirty && !window.confirm("Discard unsaved changes?"))
-                return;
-              onClose();
-            }}
-          >
-            <X className="size-4" />
-            Close
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => save(true)}
-            disabled={updateDocument.isPending}
-          >
-            {updateDocument.isPending ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Save className="size-4" />
-            )}
-            Save changes
-          </Button>
+    <>
+      <div
+        className={cn(
+          "flex h-[calc(100svh-16rem)] min-h-[520px] flex-col",
+          className,
+        )}
+      >
+        <MarkdownSplitEditor
+          value={content}
+          onChange={setContent}
+          onSave={() => save(false)}
+          className="flex-1 rounded-none border-0 border-b"
+        />
+        <div className="flex items-center justify-between gap-2 px-4 py-3">
+          <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+            <span
+              className={cn(
+                "size-2 rounded-full",
+                updateDocument.isPending
+                  ? "animate-pulse bg-amber-500"
+                  : isDirty
+                    ? "bg-amber-500"
+                    : "bg-emerald-500",
+              )}
+            />
+            {updateDocument.isPending
+              ? "Saving…"
+              : isDirty
+                ? "Unsaved changes"
+                : "All changes saved"}
+          </span>
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={async () => {
+                if (isDirty && !(await confirmDiscardChanges())) return;
+                onClose();
+              }}
+            >
+              <X className="size-4" />
+              Close
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => save(true)}
+              disabled={updateDocument.isPending}
+            >
+              {updateDocument.isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Save className="size-4" />
+              )}
+              Save changes
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
+      <ConfirmDialog {...dialogProps} />
+    </>
   );
 }

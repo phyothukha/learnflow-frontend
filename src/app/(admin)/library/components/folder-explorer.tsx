@@ -30,13 +30,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import {
   useCreateFolder,
   useDeleteFolder,
   useUpdateFolder,
 } from "@/store/server/topic-folders/mutations";
 import type { TopicFolderTreeNode } from "@/store/server/topic-folders/interface";
-import { libraryCardClassName } from "./library-card";
 
 const FOLDER_COLORS = [
   "#3b82f6",
@@ -249,7 +250,7 @@ export function FolderSidebar({
   };
 
   return (
-    <aside className={cn(libraryCardClassName, className)}>
+    <aside className={cn("library-card", className)}>
       <div className="flex items-center justify-between border-b px-4 py-3">
         <p className="text-sm font-semibold">Folders</p>
         <Button
@@ -310,82 +311,84 @@ export function FolderCard({
 }: FolderCardProps) {
   const queryClient = useQueryClient();
   const deleteFolder = useDeleteFolder();
+  const { confirmDelete, dialogProps } = useConfirmDialog();
   const subfolderCount = node.Children.length;
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={onOpen}
-      onKeyDown={(e) => e.key === "Enter" && onOpen()}
-      className={cn(
-        "group relative flex cursor-pointer flex-col gap-5 p-4 transition-all outline-none hover:-translate-y-0.5 hover:shadow-[0_14px_44px_rgba(15,23,42,0.1)] focus-visible:ring-2 focus-visible:ring-ring",
-        libraryCardClassName,
-      )}
-    >
-      <div className="flex items-start justify-between">
-        <FolderGlyph color={folderColor(node.Id)} />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="-mt-1 -mr-1 size-7 text-muted-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
+    <>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={onOpen}
+        onKeyDown={(e) => e.key === "Enter" && onOpen()}
+        className={cn(
+          "group relative flex cursor-pointer flex-col gap-5 p-4 transition-all outline-none hover:-translate-y-0.5 hover:shadow-[0_14px_44px_rgba(15,23,42,0.1)] focus-visible:ring-2 focus-visible:ring-ring",
+          "library-card",
+        )}
+      >
+        <div className="flex items-start justify-between">
+          <FolderGlyph color={folderColor(node.Id)} />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="-mt-1 -mr-1 size-7 text-muted-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-44"
               onClick={(e) => e.stopPropagation()}
             >
-              <MoreHorizontal className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
-            className="w-44"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <DropdownMenuItem onClick={onAddSubfolder}>
-              <FolderPlus />
-              New subfolder
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onRename}>
-              <Pencil />
-              Rename
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() => {
-                if (
-                  !window.confirm(
-                    `Delete "${node.Name}"? Its subfolders are removed and their documents move to the top level.`,
-                  )
-                )
-                  return;
-                deleteFolder.mutate(node.Id, {
-                  onSuccess: () => {
-                    queryClient.invalidateQueries({
-                      queryKey: ["document-list"],
-                    });
-                    toast.success("Folder deleted");
-                    onDeleted();
-                  },
-                  onError: () => toast.error("Failed to delete folder"),
-                });
-              }}
-            >
-              <Trash2 />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <DropdownMenuItem onClick={onAddSubfolder}>
+                <FolderPlus />
+                New subfolder
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onRename}>
+                <Pencil />
+                Rename
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => {
+                  void confirmDelete({
+                    itemName: node.Name,
+                    description:
+                      "Its subfolders are removed and their documents move to the top level.",
+                    successMessage: "Folder deleted",
+                    errorMessage: "Failed to delete folder",
+                    onConfirm: async () => {
+                      await deleteFolder.mutateAsync(node.Id);
+                      queryClient.invalidateQueries({
+                        queryKey: ["document-list"],
+                      });
+                      onDeleted();
+                    },
+                  });
+                }}
+              >
+                <Trash2 />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold">{node.Name}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {fileCount} {fileCount === 1 ? "file" : "files"}
+            {subfolderCount > 0 &&
+              ` · ${subfolderCount} ${subfolderCount === 1 ? "folder" : "folders"}`}
+          </p>
+        </div>
       </div>
-      <div className="min-w-0">
-        <p className="truncate text-sm font-semibold">{node.Name}</p>
-        <p className="mt-0.5 text-xs text-muted-foreground">
-          {fileCount} {fileCount === 1 ? "file" : "files"}
-          {subfolderCount > 0 &&
-            ` · ${subfolderCount} ${subfolderCount === 1 ? "folder" : "folders"}`}
-        </p>
-      </div>
-    </div>
+      <ConfirmDialog {...dialogProps} />
+    </>
   );
 }
 

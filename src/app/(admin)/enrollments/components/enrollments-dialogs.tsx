@@ -23,16 +23,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
   Form,
   FormControl,
   FormField,
@@ -45,9 +35,11 @@ import { EnrollmentStatus } from "@/store/server/enrollments/interface";
 import {
   useCreateEnrollment,
   useUpdateEnrollment,
-  useDeleteEnrollment,
 } from "@/store/server/enrollments/mutations";
-import { EnrollmentsDialogType, useEnrollments } from "./enrollments-provider";
+import {
+  EnrollmentsDialogType,
+  useEnrollments,
+} from "../context/enrollments-context";
 
 const STATUSES = Object.values(EnrollmentStatus);
 
@@ -77,8 +69,6 @@ export function EnrollmentsDialogs() {
 
   const createEnrollment = useCreateEnrollment();
   const updateEnrollment = useUpdateEnrollment();
-  const deleteEnrollment = useDeleteEnrollment();
-
   const isEdit = open === EnrollmentsDialogType.Edit;
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -124,17 +114,6 @@ export function EnrollmentsDialogs() {
         onError: () => toast.error("Failed to create enrollment."),
       });
     }
-  }
-
-  function onDelete() {
-    if (!currentRow) return;
-    deleteEnrollment.mutate(currentRow.Id, {
-      onSuccess: () => {
-        toast.success("Enrollment deleted.");
-        closeDialog();
-      },
-      onError: () => toast.error("Failed to delete enrollment."),
-    });
   }
 
   const isPending = createEnrollment.isPending || updateEnrollment.isPending;
@@ -269,31 +248,6 @@ export function EnrollmentsDialogs() {
           </Form>
         </DialogContent>
       </Dialog>
-
-      <AlertDialog
-        open={open === EnrollmentsDialogType.Delete}
-        onOpenChange={(isOpen) => !isOpen && closeDialog()}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete enrollment?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently remove “{currentRow?.StudentName}”&apos;s
-              enrollment. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={onDelete}
-              disabled={deleteEnrollment.isPending}
-              className="bg-destructive text-white hover:bg-destructive/90"
-            >
-              {deleteEnrollment.isPending ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }

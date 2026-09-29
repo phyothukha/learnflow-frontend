@@ -10,7 +10,7 @@ import {
   DocumentStatus,
   type StudyDocument,
 } from "@/store/server/documents/interface";
-import { DocumentStatusPill } from "@/app/(admin)/library/components/documents-columns";
+import { DocumentStatusPill } from "@/app/(admin)/library/components/document-status-pill";
 
 const STATUS_SCORE: Record<DocumentStatus, number> = {
   [DocumentStatus.Completed]: 5,

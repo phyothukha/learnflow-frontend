@@ -27,6 +27,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { AnimatedTabs, type AnimatedTab } from "@/components/animated-tabs";
 import { useWorkspaceStore } from "@/store/client/workspace";
 import { useFetchTopics } from "@/store/server/topics/queries";
@@ -40,7 +42,6 @@ import {
   FALLBACK_TOPIC_COLOR as FALLBACK_COLOR,
   TOPIC_COLORS,
 } from "@/lib/topic-colors";
-import { libraryCardClassName } from "./components/library-card";
 
 enum SortMode {
   Recent = "recent",
@@ -76,6 +77,7 @@ export default function LibraryPage() {
   const { data: topicsData, isLoading } = useFetchTopics({ limit: 100 });
   const { data: documentsData } = useFetchDocuments({ limit: 500 });
   const deleteTopic = useDeleteTopic();
+  const { confirmDelete, dialogProps } = useConfirmDialog();
 
   const fileCountByTopic = useMemo(() => {
     const counts = new Map<string, number>();
@@ -104,86 +106,90 @@ export default function LibraryPage() {
     sort,
   );
 
-  const handleDelete = (topic: Topic) => {
-    if (!window.confirm(`Delete "${topic.Title}" and all its documents?`))
-      return;
-    deleteTopic.mutate(topic.Id, {
-      onSuccess: () => {
+  const handleDelete = (topic: Topic) =>
+    confirmDelete({
+      itemName: topic.Title,
+      description:
+        "All of its folders and documents will be deleted too. This action cannot be undone.",
+      successMessage: "Topic deleted",
+      errorMessage: "Failed to delete topic",
+      onConfirm: async () => {
+        await deleteTopic.mutateAsync(topic.Id);
         if (activeTopicId === topic.Id) setActiveTopic(null);
-        toast.success("Topic deleted");
       },
-      onError: () => toast.error("Failed to delete topic"),
     });
-  };
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Library"
-        description="Browse topics and open folders to manage your files"
-        badge={
-          <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary tabular-nums">
-            {topics.length} {topics.length === 1 ? "topic" : "topics"}
-          </span>
-        }
-        actions={<CreateTopicDialog />}
-        className="border-b pb-5"
-      />
+    <>
+      <div className="space-y-6">
+        <PageHeader
+          title="Library"
+          description="Browse topics and open folders to manage your files"
+          badge={
+            <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary tabular-nums">
+              {topics.length} {topics.length === 1 ? "topic" : "topics"}
+            </span>
+          }
+          actions={<CreateTopicDialog />}
+          className="border-b pb-5"
+        />
 
-      <div className={cn("space-y-3 p-3", libraryCardClassName)}>
-        <div className="relative">
-          <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search topics by name or description…"
-            className="h-10 bg-background pl-9"
+        <div className="library-card space-y-3 p-3">
+          <div className="relative">
+            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search topics by name or description…"
+              className="h-10 bg-background pl-9"
+            />
+          </div>
+          <AnimatedTabs
+            value={sort}
+            onValueChange={setSort}
+            tabs={SORT_TABS}
+            className="border-border/80"
+            tabClassName="px-3 py-2"
           />
         </div>
-        <AnimatedTabs
-          value={sort}
-          onValueChange={setSort}
-          tabs={SORT_TABS}
-          className="border-border/80"
-          tabClassName="px-3 py-2"
-        />
-      </div>
 
-      {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-[160px] rounded-xl" />
-          ))}
-        </div>
-      ) : topics.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed py-16 text-center">
-          <div className="rounded-2xl bg-muted p-4">
-            <Library className="size-6 text-muted-foreground" />
+        {isLoading ? (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-[160px] rounded-xl" />
+            ))}
           </div>
-          <p className="text-sm font-medium">No topics yet</p>
-          <p className="text-xs text-muted-foreground">
-            Create a topic to start organizing your study materials.
+        ) : topics.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed py-16 text-center">
+            <div className="rounded-2xl bg-muted p-4">
+              <Library className="size-6 text-muted-foreground" />
+            </div>
+            <p className="text-sm font-medium">No topics yet</p>
+            <p className="text-xs text-muted-foreground">
+              Create a topic to start organizing your study materials.
+            </p>
+          </div>
+        ) : visibleTopics.length === 0 ? (
+          <p className="py-10 text-center text-sm text-muted-foreground">
+            No topics match “{search}”.
           </p>
-        </div>
-      ) : visibleTopics.length === 0 ? (
-        <p className="py-10 text-center text-sm text-muted-foreground">
-          No topics match “{search}”.
-        </p>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {visibleTopics.map((topic) => (
-            <TopicCard
-              key={topic.Id}
-              topic={topic}
-              fileCount={fileCountByTopic.get(topic.Id) ?? 0}
-              isActive={activeTopicId === topic.Id}
-              onOpen={() => setActiveTopic(topic.Id)}
-              onDelete={() => handleDelete(topic)}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {visibleTopics.map((topic) => (
+              <TopicCard
+                key={topic.Id}
+                topic={topic}
+                fileCount={fileCountByTopic.get(topic.Id) ?? 0}
+                isActive={activeTopicId === topic.Id}
+                onOpen={() => setActiveTopic(topic.Id)}
+                onDelete={() => handleDelete(topic)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+      <ConfirmDialog {...dialogProps} />
+    </>
   );
 }
 
@@ -209,7 +215,7 @@ function TopicCard({
       href={`/library/${topic.Id}`}
       onClick={onOpen}
       className={cn(
-        libraryCardClassName,
+        "library-card",
         "group relative flex flex-col border-2 border-transparent transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_44px_rgba(15,23,42,0.1)]",
         isActive && "border-primary",
       )}

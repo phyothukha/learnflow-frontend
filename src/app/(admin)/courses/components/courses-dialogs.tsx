@@ -18,16 +18,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
   Form,
   FormControl,
   FormField,
@@ -38,10 +28,8 @@ import {
 import {
   useCreateCourse,
   useUpdateCourse,
-  useDeleteCourse,
 } from "@/store/server/courses/mutations";
-import { useCourses } from "./courses-provider";
-import { CoursesDialogType } from "./courses-columns.props";
+import { CoursesDialogType, useCourses } from "../context/courses-context";
 
 const schema = z.object({
   Title: z.string().min(1, "Title is required"),
@@ -64,8 +52,6 @@ export function CoursesDialogs() {
 
   const createCourse = useCreateCourse();
   const updateCourse = useUpdateCourse();
-  const deleteCourse = useDeleteCourse();
-
   const isEdit = open === CoursesDialogType.Edit;
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -110,17 +96,6 @@ export function CoursesDialogs() {
         onError: () => toast.error("Failed to create course."),
       });
     }
-  }
-
-  function onDelete() {
-    if (!currentRow) return;
-    deleteCourse.mutate(currentRow.Id, {
-      onSuccess: () => {
-        toast.success("Course deleted.");
-        closeDialog();
-      },
-      onError: () => toast.error("Failed to delete course."),
-    });
   }
 
   const isPending = createCourse.isPending || updateCourse.isPending;
@@ -215,31 +190,6 @@ export function CoursesDialogs() {
           </Form>
         </DialogContent>
       </Dialog>
-
-      <AlertDialog
-        open={open === CoursesDialogType.Delete}
-        onOpenChange={(isOpen) => !isOpen && closeDialog()}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete course?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete “{currentRow?.Title}” and all of its
-              lessons and enrollments. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={onDelete}
-              disabled={deleteCourse.isPending}
-              className="bg-destructive text-white hover:bg-destructive/90"
-            >
-              {deleteCourse.isPending ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }

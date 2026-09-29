@@ -148,6 +148,70 @@
   }
 }
 
+/* Elevated card surface used by Library and Notes. */
+@utility library-card {
+  @apply rounded-xl bg-card text-card-foreground shadow-[0_10px_40px_rgba(15,23,42,0.06)] ring-1 ring-black/[0.04] dark:shadow-[0_12px_40px_rgba(0,0,0,0.35)] dark:ring-white/[0.06];
+}
+
+/* Long-form reading styles for document + note markdown previews. */
+@utility markdown-prose {
+  @apply mx-auto max-w-4xl min-w-0 text-[15px] leading-7 text-foreground/90 [overflow-wrap:anywhere];
+
+  & h1,
+  & h2,
+  & h3 {
+    @apply scroll-mt-4 text-foreground;
+  }
+  & h1 {
+    @apply mt-0 mb-5 border-b pb-3 text-3xl font-bold tracking-tight;
+  }
+  & h2 {
+    @apply mt-8 mb-3 text-xl font-semibold;
+  }
+  & h3 {
+    @apply mt-6 mb-2 text-base font-semibold;
+  }
+  & p {
+    @apply mb-4;
+  }
+  & li {
+    @apply mb-1.5;
+  }
+  & li::marker {
+    @apply text-muted-foreground;
+  }
+  & strong {
+    @apply font-semibold text-foreground;
+  }
+  & blockquote {
+    @apply my-5 rounded-r-lg border-l-4 border-primary/40 bg-muted/50 py-2 pr-4 pl-4 italic;
+  }
+  & pre {
+    @apply my-5 max-w-full overflow-x-auto rounded-xl border bg-muted/60 p-4 text-[13px] leading-6 [overflow-wrap:normal];
+  }
+  & :not(pre) > code {
+    @apply rounded-md border bg-muted/60 px-1.5 py-0.5 text-[13px];
+  }
+  & table {
+    @apply my-5 block w-max max-w-full overflow-x-auto rounded-lg text-sm;
+  }
+  & th {
+    @apply bg-muted/60 px-3 py-2 font-semibold;
+  }
+  & td {
+    @apply px-3 py-2 [overflow-wrap:normal];
+  }
+  & img {
+    @apply my-5 h-auto max-w-full rounded-xl border;
+  }
+  & hr {
+    @apply my-8;
+  }
+  & a {
+    @apply font-medium;
+  }
+}
+
 @utility scrollbar-handle {
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--primary) 45%, transparent)

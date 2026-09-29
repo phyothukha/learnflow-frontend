@@ -16,7 +16,6 @@ import { useWorkspaceStore } from "@/store/client/workspace";
 import { useFetchNotes } from "@/store/server/notes/queries";
 import { useCreateNote } from "@/store/server/notes/mutations";
 import type { Note } from "@/store/server/notes/interface";
-import { libraryCardClassName } from "@/app/(admin)/library/components/library-card";
 
 function previewText(content: string | null) {
   if (!content?.trim()) return "No content yet";
@@ -114,7 +113,7 @@ export default function NotesLayout({ children }: NotesLayoutProps) {
       <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[300px_minmax(0,1fr)] lg:gap-5">
         <aside
           className={cn(
-            libraryCardClassName,
+            "library-card",
             "flex h-full min-h-0 min-w-0 flex-col overflow-hidden",
             activeNoteId && "hidden lg:flex",
           )}

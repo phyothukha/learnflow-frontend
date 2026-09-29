@@ -3,9 +3,10 @@
 import { PageHeader } from "@/components/page-header";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
-import { CoursesProvider } from "./components/courses-provider";
-import { CoursesCreateButton, CoursesTable } from "./components/courses-table";
 import { CoursesDialogs } from "./components/courses-dialogs";
+import { CoursesPrimaryButtons } from "./components/courses-primary-buttons";
+import { CoursesTable } from "./components/courses-table";
+import CoursesProvider from "./context/courses-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
@@ -29,7 +30,7 @@ export default function CoursesPage() {
         <PageHeader
           title="Courses"
           description="Create, publish and manage the courses students can enroll in"
-          actions={<CoursesCreateButton />}
+          actions={<CoursesPrimaryButtons />}
         />
         <div className="min-h-0 flex-1">
           <CoursesTable />

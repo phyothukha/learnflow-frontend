@@ -1,34 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { BookOpen, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { BookOpen } from "lucide-react";
 import { DataTable } from "@/components/data-table";
-import { usePermission } from "@/hooks/use-permission";
-import { PERMISSIONS } from "@/lib/permissions";
 import { useFetchCourses } from "@/store/server/courses/queries";
-import { getCoursesColumns } from "./courses-columns";
-import { CoursesDialogType } from "./courses-columns.props";
-import { useCourses } from "./courses-provider";
-
-export function CoursesCreateButton() {
-  const { setOpen } = useCourses();
-  const { hasPermission } = usePermission();
-
-  if (!hasPermission(PERMISSIONS.COURSES_CREATE)) return null;
-
-  return (
-    <Button onClick={() => setOpen(CoursesDialogType.Create)}>
-      <Plus />
-      New Course
-    </Button>
-  );
-}
+import { columns } from "./columns";
+import { CoursesPrimaryButtons } from "./courses-primary-buttons";
 
 export function CoursesTable() {
-  const { setOpen, setCurrentRow } = useCourses();
-  const { hasPermission } = usePermission();
-
   const [page, setPage] = useState(0);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
@@ -37,16 +16,6 @@ export function CoursesTable() {
 
   const total = data?.TotalCount ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / limit));
-
-  const columns = useMemo(
-    () =>
-      getCoursesColumns({
-        hasPermission,
-        setCurrentRow,
-        setOpen,
-      }),
-    [hasPermission, setCurrentRow, setOpen],
-  );
 
   return (
     <DataTable
@@ -75,7 +44,7 @@ export function CoursesTable() {
           ? "Try a different search term."
           : "Create your first course to get started."
       }
-      emptyAction={!search ? <CoursesCreateButton /> : undefined}
+      emptyAction={!search ? <CoursesPrimaryButtons /> : undefined}
     />
   );
 }

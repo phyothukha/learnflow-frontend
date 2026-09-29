@@ -53,13 +53,11 @@ import {
   CreateDocumentDialog,
   CreateDocumentMode,
 } from "../components/create-document-dialog";
-import { DocumentDetailDialog } from "../components/document-detail-dialog";
-import {
-  DocumentActions,
-  DocumentStatusPill,
-} from "../components/documents-columns";
+import { DocumentActions } from "../components/data-table-row-actions";
+import { DocumentStatusPill } from "../components/document-status-pill";
+import { DocumentsDialogs } from "../components/documents-dialogs";
 import { DocumentsTable } from "../components/documents-table";
-import { libraryCardClassName } from "../components/library-card";
+import DocumentsProvider from "../context/documents-context";
 import {
   collectFolderIds,
   findFolderPath,
@@ -137,8 +135,6 @@ export default function TopicDocumentsPage({
   const [folderDialog, setFolderDialog] = useState<FolderDialogState | null>(
     null,
   );
-  const [settingsDocument, setSettingsDocument] =
-    useState<StudyDocument | null>(null);
 
   const { data: topicsData, isLoading: topicsLoading } = useFetchTopics({
     limit: 100,
@@ -254,318 +250,312 @@ export default function TopicDocumentsPage({
   ).length;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b pb-5">
-        <div className="min-w-0 space-y-1.5">
-          <div className="flex items-center gap-2.5">
-            <span
-              className="size-2.5 shrink-0 rounded-full"
-              style={{ backgroundColor: color }}
-            />
-            {topic ? (
-              <h1 className="truncate text-xl font-semibold tracking-tight">
-                {topic.Title}
-              </h1>
-            ) : (
-              <Skeleton className="h-8 w-48" />
-            )}
-          </div>
-          <p className="truncate text-sm text-muted-foreground">
-            {topic?.Description || "Folders and documents in this topic"}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          {activeTab === TopicTab.Folders ? (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() =>
-                setFolderDialog({
-                  type: FolderDialogType.Create,
-                  parentFolderId: currentFolder?.Id ?? null,
-                })
-              }
-            >
-              <FolderPlus className="size-4" />
-              New folder
-            </Button>
-          ) : (
-            <CreateDocumentDialog
-              topicId={topicId}
-              defaultFolderId={currentFolder?.Id ?? null}
-              folderOptions={flattenFolders(tree).map(({ node, depth }) => ({
-                id: node.Id,
-                label: `${"— ".repeat(depth)}${node.Name}`,
-              }))}
-              onCreated={(doc, mode) =>
-                router.push(
-                  `/library/${topicId}/${doc.Id}${mode === CreateDocumentMode.Write ? "?edit=1" : ""}`,
-                )
-              }
-            />
-          )}
-        </div>
-      </div>
-
-      <AnimatedTabs
-        value={activeTab}
-        onValueChange={setTab}
-        tabs={[
-          {
-            value: TopicTab.Folders,
-            label: "Folders",
-            count: childFolders.length,
-          },
-          { value: TopicTab.Files, label: "Files", count: filesInCurrent },
-        ]}
-      />
-
-      {activeTab === TopicTab.Folders ? (
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/30 px-3 py-2">
-            <FolderBreadcrumb path={path} onNavigate={navigateFolder} />
-          </div>
-
-          {foldersLoading ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-[116px] rounded-xl" />
-              ))}
+    <DocumentsProvider>
+      <div className="space-y-6">
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b pb-5">
+          <div className="min-w-0 space-y-1.5">
+            <div className="flex items-center gap-2.5">
+              <span
+                className="size-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: color }}
+              />
+              {topic ? (
+                <h1 className="truncate text-xl font-semibold tracking-tight">
+                  {topic.Title}
+                </h1>
+              ) : (
+                <Skeleton className="h-8 w-48" />
+              )}
             </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-              {childFolders.map((node) => (
-                <FolderCard
-                  key={node.Id}
-                  node={node}
-                  fileCount={countByFolder.get(node.Id) ?? 0}
-                  onOpen={() => navigateFolder(node.Id)}
-                  onAddSubfolder={() =>
-                    setFolderDialog({
-                      type: FolderDialogType.Create,
-                      parentFolderId: node.Id,
-                    })
-                  }
-                  onRename={() =>
-                    setFolderDialog({
-                      type: FolderDialogType.Rename,
-                      folder: node,
-                    })
-                  }
-                  onDeleted={() => {
-                    if (path.some((p) => p.Id === node.Id))
-                      navigateFolder(currentFolder?.ParentFolderId ?? null);
-                  }}
-                />
-              ))}
-              <NewFolderCard
+            <p className="truncate text-sm text-muted-foreground">
+              {topic?.Description || "Folders and documents in this topic"}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {activeTab === TopicTab.Folders ? (
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() =>
                   setFolderDialog({
                     type: FolderDialogType.Create,
                     parentFolderId: currentFolder?.Id ?? null,
                   })
                 }
+              >
+                <FolderPlus className="size-4" />
+                New folder
+              </Button>
+            ) : (
+              <CreateDocumentDialog
+                topicId={topicId}
+                defaultFolderId={currentFolder?.Id ?? null}
+                folderOptions={flattenFolders(tree).map(({ node, depth }) => ({
+                  id: node.Id,
+                  label: `${"— ".repeat(depth)}${node.Name}`,
+                }))}
+                onCreated={(doc, mode) =>
+                  router.push(
+                    `/library/${topicId}/${doc.Id}${mode === CreateDocumentMode.Write ? "?edit=1" : ""}`,
+                  )
+                }
               />
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      ) : (
-        <div className="grid items-start gap-5 lg:grid-cols-[250px_minmax(0,1fr)]">
-          <FolderSidebar
-            tree={tree}
-            currentPath={path}
-            totalFiles={allDocuments.length}
-            countByFolder={countByFolder}
-            onNavigate={navigateFolder}
-            onCreate={(parentFolderId) =>
-              setFolderDialog({
-                type: FolderDialogType.Create,
-                parentFolderId,
-              })
-            }
-            className="lg:sticky lg:top-18"
-          />
-          <div className="min-w-0 space-y-4">
+
+        <AnimatedTabs
+          value={activeTab}
+          onValueChange={setTab}
+          tabs={[
+            {
+              value: TopicTab.Folders,
+              label: "Folders",
+              count: childFolders.length,
+            },
+            { value: TopicTab.Files, label: "Files", count: filesInCurrent },
+          ]}
+        />
+
+        {activeTab === TopicTab.Folders ? (
+          <div className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/30 px-3 py-2">
               <FolderBreadcrumb path={path} onNavigate={navigateFolder} />
-              <div className="relative">
-                <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search files…"
-                  className="h-8 w-64 bg-background pr-8 pl-8"
-                />
-                {isSearching && (
-                  <button
-                    type="button"
-                    onClick={() => setSearch("")}
-                    className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    <X className="size-3.5" />
-                  </button>
-                )}
-              </div>
             </div>
 
-            <section className={cn("overflow-hidden", libraryCardClassName)}>
-              <div className="flex flex-wrap items-center justify-between gap-2 px-5 pt-5">
-                <SectionTitle
-                  title={
-                    isSearching ? `Results for “${search.trim()}”` : "Files"
-                  }
-                  count={documentsLoading ? undefined : files.length}
-                />
-                <div className="flex items-center gap-2">
-                  {usedTags.length > 0 && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant={activeTag ? "default" : "secondary"}
-                          size="sm"
-                          className="h-8"
-                        >
-                          <Tag className="size-3.5" />
-                          {activeTag ?? "All tags"}
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        className="max-h-72 w-48 overflow-y-auto"
-                      >
-                        <DropdownMenuItem onClick={() => setActiveTag(null)}>
-                          <Check
-                            className={cn(
-                              !activeTag ? "opacity-100" : "opacity-0",
-                            )}
-                          />
-                          All tags
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        {usedTags.map((tag) => (
-                          <DropdownMenuItem
-                            key={tag}
-                            onClick={() => setActiveTag(tag)}
-                          >
-                            <Check
-                              className={cn(
-                                activeTag === tag ? "opacity-100" : "opacity-0",
-                              )}
-                            />
-                            {tag}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                  <AnimatedTabs
-                    variant={AnimatedTabsVariant.Pill}
-                    value={layout}
-                    onValueChange={setLayout}
-                    className="bg-muted/40 p-0.5 shadow-none"
-                    tabClassName="p-1.5"
-                    indicatorClassName="bg-background"
-                    tabs={[
-                      {
-                        value: LayoutMode.Grid,
-                        title: "Grid view",
-                        label: <LayoutGrid className="size-4" />,
-                      },
-                      {
-                        value: LayoutMode.List,
-                        title: "List view",
-                        label: <List className="size-4" />,
-                      },
-                    ]}
+            {foldersLoading ? (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-[116px] rounded-xl" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+                {childFolders.map((node) => (
+                  <FolderCard
+                    key={node.Id}
+                    node={node}
+                    fileCount={countByFolder.get(node.Id) ?? 0}
+                    onOpen={() => navigateFolder(node.Id)}
+                    onAddSubfolder={() =>
+                      setFolderDialog({
+                        type: FolderDialogType.Create,
+                        parentFolderId: node.Id,
+                      })
+                    }
+                    onRename={() =>
+                      setFolderDialog({
+                        type: FolderDialogType.Rename,
+                        folder: node,
+                      })
+                    }
+                    onDeleted={() => {
+                      if (path.some((p) => p.Id === node.Id))
+                        navigateFolder(currentFolder?.ParentFolderId ?? null);
+                    }}
                   />
+                ))}
+                <NewFolderCard
+                  onClick={() =>
+                    setFolderDialog({
+                      type: FolderDialogType.Create,
+                      parentFolderId: currentFolder?.Id ?? null,
+                    })
+                  }
+                />
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="grid items-start gap-5 lg:grid-cols-[250px_minmax(0,1fr)]">
+            <FolderSidebar
+              tree={tree}
+              currentPath={path}
+              totalFiles={allDocuments.length}
+              countByFolder={countByFolder}
+              onNavigate={navigateFolder}
+              onCreate={(parentFolderId) =>
+                setFolderDialog({
+                  type: FolderDialogType.Create,
+                  parentFolderId,
+                })
+              }
+              className="lg:sticky lg:top-18"
+            />
+            <div className="min-w-0 space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/30 px-3 py-2">
+                <FolderBreadcrumb path={path} onNavigate={navigateFolder} />
+                <div className="relative">
+                  <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search files…"
+                    className="h-8 w-64 bg-background pr-8 pl-8"
+                  />
+                  {isSearching && (
+                    <button
+                      type="button"
+                      onClick={() => setSearch("")}
+                      className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  )}
                 </div>
               </div>
 
-              <AnimatedTabs
-                value={activeKind ?? "all"}
-                onValueChange={(next) =>
-                  setActiveKind(next === "all" ? null : next)
-                }
-                className="scrollbar-handle mt-4 overflow-x-auto px-5"
-                tabClassName="gap-1.5 px-3"
-                tabs={[
-                  { value: "all", label: "All", count: kindCounts.total },
-                  ...KIND_FILTERS.map((kind) => ({
-                    value: kind,
-                    label: (
-                      <>
-                        <DocumentKindIcon kind={kind} size={16} />
-                        {KIND_META[kind].label}
-                      </>
-                    ),
-                    count: kindCounts[kind] || undefined,
-                  })),
-                ]}
-              />
-
-              <div className="bg-muted/20 p-5">
-                {documentsLoading ? (
-                  <div className="grid gap-5 md:grid-cols-2">
-                    {Array.from({ length: 4 }).map((_, i) => (
-                      <Skeleton key={i} className="h-56 rounded-xl" />
-                    ))}
-                  </div>
-                ) : files.length === 0 ? (
-                  <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed bg-card py-16 text-center text-muted-foreground">
-                    {isSearching ? (
-                      <FileSearch className="size-8" />
-                    ) : (
-                      <FolderOpen className="size-8" />
-                    )}
-                    <p className="text-sm font-medium text-foreground">
-                      {isSearching || activeKind || activeTag
-                        ? "No matching files"
-                        : "No files here yet"}
-                    </p>
-                    <p className="text-xs">
-                      {isSearching || activeKind || activeTag
-                        ? "Try a different search or clear the filters."
-                        : "Write a Markdown page or upload a PDF, Word, PowerPoint or CSV file."}
-                    </p>
-                  </div>
-                ) : layout === LayoutMode.Grid ? (
-                  <div className="grid gap-5 md:grid-cols-2">
-                    {files.map((doc) => (
-                      <DocumentCard
-                        key={doc.Id}
-                        document={doc}
-                        href={`/library/${topicId}/${doc.Id}`}
-                        onSettings={() => setSettingsDocument(doc)}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <DocumentsTable
-                    documents={files}
-                    topicId={topicId}
-                    onSettings={setSettingsDocument}
+              <section className="library-card overflow-hidden">
+                <div className="flex flex-wrap items-center justify-between gap-2 px-5 pt-5">
+                  <SectionTitle
+                    title={
+                      isSearching ? `Results for “${search.trim()}”` : "Files"
+                    }
+                    count={documentsLoading ? undefined : files.length}
                   />
-                )}
-              </div>
-            </section>
-          </div>
-        </div>
-      )}
+                  <div className="flex items-center gap-2">
+                    {usedTags.length > 0 && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant={activeTag ? "default" : "secondary"}
+                            size="sm"
+                            className="h-8"
+                          >
+                            <Tag className="size-3.5" />
+                            {activeTag ?? "All tags"}
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          className="max-h-72 w-48 overflow-y-auto"
+                        >
+                          <DropdownMenuItem onClick={() => setActiveTag(null)}>
+                            <Check
+                              className={cn(
+                                !activeTag ? "opacity-100" : "opacity-0",
+                              )}
+                            />
+                            All tags
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          {usedTags.map((tag) => (
+                            <DropdownMenuItem
+                              key={tag}
+                              onClick={() => setActiveTag(tag)}
+                            >
+                              <Check
+                                className={cn(
+                                  activeTag === tag
+                                    ? "opacity-100"
+                                    : "opacity-0",
+                                )}
+                              />
+                              {tag}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                    <AnimatedTabs
+                      variant={AnimatedTabsVariant.Pill}
+                      value={layout}
+                      onValueChange={setLayout}
+                      className="bg-muted/40 p-0.5 shadow-none"
+                      tabClassName="p-1.5"
+                      indicatorClassName="bg-background"
+                      tabs={[
+                        {
+                          value: LayoutMode.Grid,
+                          title: "Grid view",
+                          label: <LayoutGrid className="size-4" />,
+                        },
+                        {
+                          value: LayoutMode.List,
+                          title: "List view",
+                          label: <List className="size-4" />,
+                        },
+                      ]}
+                    />
+                  </div>
+                </div>
 
-      {folderDialog && (
-        <FolderNameDialog
-          topicId={topicId}
-          state={folderDialog}
-          onClose={() => setFolderDialog(null)}
-        />
-      )}
-      {settingsDocument && (
-        <DocumentDetailDialog
-          document={settingsDocument}
-          onClose={() => setSettingsDocument(null)}
-        />
-      )}
-    </div>
+                <AnimatedTabs
+                  value={activeKind ?? "all"}
+                  onValueChange={(next) =>
+                    setActiveKind(next === "all" ? null : next)
+                  }
+                  className="scrollbar-handle mt-4 overflow-x-auto px-5"
+                  tabClassName="gap-1.5 px-3"
+                  tabs={[
+                    { value: "all", label: "All", count: kindCounts.total },
+                    ...KIND_FILTERS.map((kind) => ({
+                      value: kind,
+                      label: (
+                        <>
+                          <DocumentKindIcon kind={kind} size={16} />
+                          {KIND_META[kind].label}
+                        </>
+                      ),
+                      count: kindCounts[kind] || undefined,
+                    })),
+                  ]}
+                />
+
+                <div className="bg-muted/20 p-5">
+                  {documentsLoading ? (
+                    <div className="grid gap-5 md:grid-cols-2">
+                      {Array.from({ length: 4 }).map((_, i) => (
+                        <Skeleton key={i} className="h-56 rounded-xl" />
+                      ))}
+                    </div>
+                  ) : files.length === 0 ? (
+                    <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed bg-card py-16 text-center text-muted-foreground">
+                      {isSearching ? (
+                        <FileSearch className="size-8" />
+                      ) : (
+                        <FolderOpen className="size-8" />
+                      )}
+                      <p className="text-sm font-medium text-foreground">
+                        {isSearching || activeKind || activeTag
+                          ? "No matching files"
+                          : "No files here yet"}
+                      </p>
+                      <p className="text-xs">
+                        {isSearching || activeKind || activeTag
+                          ? "Try a different search or clear the filters."
+                          : "Write a Markdown page or upload a PDF, Word, PowerPoint or CSV file."}
+                      </p>
+                    </div>
+                  ) : layout === LayoutMode.Grid ? (
+                    <div className="grid gap-5 md:grid-cols-2">
+                      {files.map((doc) => (
+                        <DocumentCard
+                          key={doc.Id}
+                          document={doc}
+                          href={`/library/${topicId}/${doc.Id}`}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <DocumentsTable documents={files} />
+                  )}
+                </div>
+              </section>
+            </div>
+          </div>
+        )}
+
+        {folderDialog && (
+          <FolderNameDialog
+            topicId={topicId}
+            state={folderDialog}
+            onClose={() => setFolderDialog(null)}
+          />
+        )}
+      </div>
+      <DocumentsDialogs />
+    </DocumentsProvider>
   );
 }
 
@@ -590,10 +580,9 @@ function SectionTitle({ title, count }: SectionTitleProps) {
 interface DocumentCardProps {
   document: StudyDocument;
   href: string;
-  onSettings: () => void;
 }
 
-function DocumentCard({ document, href, onSettings }: DocumentCardProps) {
+function DocumentCard({ document, href }: DocumentCardProps) {
   const kind = getDocumentKind(document.FileType);
   const meta = KIND_META[kind];
 
@@ -602,7 +591,7 @@ function DocumentCard({ document, href, onSettings }: DocumentCardProps) {
       href={href}
       className={cn(
         "group flex min-h-[220px] flex-col gap-4 p-5 transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_44px_rgba(15,23,42,0.1)]",
-        libraryCardClassName,
+        "library-card",
       )}
     >
       <div className="flex items-start gap-4">
@@ -617,11 +606,7 @@ function DocumentCard({ document, href, onSettings }: DocumentCardProps) {
             {meta.label} · {getExtensionLabel(document.FileType)}
           </p>
         </div>
-        <DocumentActions
-          document={document}
-          onSettings={onSettings}
-          className="-mt-1 -mr-1 shrink-0"
-        />
+        <DocumentActions document={document} className="-mt-1 -mr-1 shrink-0" />
       </div>
 
       <dl className="space-y-2.5 rounded-xl border bg-muted/40 p-4 text-sm">
