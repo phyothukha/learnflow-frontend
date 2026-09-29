@@ -9,8 +9,13 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { cn } from "@/lib/utils";
+import { CalendarDays } from "lucide-react";
 import { chartTooltipStyle } from "./dashboard-utils";
+import {
+  DashboardCard,
+  DashboardCardScroll,
+  DashboardCardValue,
+} from "./dashboard-card";
 
 export type DayActivePoint = {
   day: string;
@@ -29,17 +34,13 @@ export function MostActiveDayCard({
   const max = Math.max(...data.map((d) => d.minutes), 1);
 
   return (
-    <div
-      className={cn(
-        "flex flex-col rounded-2xl border border-border bg-card p-5 shadow-sm",
-        className,
-      )}
+    <DashboardCard
+      title="Most Active Day"
+      icon={CalendarDays}
+      className={className}
     >
-      <p className="text-sm text-muted-foreground">Most Day Active</p>
-      <p className="mt-2 text-3xl font-semibold tracking-tight tabular-nums">
-        {totalLabel}
-      </p>
-      <div className="mt-4 h-48 min-h-0 flex-1">
+      <DashboardCardValue>{totalLabel}</DashboardCardValue>
+      <DashboardCardScroll minWidth={300} className="mt-4 h-60 flex-1">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={data}
@@ -53,7 +54,7 @@ export function MostActiveDayCard({
             />
             <YAxis hide />
             <Tooltip
-              cursor={{ fill: "rgba(255,255,255,0.04)" }}
+              cursor={{ fill: "var(--muted)", opacity: 0.5 }}
               contentStyle={chartTooltipStyle}
               formatter={(value) => [`${value} min`, "Focus"]}
             />
@@ -63,15 +64,15 @@ export function MostActiveDayCard({
                   key={entry.day}
                   fill={
                     entry.minutes === max && entry.minutes > 0
-                      ? "#5992C6"
-                      : "rgba(255,255,255,0.12)"
+                      ? "var(--primary)"
+                      : "color-mix(in srgb, var(--primary) 18%, transparent)"
                   }
                 />
               ))}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
-      </div>
-    </div>
+      </DashboardCardScroll>
+    </DashboardCard>
   );
 }

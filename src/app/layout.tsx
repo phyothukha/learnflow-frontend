@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { NavigationProgress } from "@/components/navigation-progress";
+import { primaryColorInitScript } from "@/config/primary-colors";
 import "@/styles/globals.css";
 import { fontSans, fontMono, fontPoppins } from "@/styles/font";
 import Providers from "@/app/provider";
@@ -45,6 +46,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: primaryColorInitScript }} />
+      </head>
       <body
         className={`${fontSans.variable} ${fontMono.variable} ${fontPoppins.variable} antialiased`}
       >

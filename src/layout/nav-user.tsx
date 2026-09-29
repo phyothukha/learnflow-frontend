@@ -22,7 +22,7 @@ export function NavUser() {
 
   return (
     <SidebarMenu>
-      <SidebarMenuItem className="flex items-center gap-2 px-1">
+      <SidebarMenuItem className="flex items-center gap-2 px-[7px]">
         <Avatar className="size-8 shrink-0">
           <AvatarFallback className="bg-sidebar-accent text-sidebar-accent-foreground">
             {initials}

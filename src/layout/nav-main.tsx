@@ -11,14 +11,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 import type { NavLinkItem } from "@/assets/nav-links";
-
-type IndicatorRect = {
-  top: number;
-  left: number;
-  width: number;
-  height: number;
-};
 
 export function NavMain({
   items,
@@ -30,7 +24,11 @@ export function NavMain({
   const pathname = usePathname();
   const { setOpenMobile } = useSidebar();
   const menuRef = useRef<HTMLUListElement>(null);
-  const [indicator, setIndicator] = useState<IndicatorRect | null>(null);
+  const [indicator, setIndicator] = useState<{
+    top: number;
+    height: number;
+  } | null>(null);
+  const [animate, setAnimate] = useState(false);
 
   const [pending, setPending] = useState<{ href: string; from: string } | null>(
     null,
@@ -44,28 +42,25 @@ export function NavMain({
     const menu = menuRef.current;
     if (!menu) return;
 
+    // offsetTop/offsetHeight ignore the sidebar's width transition, so the
+    // indicator stays pinned to its row while expanding or collapsing.
     const measure = () => {
-      const active = activeHref
-        ? menu.querySelector<HTMLElement>(`[data-nav-href="${activeHref}"]`)
+      const item = activeHref
+        ? menu.querySelector<HTMLElement>(`[data-nav-item="${activeHref}"]`)
         : null;
-      if (!active) {
-        setIndicator(null);
-        return;
-      }
-      const menuBox = menu.getBoundingClientRect();
-      const box = active.getBoundingClientRect();
-      setIndicator({
-        top: box.top - menuBox.top,
-        left: box.left - menuBox.left,
-        width: box.width,
-        height: box.height,
-      });
+      setIndicator(
+        item ? { top: item.offsetTop, height: item.offsetHeight } : null,
+      );
     };
 
     measure();
+    const frame = requestAnimationFrame(() => setAnimate(true));
     const observer = new ResizeObserver(measure);
     observer.observe(menu);
-    return () => observer.disconnect();
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
   }, [activeHref]);
 
   return (
@@ -74,16 +69,19 @@ export function NavMain({
       <SidebarMenu ref={menuRef} className="relative gap-1">
         <span
           aria-hidden
-          className="pointer-events-none absolute top-0 left-0 rounded-md bg-sidebar-accent transition-[transform,width,height,opacity] duration-300 ease-in-out before:absolute before:inset-y-2.5 before:left-0 before:w-1 before:rounded-r-full before:bg-sidebar-primary before:content-['']"
+          className={cn(
+            "pointer-events-none absolute inset-x-0 top-0 rounded-md bg-sidebar-accent before:absolute before:inset-y-2.5 before:left-0 before:w-1 before:rounded-r-full before:bg-sidebar-primary before:content-['']",
+            animate &&
+              "transition-[transform,opacity] duration-300 ease-in-out",
+          )}
           style={{
             opacity: indicator ? 1 : 0,
-            transform: `translate(${indicator?.left ?? 0}px, ${indicator?.top ?? 0}px)`,
-            width: indicator?.width ?? 0,
+            transform: `translateY(${indicator?.top ?? 0}px)`,
             height: indicator?.height ?? 0,
           }}
         />
         {items.map((item) => (
-          <SidebarMenuItem key={item.href}>
+          <SidebarMenuItem key={item.href} data-nav-item={item.href}>
             <SidebarMenuButton
               asChild
               isActive={item.href === activeHref}
@@ -91,7 +89,6 @@ export function NavMain({
             >
               <Link
                 href={item.href}
-                data-nav-href={item.href}
                 onClick={() => {
                   setOpenMobile(false);
                   if (item.href !== routeHref) {
@@ -100,7 +97,7 @@ export function NavMain({
                 }}
               >
                 <item.icon />
-                <span className="font-poppins group-data-[collapsible=icon]:hidden">
+                <span className="shrink-0 font-poppins transition-opacity duration-200 ease-linear group-data-[collapsible=icon]:opacity-0">
                   {item.title}
                 </span>
               </Link>

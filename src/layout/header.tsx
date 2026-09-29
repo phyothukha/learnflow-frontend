@@ -7,6 +7,7 @@ import { LogOut, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { PrimaryColorPicker } from "@/components/primary-color-picker";
 import { TopicContextSwitcher } from "@/components/topic-context-switcher";
 import { useWorkspaceStore } from "@/store/client/workspace";
 import { Separator } from "@/components/ui/separator";
@@ -104,7 +105,7 @@ export function Header() {
     .toUpperCase();
 
   return (
-    <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between gap-2 bg-background px-4">
+    <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between gap-2 border-b bg-background px-4">
       <div className="flex min-w-0 items-center gap-2">
         <SidebarTrigger className="-ml-1 shrink-0" />
         <Separator orientation="vertical" className="mr-2 h-4" />
@@ -149,6 +150,7 @@ export function Header() {
         )}
       </div>
       <div className="flex shrink-0 items-center gap-1">
+        <PrimaryColorPicker />
         <ThemeToggle />
         <Button
           variant="ghost"

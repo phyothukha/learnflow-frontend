@@ -1,6 +1,7 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { Layers } from "lucide-react";
+import { DashboardCard, DashboardCardValue } from "./dashboard-card";
 
 export type TopicSegment = {
   name: string;
@@ -15,17 +16,25 @@ export function TopicsBreakdownCard({
   segments: TopicSegment[];
   className?: string;
 }) {
-  const total = segments.reduce((sum, s) => sum + s.count, 0) || 1;
+  const sum = segments.reduce((acc, s) => acc + s.count, 0);
+  const total = sum || 1;
 
   return (
-    <div
-      className={cn(
-        "rounded-2xl border border-border bg-card p-5 shadow-sm",
-        className,
-      )}
-    >
-      <p className="text-sm font-medium">Topics</p>
-      <div className="mt-5 space-y-3">
+    <DashboardCard title="Topics" icon={Layers} className={className}>
+      <DashboardCardValue>{sum.toLocaleString()}</DashboardCardValue>
+      <div className="mt-4 flex h-2.5 overflow-hidden rounded-full bg-muted">
+        {segments.map((segment) => (
+          <div
+            key={segment.name}
+            className="h-full"
+            style={{
+              width: `${(segment.count / total) * 100}%`,
+              backgroundColor: segment.color,
+            }}
+          />
+        ))}
+      </div>
+      <div className="mt-4 space-y-3">
         {segments.length === 0 ? (
           <p className="text-sm text-muted-foreground">No topics yet.</p>
         ) : (
@@ -34,7 +43,7 @@ export function TopicsBreakdownCard({
               key={segment.name}
               className="flex items-center justify-between gap-3 text-sm"
             >
-              <span className="flex min-w-0 items-center gap-2 truncate">
+              <span className="flex min-w-0 items-center gap-2">
                 <span
                   className="size-2.5 shrink-0 rounded-full"
                   style={{ backgroundColor: segment.color }}
@@ -48,18 +57,6 @@ export function TopicsBreakdownCard({
           ))
         )}
       </div>
-      <div className="mt-5 flex h-3 overflow-hidden rounded-full bg-white/5">
-        {segments.map((segment) => (
-          <div
-            key={segment.name}
-            className="h-full first:rounded-l-full last:rounded-r-full"
-            style={{
-              width: `${(segment.count / total) * 100}%`,
-              backgroundColor: segment.color,
-            }}
-          />
-        ))}
-      </div>
-    </div>
+    </DashboardCard>
   );
 }

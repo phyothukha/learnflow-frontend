@@ -47,11 +47,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {...props}
       className="inset-y-3 left-3 h-auto overflow-hidden rounded-xl border-r-0"
     >
-      <SidebarHeader className="p-3">
+      {/* 55px + 1px separator lines up with the app header's h-14 bottom border */}
+      <SidebarHeader className="h-[55px] shrink-0 justify-center px-3 py-0">
         <BrandHeader />
       </SidebarHeader>
       <SidebarSeparator className="mx-3 my-0" />
-      <SidebarContent className="px-3 py-2 group-data-[collapsible=icon]:px-0">
+      <SidebarContent className="px-[11px] py-2">
         {visibleGroups.map((group, index) => (
           <NavMain items={group.items} title={group.title} key={index} />
         ))}

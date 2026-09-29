@@ -26,9 +26,10 @@ export function DataTablePagination({
   onLimitChange: (limit: number) => void;
 }) {
   return (
-    <div className="relative z-20 flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        Results per page
+    <div className="relative z-20 flex items-center justify-between gap-3 border-t px-3 py-3 sm:px-4">
+      <div className="flex items-center gap-2 text-sm whitespace-nowrap text-muted-foreground">
+        <span className="hidden sm:inline">Results per page</span>
+        <span className="sm:hidden">Rows</span>
         <Select
           value={String(limit)}
           onValueChange={(value) => onLimitChange(Number(value))}
@@ -52,7 +53,7 @@ export function DataTablePagination({
         </Select>
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="flex shrink-0 items-center gap-1">
         <Button
           variant="secondary"
           size="icon-sm"

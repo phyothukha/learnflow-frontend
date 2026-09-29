@@ -223,7 +223,7 @@ export default function DashboardPage() {
           segments={topicSegments}
         />
         <TopDocumentsCard className="xl:col-span-5" documents={documents} />
-        <div className="grid gap-4 xl:col-span-4">
+        <div className="grid min-w-0 gap-4 xl:col-span-4">
           <CompletionGaugeCard rate={completionRate ?? adherence} />
           <AssistantCard
             topicTitle={activeTopic?.Title ?? null}

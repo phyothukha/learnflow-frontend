@@ -170,9 +170,9 @@ export function DataTable<TData>({
       )}
     >
       {showToolbar && (title || onSearchChange) && (
-        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-3 sm:px-4 sm:py-4">
           <div className="flex min-w-0 items-center gap-2">
-            {title ? <p className="font-semibold">{title}</p> : null}
+            {title ? <p className="truncate font-semibold">{title}</p> : null}
             {showCheckbox && selectedCount > 0 && (
               <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                 {selectedCount} selected
@@ -180,7 +180,7 @@ export function DataTable<TData>({
             )}
           </div>
           {onSearchChange && (
-            <div className="relative w-full max-w-xs">
+            <div className="relative w-full sm:max-w-xs">
               <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder={searchPlaceholder}
@@ -194,7 +194,7 @@ export function DataTable<TData>({
       )}
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-        <Table className="table-fixed">
+        <Table className="w-max min-w-full md:w-full md:table-fixed">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -241,9 +241,18 @@ export function DataTable<TData>({
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
+                          {cell.column.id === "select" ? (
+                            flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )
+                          ) : (
+                            <div className="max-w-64 min-w-0 md:max-w-none">
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext(),
+                              )}
+                            </div>
                           )}
                         </TableCell>
                       ))}

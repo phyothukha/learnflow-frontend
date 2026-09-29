@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Star } from "lucide-react";
+import { FileText, Star } from "lucide-react";
+import { DashboardCard, DashboardCardScroll } from "./dashboard-card";
 import { DocumentKindIcon } from "@/components/document-kind-icon";
 import { getDocumentKind, KIND_META } from "@/lib/document-types";
 import { cn } from "@/lib/utils";
@@ -30,22 +31,16 @@ export function TopDocumentsCard({
     .slice(0, 5);
 
   return (
-    <div
-      className={cn(
-        "rounded-2xl border border-border bg-card p-5 shadow-sm",
-        className,
-      )}
-    >
-      <p className="text-sm font-medium">Top Documents</p>
+    <DashboardCard title="Top Documents" icon={FileText} className={className}>
       {rows.length === 0 ? (
         <p className="mt-8 text-center text-sm text-muted-foreground">
           No documents yet.
         </p>
       ) : (
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[420px] text-left text-sm">
+        <DashboardCardScroll minWidth={440} className="mt-4">
+          <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-border text-[11px] tracking-wide text-muted-foreground uppercase">
+              <tr className="border-b border-border text-xs tracking-wide text-muted-foreground uppercase">
                 <th className="pb-3 font-medium">ID</th>
                 <th className="pb-3 font-medium">Name</th>
                 <th className="pb-3 font-medium">Time</th>
@@ -100,8 +95,8 @@ export function TopDocumentsCard({
               })}
             </tbody>
           </table>
-        </div>
+        </DashboardCardScroll>
       )}
-    </div>
+    </DashboardCard>
   );
 }
