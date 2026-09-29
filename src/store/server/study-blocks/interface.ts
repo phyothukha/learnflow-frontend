@@ -5,7 +5,12 @@ export interface ListResponse<T> {
   value: T[];
 }
 
-export type StudyBlockStatus = "Upcoming" | "Active" | "Done" | "Missed";
+export enum StudyBlockStatus {
+  Upcoming = "Upcoming",
+  Active = "Active",
+  Done = "Done",
+  Missed = "Missed",
+}
 
 export interface StudyBlock {
   Id: string;

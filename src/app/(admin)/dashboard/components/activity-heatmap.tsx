@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFetchStudyBlocks } from "@/store/server/study-blocks/queries";
+import { StudyBlockStatus } from "@/store/server/study-blocks/interface";
 import { TOPIC_COLORS } from "@/lib/topic-colors";
 import { cn } from "@/lib/utils";
 import { blockMinutes } from "./dashboard-utils";
@@ -21,7 +22,16 @@ function heatmapCellStyle(minutes: number): React.CSSProperties {
   return { backgroundColor: HEATMAP_HUE, opacity: HEATMAP_STEPS[step] };
 }
 
-export function ActivityHeatmap({ className }: { className?: string }) {
+interface DayActivity {
+  minutes: number;
+  count: number;
+}
+
+export interface ActivityHeatmapProps {
+  className?: string;
+}
+
+export function ActivityHeatmap({ className }: ActivityHeatmapProps) {
   const start = dayjs()
     .startOf("week")
     .subtract(HEATMAP_WEEKS - 1, "week");
@@ -41,9 +51,9 @@ export function ActivityHeatmap({ className }: { className?: string }) {
   });
   const blocks = [...(page0?.value ?? []), ...(page1?.value ?? [])];
 
-  const perDay = new Map<string, { minutes: number; count: number }>();
+  const perDay = new Map<string, DayActivity>();
   for (const block of blocks) {
-    if (block.Status !== "Done") continue;
+    if (block.Status !== StudyBlockStatus.Done) continue;
     const key = dayjs(block.StartAt).format("YYYY-MM-DD");
     const entry = perDay.get(key) ?? { minutes: 0, count: 0 };
     entry.minutes += blockMinutes(block);

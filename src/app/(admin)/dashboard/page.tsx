@@ -13,6 +13,8 @@ import { useFetchTopics } from "@/store/server/topics/queries";
 import { useFetchDocuments } from "@/store/server/documents/queries";
 import { useFetchNotes } from "@/store/server/notes/queries";
 import { useFetchStudyBlocks } from "@/store/server/study-blocks/queries";
+import { DocumentStatus } from "@/store/server/documents/interface";
+import { StudyBlockStatus } from "@/store/server/study-blocks/interface";
 import { FALLBACK_TOPIC_COLOR } from "@/lib/topic-colors";
 import {
   DashboardHeader,
@@ -66,8 +68,8 @@ export default function DashboardPage() {
   const previous = prevBlocks?.value ?? [];
   const activeTopic = topics.find((t) => t.Id === activeTopicId) ?? null;
 
-  const done = blocks.filter((b) => b.Status === "Done");
-  const prevDone = previous.filter((b) => b.Status === "Done");
+  const done = blocks.filter((b) => b.Status === StudyBlockStatus.Done);
+  const prevDone = previous.filter((b) => b.Status === StudyBlockStatus.Done);
   const focusMinutes = done.reduce((sum, b) => sum + blockMinutes(b), 0);
   const prevFocusMinutes = prevDone.reduce(
     (sum, b) => sum + blockMinutes(b),
@@ -75,7 +77,7 @@ export default function DashboardPage() {
   );
 
   const completedDocs = documents.filter(
-    (d) => d.Status === "Completed",
+    (d) => d.Status === DocumentStatus.Completed,
   ).length;
   const completionRate = documents.length
     ? Math.round((completedDocs / documents.length) * 100)
@@ -84,7 +86,7 @@ export default function DashboardPage() {
   const pastBlocks = blocks.filter((b) => dayjs(b.StartAt).isBefore(dayjs()));
   const adherence = pastBlocks.length
     ? Math.round(
-        (pastBlocks.filter((b) => b.Status === "Done").length /
+        (pastBlocks.filter((b) => b.Status === StudyBlockStatus.Done).length /
           pastBlocks.length) *
           100,
       )
@@ -131,7 +133,8 @@ export default function DashboardPage() {
             adherence,
             previous.length
               ? Math.round(
-                  (previous.filter((b) => b.Status === "Done").length /
+                  (previous.filter((b) => b.Status === StudyBlockStatus.Done)
+                    .length /
                     previous.length) *
                     100,
                 )

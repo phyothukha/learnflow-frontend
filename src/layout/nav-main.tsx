@@ -14,25 +14,29 @@ import {
 import { cn } from "@/lib/utils";
 import type { NavLinkItem } from "@/assets/nav-links";
 
-export function NavMain({
-  items,
-  title,
-}: {
+interface IndicatorPosition {
+  top: number;
+  height: number;
+}
+
+interface PendingNav {
+  href: string;
+  from: string;
+}
+
+export interface NavMainProps {
   items: NavLinkItem[];
   title?: string;
-}) {
+}
+
+export function NavMain({ items, title }: NavMainProps) {
   const pathname = usePathname();
   const { setOpenMobile } = useSidebar();
   const menuRef = useRef<HTMLUListElement>(null);
-  const [indicator, setIndicator] = useState<{
-    top: number;
-    height: number;
-  } | null>(null);
+  const [indicator, setIndicator] = useState<IndicatorPosition | null>(null);
   const [animate, setAnimate] = useState(false);
 
-  const [pending, setPending] = useState<{ href: string; from: string } | null>(
-    null,
-  );
+  const [pending, setPending] = useState<PendingNav | null>(null);
 
   const routeHref = items.find((item) => pathname.startsWith(item.href))?.href;
   const activeHref =

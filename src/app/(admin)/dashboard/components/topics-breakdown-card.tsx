@@ -3,19 +3,21 @@
 import { Layers } from "lucide-react";
 import { DashboardCard, DashboardCardValue } from "./dashboard-card";
 
-export type TopicSegment = {
+export interface TopicSegment {
   name: string;
   count: number;
   color: string;
-};
+}
+
+export interface TopicsBreakdownCardProps {
+  segments: TopicSegment[];
+  className?: string;
+}
 
 export function TopicsBreakdownCard({
   segments,
   className,
-}: {
-  segments: TopicSegment[];
-  className?: string;
-}) {
+}: TopicsBreakdownCardProps) {
   const sum = segments.reduce((acc, s) => acc + s.count, 0);
   const total = sum || 1;
 

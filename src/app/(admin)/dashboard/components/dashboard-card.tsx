@@ -5,16 +5,18 @@ import { cn } from "@/lib/utils";
 export const dashboardCardClass =
   "flex min-w-0 flex-col rounded-2xl border border-border bg-card p-5 shadow-sm";
 
+export interface DashboardCardScrollProps {
+  minWidth: number;
+  className?: string;
+  children: ReactNode;
+}
+
 /** Scrolls its content horizontally inside the card once the card is narrower than `minWidth`. */
 export function DashboardCardScroll({
   minWidth,
   className,
   children,
-}: {
-  minWidth: number;
-  className?: string;
-  children: ReactNode;
-}) {
+}: DashboardCardScrollProps) {
   return (
     <div
       className={cn(
@@ -29,19 +31,21 @@ export function DashboardCardScroll({
   );
 }
 
+export interface DashboardCardProps {
+  title: string;
+  icon?: LucideIcon;
+  action?: ReactNode;
+  className?: string;
+  children: ReactNode;
+}
+
 export function DashboardCard({
   title,
   icon: Icon,
   action,
   className,
   children,
-}: {
-  title: string;
-  icon?: LucideIcon;
-  action?: ReactNode;
-  className?: string;
-  children: ReactNode;
-}) {
+}: DashboardCardProps) {
   return (
     <div className={cn(dashboardCardClass, className)}>
       <div className="flex items-start justify-between gap-3">
@@ -54,13 +58,15 @@ export function DashboardCard({
   );
 }
 
+export interface DashboardCardValueProps {
+  children: ReactNode;
+  className?: string;
+}
+
 export function DashboardCardValue({
   children,
   className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
+}: DashboardCardValueProps) {
   return (
     <p
       className={cn(
@@ -73,7 +79,11 @@ export function DashboardCardValue({
   );
 }
 
-export function ChangePill({ change }: { change: number }) {
+export interface ChangePillProps {
+  change: number;
+}
+
+export function ChangePill({ change }: ChangePillProps) {
   const positive = change >= 0;
   return (
     <span

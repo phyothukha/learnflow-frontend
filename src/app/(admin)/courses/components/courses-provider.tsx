@@ -10,8 +10,8 @@ import type { Course } from "@/store/server/courses/interface";
 import type { CoursesDialogType } from "./courses-columns.props";
 
 interface CoursesContextType {
-  open: CoursesDialogType;
-  setOpen: (type: CoursesDialogType) => void;
+  open: CoursesDialogType | null;
+  setOpen: (type: CoursesDialogType | null) => void;
   currentRow: Course | null;
   setCurrentRow: (row: Course | null) => void;
 }
@@ -19,7 +19,7 @@ interface CoursesContextType {
 const CoursesContext = createContext<CoursesContextType>(null!);
 
 export function CoursesProvider({ children }: PropsWithChildren) {
-  const [open, setOpen] = useState<CoursesDialogType>(null);
+  const [open, setOpen] = useState<CoursesDialogType | null>(null);
   const [currentRow, setCurrentRow] = useState<Course | null>(null);
 
   return (

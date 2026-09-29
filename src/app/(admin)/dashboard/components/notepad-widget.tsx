@@ -7,17 +7,25 @@ import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { WidgetHeader } from "./widget-header";
 
+export interface NotepadWidgetNote {
+  Id: string;
+  Title: string;
+  UpdatedAt: string;
+}
+
+export interface NotepadWidgetProps {
+  topicTitle: string | null;
+  topicColor: string;
+  notes: NotepadWidgetNote[];
+  className?: string;
+}
+
 export function NotepadWidget({
   topicTitle,
   topicColor,
   notes,
   className,
-}: {
-  topicTitle: string | null;
-  topicColor: string;
-  notes: { Id: string; Title: string; UpdatedAt: string }[];
-  className?: string;
-}) {
+}: NotepadWidgetProps) {
   return (
     <Card
       className={cn("shadow-sm", className)}

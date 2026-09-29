@@ -1,16 +1,18 @@
 import { DefaultSession } from "next-auth";
 import "next-auth/jwt";
 
+interface SessionUser extends NonNullable<DefaultSession["user"]> {
+  id: string;
+  role: string;
+  roles: string[];
+  permissions: string[];
+  isAdmin: boolean;
+  accessToken: string;
+}
+
 declare module "next-auth" {
   interface Session {
-    user: {
-      id: string;
-      role: string;
-      roles: string[];
-      permissions: string[];
-      isAdmin: boolean;
-      accessToken: string;
-    } & DefaultSession["user"];
+    user: SessionUser;
   }
 
   interface User {

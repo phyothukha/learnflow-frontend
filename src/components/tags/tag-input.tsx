@@ -6,13 +6,12 @@ import { Badge, tagVariant } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useFetchTags } from "@/store/server/tags/queries";
 
-export function TagInput({
-  value,
-  onChange,
-}: {
+export interface TagInputProps {
   value: string[];
   onChange: (tags: string[]) => void;
-}) {
+}
+
+export function TagInput({ value, onChange }: TagInputProps) {
   const { data: allTags } = useFetchTags();
   const [draft, setDraft] = useState("");
 

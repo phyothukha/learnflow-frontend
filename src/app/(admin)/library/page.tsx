@@ -27,6 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
+import { AnimatedTabs, type AnimatedTab } from "@/components/animated-tabs";
 import { useWorkspaceStore } from "@/store/client/workspace";
 import { useFetchTopics } from "@/store/server/topics/queries";
 import { useFetchDocuments } from "@/store/server/documents/queries";
@@ -41,18 +42,22 @@ import {
 } from "@/lib/topic-colors";
 import { libraryCardClassName } from "./components/library-card";
 
-type SortMode = "recent" | "name" | "created";
+enum SortMode {
+  Recent = "recent",
+  Name = "name",
+  Created = "created",
+}
 
-const SORT_TABS: { value: SortMode; label: string }[] = [
-  { value: "recent", label: "Recently updated" },
-  { value: "name", label: "Name A–Z" },
-  { value: "created", label: "Newest" },
+const SORT_TABS: AnimatedTab<SortMode>[] = [
+  { value: SortMode.Recent, label: "Recently updated" },
+  { value: SortMode.Name, label: "Name A–Z" },
+  { value: SortMode.Created, label: "Newest" },
 ];
 
 function sortTopics(topics: Topic[], mode: SortMode) {
   return [...topics].sort((a, b) => {
-    if (mode === "name") return a.Title.localeCompare(b.Title);
-    const key = mode === "recent" ? "UpdatedAt" : "CreatedAt";
+    if (mode === SortMode.Name) return a.Title.localeCompare(b.Title);
+    const key = mode === SortMode.Recent ? "UpdatedAt" : "CreatedAt";
     return dayjs(b[key]).valueOf() - dayjs(a[key]).valueOf();
   });
 }
@@ -66,7 +71,7 @@ export default function LibraryPage() {
   const activeTopicId = useWorkspaceStore((s) => s.activeTopicId);
   const setActiveTopic = useWorkspaceStore((s) => s.setActiveTopic);
   const [search, setSearch] = useState("");
-  const [sort, setSort] = useState<SortMode>("recent");
+  const [sort, setSort] = useState<SortMode>(SortMode.Recent);
 
   const { data: topicsData, isLoading } = useFetchTopics({ limit: 100 });
   const { data: documentsData } = useFetchDocuments({ limit: 500 });
@@ -135,22 +140,13 @@ export default function LibraryPage() {
             className="h-10 bg-background pl-9"
           />
         </div>
-        <div className="flex gap-1 border-b border-border/80">
-          {SORT_TABS.map((tab) => (
-            <button
-              key={tab.value}
-              type="button"
-              onClick={() => setSort(tab.value)}
-              className={cn(
-                "-mb-px border-b-2 border-transparent px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground",
-                sort === tab.value &&
-                  "border-primary font-medium text-foreground",
-              )}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        <AnimatedTabs
+          value={sort}
+          onValueChange={setSort}
+          tabs={SORT_TABS}
+          className="border-border/80"
+          tabClassName="px-3 py-2"
+        />
       </div>
 
       {isLoading ? (
@@ -191,19 +187,21 @@ export default function LibraryPage() {
   );
 }
 
+interface TopicCardProps {
+  topic: Topic;
+  fileCount: number;
+  isActive: boolean;
+  onOpen: () => void;
+  onDelete: () => void;
+}
+
 function TopicCard({
   topic,
   fileCount,
   isActive,
   onOpen,
   onDelete,
-}: {
-  topic: Topic;
-  fileCount: number;
-  isActive: boolean;
-  onOpen: () => void;
-  onDelete: () => void;
-}) {
+}: TopicCardProps) {
   const color = topic.Color ?? FALLBACK_COLOR;
 
   return (

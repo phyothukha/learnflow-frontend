@@ -3,15 +3,17 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { KIND_META, type DocumentKind } from "@/lib/document-types";
 
+export interface DocumentKindIconProps {
+  kind: DocumentKind;
+  size?: number;
+  className?: string;
+}
+
 export function DocumentKindIcon({
   kind,
   size = 16,
   className,
-}: {
-  kind: DocumentKind;
-  size?: number;
-  className?: string;
-}) {
+}: DocumentKindIconProps) {
   const meta = KIND_META[kind];
 
   if (meta.icon) {

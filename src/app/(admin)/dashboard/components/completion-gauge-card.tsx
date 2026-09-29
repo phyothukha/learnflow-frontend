@@ -5,13 +5,15 @@ import { Expand, Gauge } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DashboardCard } from "./dashboard-card";
 
+export interface CompletionGaugeCardProps {
+  rate: number | null;
+  className?: string;
+}
+
 export function CompletionGaugeCard({
   rate,
   className,
-}: {
-  rate: number | null;
-  className?: string;
-}) {
+}: CompletionGaugeCardProps) {
   const value = rate ?? 0;
   const r = 54;
   const c = 2 * Math.PI * r;
@@ -55,15 +57,17 @@ export function CompletionGaugeCard({
   );
 }
 
+export interface AssistantCardProps {
+  topicTitle: string | null;
+  notePreview: string | null;
+  className?: string;
+}
+
 export function AssistantCard({
   topicTitle,
   notePreview,
   className,
-}: {
-  topicTitle: string | null;
-  notePreview: string | null;
-  className?: string;
-}) {
+}: AssistantCardProps) {
   return (
     <DashboardCard
       title="Quick Notes"

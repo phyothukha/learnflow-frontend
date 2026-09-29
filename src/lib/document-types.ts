@@ -7,8 +7,15 @@ import pdfIcon from "@/assets/icons/pdf.png";
 import pptIcon from "@/assets/icons/ppt.png";
 import wordIcon from "@/assets/icons/docx-file.png";
 
-export type DocumentKind =
-  "markdown" | "csv" | "pdf" | "word" | "powerpoint" | "link" | "other";
+export enum DocumentKind {
+  Markdown = "markdown",
+  Csv = "csv",
+  Pdf = "pdf",
+  Word = "word",
+  PowerPoint = "powerpoint",
+  Link = "link",
+  Other = "other",
+}
 
 /** Formats stored as text in `Document.Content`; everything else is uploaded. */
 export const TEXT_EXTENSIONS = ["md", "csv"] as const;
@@ -25,64 +32,64 @@ export const MAX_TEXT_BYTES = 2_000_000;
 export const MAX_UPLOAD_BYTES = 25_000_000;
 
 const KIND_BY_EXTENSION: Record<string, DocumentKind> = {
-  md: "markdown",
-  markdown: "markdown",
-  csv: "csv",
-  pdf: "pdf",
-  doc: "word",
-  docx: "word",
-  ppt: "powerpoint",
-  pptx: "powerpoint",
-  link: "link",
+  md: DocumentKind.Markdown,
+  markdown: DocumentKind.Markdown,
+  csv: DocumentKind.Csv,
+  pdf: DocumentKind.Pdf,
+  doc: DocumentKind.Word,
+  docx: DocumentKind.Word,
+  ppt: DocumentKind.PowerPoint,
+  pptx: DocumentKind.PowerPoint,
+  link: DocumentKind.Link,
 };
 
-export type KindMeta = {
+export interface KindMeta {
   label: string;
   /** PNG file-type icon when available. */
   icon: StaticImageData | null;
   /** Lucide fallback when no PNG exists (link / other). */
   fallbackIcon: LucideIcon;
   className: string;
-};
+}
 
 export const KIND_META: Record<DocumentKind, KindMeta> = {
-  markdown: {
+  [DocumentKind.Markdown]: {
     label: "Markdown",
     icon: mdIcon,
     fallbackIcon: FileText,
     className: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
   },
-  csv: {
+  [DocumentKind.Csv]: {
     label: "CSV",
     icon: csvIcon,
     fallbackIcon: FileText,
     className: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
   },
-  pdf: {
+  [DocumentKind.Pdf]: {
     label: "PDF",
     icon: pdfIcon,
     fallbackIcon: FileText,
     className: "bg-red-500/10 text-red-600 dark:text-red-400",
   },
-  word: {
+  [DocumentKind.Word]: {
     label: "Word",
     icon: wordIcon,
     fallbackIcon: FileText,
     className: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
   },
-  powerpoint: {
+  [DocumentKind.PowerPoint]: {
     label: "PowerPoint",
     icon: pptIcon,
     fallbackIcon: FileText,
     className: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
   },
-  link: {
+  [DocumentKind.Link]: {
     label: "Link",
     icon: null,
     fallbackIcon: Link2,
     className: "bg-slate-500/10 text-slate-600 dark:text-slate-300",
   },
-  other: {
+  [DocumentKind.Other]: {
     label: "File",
     icon: null,
     fallbackIcon: FileText,
@@ -109,7 +116,9 @@ export function isTextExtension(extension: string) {
 }
 
 export function getDocumentKind(fileType: string | null | undefined) {
-  return KIND_BY_EXTENSION[(fileType ?? "").toLowerCase()] ?? "other";
+  return (
+    KIND_BY_EXTENSION[(fileType ?? "").toLowerCase()] ?? DocumentKind.Other
+  );
 }
 
 /** Short badge text such as "MD", "DOCX" or "PDF". */

@@ -13,13 +13,15 @@ async function createStudyBlock(
   return data;
 }
 
+interface UpdateStudyBlockVariables {
+  id: string;
+  payload: UpdateStudyBlockPayload;
+}
+
 async function updateStudyBlock({
   id,
   payload,
-}: {
-  id: string;
-  payload: UpdateStudyBlockPayload;
-}): Promise<StudyBlock> {
+}: UpdateStudyBlockVariables): Promise<StudyBlock> {
   const { data } = await clientAxios.patch<StudyBlock>(
     `/study-blocks/${id}`,
     payload,

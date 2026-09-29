@@ -2,8 +2,12 @@
 
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { Card, CardContent } from "@/components/ui/card";
-import type { StudyBlock } from "@/store/server/study-blocks/interface";
+import {
+  StudyBlockStatus,
+  type StudyBlock,
+} from "@/store/server/study-blocks/interface";
 import type { Topic } from "@/store/server/topics/interface";
+import { DocumentStatus } from "@/store/server/documents/interface";
 import { FALLBACK_TOPIC_COLOR } from "@/lib/topic-colors";
 import { cn } from "@/lib/utils";
 import {
@@ -14,18 +18,27 @@ import {
 } from "./dashboard-utils";
 import { WidgetHeader } from "./widget-header";
 
+export interface TopicsCardDocument {
+  TopicId: string;
+  Status: DocumentStatus;
+}
+
+export interface TopicsCardProps {
+  weekBlocks: StudyBlock[];
+  documents: TopicsCardDocument[];
+  topics: Topic[];
+  className?: string;
+}
+
 export function TopicsCard({
   weekBlocks,
   documents,
   topics,
   className,
-}: {
-  weekBlocks: StudyBlock[];
-  documents: { TopicId: string; Status: string }[];
-  topics: Topic[];
-  className?: string;
-}) {
-  const doneBlocks = weekBlocks.filter((b) => b.Status === "Done");
+}: TopicsCardProps) {
+  const doneBlocks = weekBlocks.filter(
+    (b) => b.Status === StudyBlockStatus.Done,
+  );
   const totalMinutes = doneBlocks.reduce((s, b) => s + blockMinutes(b), 0);
 
   const donut = topics
@@ -50,7 +63,9 @@ export function TopicsCard({
   const progress = topics
     .map((topic) => {
       const topicDocs = documents.filter((d) => d.TopicId === topic.Id);
-      const done = topicDocs.filter((d) => d.Status === "Completed").length;
+      const done = topicDocs.filter(
+        (d) => d.Status === DocumentStatus.Completed,
+      ).length;
       return {
         ...topic,
         total: topicDocs.length,

@@ -19,23 +19,25 @@ import {
   DashboardCardValue,
 } from "./dashboard-card";
 
-export type FocusPoint = {
+export interface FocusPoint {
   label: string;
   current: number;
   previous: number;
-};
+}
+
+export interface TotalFocusCardProps {
+  totalMinutes: number;
+  change: number | null;
+  data: FocusPoint[];
+  className?: string;
+}
 
 export function TotalFocusCard({
   totalMinutes,
   change,
   data,
   className,
-}: {
-  totalMinutes: number;
-  change: number | null;
-  data: FocusPoint[];
-  className?: string;
-}) {
+}: TotalFocusCardProps) {
   return (
     <DashboardCard title="Total Focus" icon={Timer} className={className}>
       <div className="mt-4 flex flex-wrap items-center gap-2">

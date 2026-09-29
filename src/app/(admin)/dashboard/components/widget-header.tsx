@@ -5,15 +5,13 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 
-export function WidgetHeader({
-  title,
-  href,
-  linkLabel,
-}: {
+export interface WidgetHeaderProps {
   title: string;
   href: string;
   linkLabel: string;
-}) {
+}
+
+export function WidgetHeader({ title, href, linkLabel }: WidgetHeaderProps) {
   return (
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
       <CardTitle className="text-sm font-medium">{title}</CardTitle>

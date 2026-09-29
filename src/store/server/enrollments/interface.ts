@@ -5,7 +5,12 @@ export interface ListResponse<T> {
   value: T[];
 }
 
-export type EnrollmentStatus = "Pending" | "Active" | "Completed" | "Cancelled";
+export enum EnrollmentStatus {
+  Pending = "Pending",
+  Active = "Active",
+  Completed = "Completed",
+  Cancelled = "Cancelled",
+}
 
 export interface Enrollment {
   Id: string;

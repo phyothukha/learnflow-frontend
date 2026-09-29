@@ -11,6 +11,26 @@ import type {
   UpdateDocumentPayload,
 } from "./interface";
 
+interface UpdateDocumentVariables {
+  id: string;
+  payload: UpdateDocumentPayload;
+}
+
+interface MoveDocumentVariables {
+  id: string;
+  folderId: string | null;
+}
+
+interface UploadAttachmentVariables {
+  documentId: string;
+  file: File;
+}
+
+interface DeleteAttachmentVariables {
+  documentId: string;
+  attachmentId: string;
+}
+
 async function createDocument(
   payload: CreateDocumentPayload,
 ): Promise<StudyDocument> {
@@ -21,10 +41,7 @@ async function createDocument(
 async function updateDocument({
   id,
   payload,
-}: {
-  id: string;
-  payload: UpdateDocumentPayload;
-}): Promise<StudyDocument> {
+}: UpdateDocumentVariables): Promise<StudyDocument> {
   const { data } = await clientAxios.patch<StudyDocument>(
     `/documents/${id}`,
     payload,
@@ -35,10 +52,7 @@ async function updateDocument({
 async function moveDocument({
   id,
   folderId,
-}: {
-  id: string;
-  folderId: string | null;
-}): Promise<StudyDocument> {
+}: MoveDocumentVariables): Promise<StudyDocument> {
   const { data } = await clientAxios.post<StudyDocument>(
     `/documents/${id}/move`,
     { FolderId: folderId },
@@ -53,10 +67,7 @@ async function deleteDocument(id: string): Promise<void> {
 async function uploadAttachment({
   documentId,
   file,
-}: {
-  documentId: string;
-  file: File;
-}): Promise<Attachment> {
+}: UploadAttachmentVariables): Promise<Attachment> {
   const formData = new FormData();
   formData.append("file", file);
   const { data } = await clientAxios.post<Attachment>(
@@ -72,10 +83,7 @@ async function uploadAttachment({
 async function deleteAttachment({
   documentId,
   attachmentId,
-}: {
-  documentId: string;
-  attachmentId: string;
-}): Promise<void> {
+}: DeleteAttachmentVariables): Promise<void> {
   await clientAxios.delete(
     `/documents/${documentId}/attachments/${attachmentId}`,
   );

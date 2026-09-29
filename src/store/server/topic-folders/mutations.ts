@@ -16,13 +16,20 @@ async function createFolder(
   return data;
 }
 
+interface UpdateFolderVariables {
+  id: string;
+  payload: UpdateTopicFolderPayload;
+}
+
+interface MoveFolderVariables {
+  id: string;
+  parentFolderId: string | null;
+}
+
 async function updateFolder({
   id,
   payload,
-}: {
-  id: string;
-  payload: UpdateTopicFolderPayload;
-}): Promise<TopicFolder> {
+}: UpdateFolderVariables): Promise<TopicFolder> {
   const { data } = await clientAxios.patch<TopicFolder>(
     `/topic-folders/${id}`,
     payload,
@@ -33,10 +40,7 @@ async function updateFolder({
 async function moveFolder({
   id,
   parentFolderId,
-}: {
-  id: string;
-  parentFolderId: string | null;
-}): Promise<TopicFolder> {
+}: MoveFolderVariables): Promise<TopicFolder> {
   const { data } = await clientAxios.post<TopicFolder>(
     `/topic-folders/${id}/move`,
     { ParentFolderId: parentFolderId },

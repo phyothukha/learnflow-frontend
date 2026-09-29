@@ -12,17 +12,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { PERMISSIONS } from "@/lib/permissions";
-import type {
-  Enrollment,
+import {
   EnrollmentStatus,
+  type Enrollment,
 } from "@/store/server/enrollments/interface";
 import type { EnrollmentsColumnsProps } from "./enrollments-columns.props";
+import { EnrollmentsDialogType } from "./enrollments-provider";
 
 const STATUS_VARIANT: Record<EnrollmentStatus, BadgeVariant> = {
-  Pending: "status-amber",
-  Active: "status-green",
-  Completed: "status-blue",
-  Cancelled: "status-red",
+  [EnrollmentStatus.Pending]: "status-amber",
+  [EnrollmentStatus.Active]: "status-green",
+  [EnrollmentStatus.Completed]: "status-blue",
+  [EnrollmentStatus.Cancelled]: "status-red",
 };
 
 export function getEnrollmentsColumns({
@@ -118,7 +119,7 @@ export function getEnrollmentsColumns({
               <DropdownMenuItem
                 onClick={() => {
                   setCurrentRow(row.original);
-                  setOpen("edit");
+                  setOpen(EnrollmentsDialogType.Edit);
                 }}
               >
                 <Pencil />
@@ -130,7 +131,7 @@ export function getEnrollmentsColumns({
                 variant="destructive"
                 onClick={() => {
                   setCurrentRow(row.original);
-                  setOpen("delete");
+                  setOpen(EnrollmentsDialogType.Delete);
                 }}
               >
                 <Trash2 />

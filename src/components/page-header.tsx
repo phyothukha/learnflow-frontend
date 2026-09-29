@@ -1,19 +1,21 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
+export interface PageHeaderProps {
+  title: ReactNode;
+  description?: ReactNode;
+  badge?: ReactNode;
+  actions?: ReactNode;
+  className?: string;
+}
+
 export function PageHeader({
   title,
   description,
   badge,
   actions,
   className,
-}: {
-  title: ReactNode;
-  description?: ReactNode;
-  badge?: ReactNode;
-  actions?: ReactNode;
-  className?: string;
-}) {
+}: PageHeaderProps) {
   return (
     <div
       className={cn(

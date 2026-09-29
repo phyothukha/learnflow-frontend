@@ -11,7 +11,10 @@ import {
   YAxis,
 } from "recharts";
 import { Card, CardContent } from "@/components/ui/card";
-import type { StudyBlock } from "@/store/server/study-blocks/interface";
+import {
+  StudyBlockStatus,
+  type StudyBlock,
+} from "@/store/server/study-blocks/interface";
 import type { Topic } from "@/store/server/topics/interface";
 import { FALLBACK_TOPIC_COLOR } from "@/lib/topic-colors";
 import { cn } from "@/lib/utils";
@@ -24,26 +27,30 @@ import { WidgetHeader } from "./widget-header";
 
 function topicSeries(weekBlocks: StudyBlock[], topics: Topic[]) {
   const used = topics.filter((t) =>
-    weekBlocks.some((b) => b.TopicId === t.Id && b.Status === "Done"),
+    weekBlocks.some(
+      (b) => b.TopicId === t.Id && b.Status === StudyBlockStatus.Done,
+    ),
   );
   const series = used.map((t) => ({
     key: t.Title,
     color: t.Color ?? FALLBACK_TOPIC_COLOR,
   }));
-  if (weekBlocks.some((b) => !b.TopicId && b.Status === "Done"))
+  if (weekBlocks.some((b) => !b.TopicId && b.Status === StudyBlockStatus.Done))
     series.push({ key: NO_TOPIC_LABEL, color: FALLBACK_TOPIC_COLOR });
   return series;
+}
+
+export interface WeeklyFocusCardProps {
+  weekBlocks: StudyBlock[];
+  topics: Topic[];
+  className?: string;
 }
 
 export function WeeklyFocusCard({
   weekBlocks,
   topics,
   className,
-}: {
-  weekBlocks: StudyBlock[];
-  topics: Topic[];
-  className?: string;
-}) {
+}: WeeklyFocusCardProps) {
   const weekStart = dayjs().startOf("week");
   const series = topicSeries(weekBlocks, topics);
   const topicName = (block: StudyBlock) =>
@@ -53,7 +60,7 @@ export function WeeklyFocusCard({
     const day = weekStart.add(i, "day");
     const row: Record<string, number | string> = { day: day.format("ddd") };
     for (const block of weekBlocks) {
-      if (block.Status !== "Done") continue;
+      if (block.Status !== StudyBlockStatus.Done) continue;
       if (!dayjs(block.StartAt).isSame(day, "day")) continue;
       const key = topicName(block);
       row[key] = ((row[key] as number) ?? 0) + blockMinutes(block);

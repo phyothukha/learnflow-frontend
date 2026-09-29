@@ -44,16 +44,16 @@ import {
   useDeleteStudyBlock,
   useUpdateStudyBlock,
 } from "@/store/server/study-blocks/mutations";
-import type { StudyBlock } from "@/store/server/study-blocks/interface";
+import { StudyBlockStatus } from "@/store/server/study-blocks/interface";
 import { useFetchTopics } from "@/store/server/topics/queries";
 
 const FALLBACK_COLOR = "#8b8b8b";
 
-const statusVariant: Record<StudyBlock["Status"], BadgeVariant> = {
-  Upcoming: "status-slate",
-  Active: "status-green",
-  Done: "status-blue",
-  Missed: "status-red",
+const statusVariant: Record<StudyBlockStatus, BadgeVariant> = {
+  [StudyBlockStatus.Upcoming]: "status-slate",
+  [StudyBlockStatus.Active]: "status-green",
+  [StudyBlockStatus.Done]: "status-blue",
+  [StudyBlockStatus.Missed]: "status-red",
 };
 
 export default function TimelinePage() {
@@ -163,7 +163,7 @@ export default function TimelinePage() {
                 key={block.Id}
                 className={cn(
                   "shadow-sm",
-                  block.Status === "Done" && "opacity-60",
+                  block.Status === StudyBlockStatus.Done && "opacity-60",
                 )}
               >
                 <CardContent className="flex items-center gap-4 py-4">
@@ -184,18 +184,21 @@ export default function TimelinePage() {
                     )}
                   </div>
                   <Badge variant={statusVariant[block.Status]}>
-                    {block.Status === "Upcoming" && isPast
+                    {block.Status === StudyBlockStatus.Upcoming && isPast
                       ? "Overdue"
                       : block.Status}
                   </Badge>
-                  {block.Status !== "Done" && (
+                  {block.Status !== StudyBlockStatus.Done && (
                     <Button
                       variant="secondary"
                       size="sm"
                       disabled={updateBlock.isPending}
                       onClick={() =>
                         updateBlock.mutate(
-                          { id: block.Id, payload: { Status: "Done" } },
+                          {
+                            id: block.Id,
+                            payload: { Status: StudyBlockStatus.Done },
+                          },
                           { onSuccess: () => toast.success("Block completed") },
                         )
                       }
@@ -227,15 +230,18 @@ export default function TimelinePage() {
   );
 }
 
-function CreateBlockDialog({
-  day,
-  topics,
-  onClose,
-}: {
+interface TopicOption {
+  Id: string;
+  Title: string;
+}
+
+interface CreateBlockDialogProps {
   day: string;
-  topics: { Id: string; Title: string }[];
+  topics: TopicOption[];
   onClose: () => void;
-}) {
+}
+
+function CreateBlockDialog({ day, topics, onClose }: CreateBlockDialogProps) {
   const createBlock = useCreateStudyBlock();
   const [title, setTitle] = useState("");
   const [topicId, setTopicId] = useState<string>("none");

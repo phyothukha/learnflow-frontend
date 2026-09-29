@@ -3,7 +3,13 @@ import { auth } from "@/lib/auth";
 import { serverAxios } from "@/lib/axios";
 import { isAxiosError } from "axios";
 
-type Params = { params: Promise<{ id: string }> };
+interface RouteParams {
+  id: string;
+}
+
+interface Params {
+  params: Promise<RouteParams>;
+}
 
 export async function POST(request: NextRequest, { params }: Params) {
   const session = await auth();

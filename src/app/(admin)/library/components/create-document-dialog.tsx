@@ -46,27 +46,43 @@ import {
 } from "@/store/server/documents/mutations";
 import type { StudyDocument } from "@/store/server/documents/interface";
 
-type Mode = "write" | "upload" | "link";
+export enum CreateDocumentMode {
+  Write = "write",
+  Upload = "upload",
+  Link = "link",
+}
 
-const MODES: {
-  value: Mode;
+interface ModeOption {
+  value: CreateDocumentMode;
   label: string;
   description: string;
   icon: typeof PenLine;
-}[] = [
+}
+
+interface FolderOption {
+  id: string;
+  label: string;
+}
+
+const MODES: ModeOption[] = [
   {
-    value: "write",
+    value: CreateDocumentMode.Write,
     label: "Write",
     description: "New Markdown page",
     icon: PenLine,
   },
   {
-    value: "upload",
+    value: CreateDocumentMode.Upload,
     label: "Upload",
     description: "PDF, Word, PPT, CSV, MD",
     icon: Upload,
   },
-  { value: "link", label: "Link", description: "External URL", icon: Link2 },
+  {
+    value: CreateDocumentMode.Link,
+    label: "Link",
+    description: "External URL",
+    icon: Link2,
+  },
 ];
 
 function formatSize(bytes: number) {
@@ -75,24 +91,28 @@ function formatSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+export interface CreateDocumentDialogProps {
+  topicId: string;
+  defaultFolderId: string | null;
+  folderOptions: FolderOption[];
+  onCreated?: (document: StudyDocument, mode: CreateDocumentMode) => void;
+}
+
 export function CreateDocumentDialog({
   topicId,
   defaultFolderId,
   folderOptions,
   onCreated,
-}: {
-  topicId: string;
-  defaultFolderId: string | null;
-  folderOptions: { id: string; label: string }[];
-  onCreated?: (document: StudyDocument, mode: Mode) => void;
-}) {
+}: CreateDocumentDialogProps) {
   const createDocument = useCreateDocument();
   const updateDocument = useUpdateDocument();
   const deleteDocument = useDeleteDocument();
   const uploadAttachment = useUploadAttachment();
 
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState<Mode>("write");
+  const [mode, setMode] = useState<CreateDocumentMode>(
+    CreateDocumentMode.Write,
+  );
   const [title, setTitle] = useState("");
   const [folderId, setFolderId] = useState("none");
   const [tags, setTags] = useState<string[]>([]);
@@ -103,7 +123,7 @@ export function CreateDocumentDialog({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const reset = () => {
-    setMode("write");
+    setMode(CreateDocumentMode.Write);
     setTitle("");
     setTags([]);
     setUrl("");
@@ -169,11 +189,11 @@ export function CreateDocumentDialog({
       toast.error("Title is required");
       return;
     }
-    if (mode === "upload" && !file) {
+    if (mode === CreateDocumentMode.Upload && !file) {
       toast.error("Choose a file to upload");
       return;
     }
-    if (mode === "link" && !url.trim()) {
+    if (mode === CreateDocumentMode.Link && !url.trim()) {
       toast.error("URL is required");
       return;
     }
@@ -181,13 +201,13 @@ export function CreateDocumentDialog({
     setSubmitting(true);
     try {
       let document: StudyDocument;
-      if (mode === "write") {
+      if (mode === CreateDocumentMode.Write) {
         document = await createDocument.mutateAsync({
           ...baseFields(),
           FileType: "md",
           Content: `# ${title.trim()}\n\n`,
         });
-      } else if (mode === "link") {
+      } else if (mode === CreateDocumentMode.Link) {
         document = await createDocument.mutateAsync({
           ...baseFields(),
           FileType: "link",
@@ -258,7 +278,7 @@ export function CreateDocumentDialog({
         </div>
 
         <div className="space-y-4">
-          {mode === "upload" && (
+          {mode === CreateDocumentMode.Upload && (
             <div className="space-y-2">
               {file && fileKind ? (
                 <div className="flex items-center gap-3 rounded-lg border p-3">
@@ -333,12 +353,14 @@ export function CreateDocumentDialog({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder={
-                mode === "write" ? "e.g. Lecture 3 summary" : "Document title"
+                mode === CreateDocumentMode.Write
+                  ? "e.g. Lecture 3 summary"
+                  : "Document title"
               }
             />
           </div>
 
-          {mode === "link" && (
+          {mode === CreateDocumentMode.Link && (
             <div className="space-y-2">
               <Label htmlFor="new-doc-url">URL</Label>
               <Input
@@ -385,9 +407,9 @@ export function CreateDocumentDialog({
           </Button>
           <Button onClick={handleSubmit} disabled={submitting}>
             {submitting && <Loader2 className="size-4 animate-spin" />}
-            {mode === "write"
+            {mode === CreateDocumentMode.Write
               ? "Create & start writing"
-              : mode === "upload"
+              : mode === CreateDocumentMode.Upload
                 ? "Upload"
                 : "Save link"}
           </Button>

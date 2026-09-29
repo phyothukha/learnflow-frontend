@@ -8,6 +8,7 @@ import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import { useFetchCourses } from "@/store/server/courses/queries";
 import { getCoursesColumns } from "./courses-columns";
+import { CoursesDialogType } from "./courses-columns.props";
 import { useCourses } from "./courses-provider";
 
 export function CoursesCreateButton() {
@@ -17,7 +18,7 @@ export function CoursesCreateButton() {
   if (!hasPermission(PERMISSIONS.COURSES_CREATE)) return null;
 
   return (
-    <Button onClick={() => setOpen("create")}>
+    <Button onClick={() => setOpen(CoursesDialogType.Create)}>
       <Plus />
       New Course
     </Button>

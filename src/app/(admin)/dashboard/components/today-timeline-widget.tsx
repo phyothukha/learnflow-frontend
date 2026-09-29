@@ -6,18 +6,23 @@ import { CalendarClock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import type { StudyBlock } from "@/store/server/study-blocks/interface";
+import {
+  StudyBlockStatus,
+  type StudyBlock,
+} from "@/store/server/study-blocks/interface";
 import { FALLBACK_TOPIC_COLOR } from "@/lib/topic-colors";
 import { cn } from "@/lib/utils";
 import { WidgetHeader } from "./widget-header";
 
+export interface TodayTimelineWidgetProps {
+  blocks: StudyBlock[];
+  className?: string;
+}
+
 export function TodayTimelineWidget({
   blocks,
   className,
-}: {
-  blocks: StudyBlock[];
-  className?: string;
-}) {
+}: TodayTimelineWidgetProps) {
   const router = useRouter();
   return (
     <Card className={cn("shadow-sm", className)}>
@@ -50,7 +55,7 @@ export function TodayTimelineWidget({
                   className={cn(
                     "flex items-center gap-3 rounded-md border px-3 py-2",
                     isActive && "border-primary",
-                    block.Status === "Done" && "opacity-60",
+                    block.Status === StudyBlockStatus.Done && "opacity-60",
                   )}
                 >
                   <span
@@ -68,10 +73,16 @@ export function TodayTimelineWidget({
                     {block.Title}
                   </span>
                   <Badge
-                    variant={block.Status === "Done" ? "outline" : "secondary"}
+                    variant={
+                      block.Status === StudyBlockStatus.Done
+                        ? "outline"
+                        : "secondary"
+                    }
                     className="text-xs"
                   >
-                    {isActive && block.Status !== "Done" ? "Now" : block.Status}
+                    {isActive && block.Status !== StudyBlockStatus.Done
+                      ? "Now"
+                      : block.Status}
                   </Badge>
                 </div>
               );

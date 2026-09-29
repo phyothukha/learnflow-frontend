@@ -3,7 +3,14 @@ import { auth } from "@/lib/auth";
 import { serverAxios } from "@/lib/axios";
 import { isAxiosError } from "axios";
 
-type Params = { params: Promise<{ id: string; attachmentId: string }> };
+interface RouteParams {
+  id: string;
+  attachmentId: string;
+}
+
+interface Params {
+  params: Promise<RouteParams>;
+}
 
 export async function DELETE(_request: NextRequest, { params }: Params) {
   const session = await auth();

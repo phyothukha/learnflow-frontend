@@ -18,16 +18,26 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { MarkdownPreview } from "./markdown-preview";
 
-type ViewMode = "write" | "split" | "preview";
+enum ViewMode {
+  Write = "write",
+  Split = "split",
+  Preview = "preview",
+}
 
-type Format = {
+interface Format {
   icon: typeof Bold;
   label: string;
   prefix: string;
   suffix?: string;
   placeholder: string;
   block?: boolean;
-};
+}
+
+interface ViewModeOption {
+  value: ViewMode;
+  label: string;
+  icon: typeof Eye;
+}
 
 const FORMATS: Format[] = [
   {
@@ -82,24 +92,26 @@ const FORMATS: Format[] = [
   },
 ];
 
-const VIEW_MODES: { value: ViewMode; label: string; icon: typeof Eye }[] = [
-  { value: "write", label: "Write", icon: PenLine },
-  { value: "split", label: "Split", icon: Columns2 },
-  { value: "preview", label: "Preview", icon: Eye },
+const VIEW_MODES: ViewModeOption[] = [
+  { value: ViewMode.Write, label: "Write", icon: PenLine },
+  { value: ViewMode.Split, label: "Split", icon: Columns2 },
+  { value: ViewMode.Preview, label: "Preview", icon: Eye },
 ];
+
+export interface MarkdownSplitEditorProps {
+  value: string;
+  onChange: (value: string) => void;
+  onSave?: () => void;
+  className?: string;
+}
 
 export function MarkdownSplitEditor({
   value,
   onChange,
   onSave,
   className,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  onSave?: () => void;
-  className?: string;
-}) {
-  const [mode, setMode] = useState<ViewMode>("split");
+}: MarkdownSplitEditorProps) {
+  const [mode, setMode] = useState<ViewMode>(ViewMode.Split);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
 
@@ -129,7 +141,7 @@ export function MarkdownSplitEditor({
   const syncScroll = () => {
     const textarea = textareaRef.current;
     const preview = previewRef.current;
-    if (!textarea || !preview || mode !== "split") return;
+    if (!textarea || !preview || mode !== ViewMode.Split) return;
     const maxScroll = textarea.scrollHeight - textarea.clientHeight;
     const ratio = maxScroll > 0 ? textarea.scrollTop / maxScroll : 0;
     preview.scrollTop = ratio * (preview.scrollHeight - preview.clientHeight);
@@ -152,7 +164,7 @@ export function MarkdownSplitEditor({
               size="icon"
               className="size-7 text-muted-foreground"
               title={format.label}
-              disabled={mode === "preview"}
+              disabled={mode === ViewMode.Preview}
               onClick={() => applyFormat(format)}
             >
               <format.icon className="size-3.5" />
@@ -168,7 +180,7 @@ export function MarkdownSplitEditor({
               className={cn(
                 "inline-flex items-center gap-1.5 rounded px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground",
                 mode === option.value && "bg-accent text-foreground shadow-xs",
-                option.value === "split" && "hidden md:inline-flex",
+                option.value === ViewMode.Split && "hidden md:inline-flex",
               )}
             >
               <option.icon className="size-3.5" />
@@ -181,10 +193,10 @@ export function MarkdownSplitEditor({
       <div
         className={cn(
           "grid min-h-0 flex-1",
-          mode === "split" && "md:grid-cols-2 md:divide-x",
+          mode === ViewMode.Split && "md:grid-cols-2 md:divide-x",
         )}
       >
-        {mode !== "preview" && (
+        {mode !== ViewMode.Preview && (
           <div className="flex min-h-0 flex-col">
             <div className="border-b px-4 py-1.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
               Markdown
@@ -208,11 +220,11 @@ export function MarkdownSplitEditor({
             />
           </div>
         )}
-        {mode !== "write" && (
+        {mode !== ViewMode.Write && (
           <div
             className={cn(
               "flex min-h-0 flex-col",
-              mode === "split" && "hidden md:flex",
+              mode === ViewMode.Split && "hidden md:flex",
             )}
           >
             <div className="border-b px-4 py-1.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">

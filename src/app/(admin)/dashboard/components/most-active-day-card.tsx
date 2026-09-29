@@ -17,20 +17,22 @@ import {
   DashboardCardValue,
 } from "./dashboard-card";
 
-export type DayActivePoint = {
+export interface DayActivePoint {
   day: string;
   minutes: number;
-};
+}
+
+export interface MostActiveDayCardProps {
+  totalLabel: string;
+  data: DayActivePoint[];
+  className?: string;
+}
 
 export function MostActiveDayCard({
   totalLabel,
   data,
   className,
-}: {
-  totalLabel: string;
-  data: DayActivePoint[];
-  className?: string;
-}) {
+}: MostActiveDayCardProps) {
   const max = Math.max(...data.map((d) => d.minutes), 1);
 
   return (

@@ -8,13 +8,15 @@ import {
 } from "react";
 import type { Enrollment } from "@/store/server/enrollments/interface";
 
-type DialogType = "create" | "edit" | "delete" | null;
-
-export type EnrollmentsDialogType = DialogType;
+export enum EnrollmentsDialogType {
+  Create = "create",
+  Edit = "edit",
+  Delete = "delete",
+}
 
 interface EnrollmentsContextType {
-  open: DialogType;
-  setOpen: (type: DialogType) => void;
+  open: EnrollmentsDialogType | null;
+  setOpen: (type: EnrollmentsDialogType | null) => void;
   currentRow: Enrollment | null;
   setCurrentRow: (row: Enrollment | null) => void;
 }
@@ -22,7 +24,7 @@ interface EnrollmentsContextType {
 const EnrollmentsContext = createContext<EnrollmentsContextType>(null!);
 
 export function EnrollmentsProvider({ children }: PropsWithChildren) {
-  const [open, setOpen] = useState<DialogType>(null);
+  const [open, setOpen] = useState<EnrollmentsDialogType | null>(null);
   const [currentRow, setCurrentRow] = useState<Enrollment | null>(null);
 
   return (

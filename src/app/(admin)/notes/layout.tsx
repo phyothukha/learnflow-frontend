@@ -27,9 +27,18 @@ function previewText(content: string | null) {
     .trim();
 }
 
+interface NoteGroup {
+  label: string;
+  items: Note[];
+}
+
+interface NotesLayoutProps {
+  children: React.ReactNode;
+}
+
 function groupNotes(notes: Note[]) {
   const now = dayjs();
-  const groups: { label: string; items: Note[] }[] = [
+  const groups: NoteGroup[] = [
     { label: "Today", items: [] },
     { label: "Previous 7 Days", items: [] },
     { label: "Previous 30 Days", items: [] },
@@ -46,11 +55,7 @@ function groupNotes(notes: Note[]) {
   return groups.filter((g) => g.items.length > 0);
 }
 
-export default function NotesLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function NotesLayout({ children }: NotesLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { hasPermission } = usePermission();

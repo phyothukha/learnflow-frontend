@@ -7,13 +7,12 @@ async function createNote(payload: CreateNotePayload): Promise<Note> {
   return data;
 }
 
-async function updateNote({
-  id,
-  payload,
-}: {
+interface UpdateNoteVariables {
   id: string;
   payload: UpdateNotePayload;
-}): Promise<Note> {
+}
+
+async function updateNote({ id, payload }: UpdateNoteVariables): Promise<Note> {
   const { data } = await clientAxios.patch<Note>(`/notes/${id}`, payload);
   return data;
 }

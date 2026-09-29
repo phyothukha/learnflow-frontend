@@ -12,19 +12,21 @@ import {
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
+export interface DataTablePaginationProps {
+  page: number;
+  pageCount: number;
+  limit: number;
+  onPageChange: (page: number) => void;
+  onLimitChange: (limit: number) => void;
+}
+
 export function DataTablePagination({
   page,
   pageCount,
   limit,
   onPageChange,
   onLimitChange,
-}: {
-  page: number;
-  pageCount: number;
-  limit: number;
-  onPageChange: (page: number) => void;
-  onLimitChange: (limit: number) => void;
-}) {
+}: DataTablePaginationProps) {
   return (
     <div className="relative z-20 flex items-center justify-between gap-3 border-t px-3 py-3 sm:px-4">
       <div className="flex items-center gap-2 text-sm whitespace-nowrap text-muted-foreground">

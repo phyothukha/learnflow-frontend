@@ -5,13 +5,13 @@ import { Check, Copy } from "lucide-react";
 import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
 import { MARKDOWN_PROSE } from "@/components/markdown/markdown-prose";
 
-type HastNode = {
+interface HastNode {
   type: string;
   tagName?: string;
   value?: string;
   properties?: Record<string, unknown>;
   children?: HastNode[];
-};
+}
 
 function slugify(text: string) {
   return (
@@ -51,7 +51,11 @@ function rehypeHeadingIds() {
   };
 }
 
-function CodeBlock({ children }: { children?: React.ReactNode }) {
+interface CodeBlockProps {
+  children?: React.ReactNode;
+}
+
+function CodeBlock({ children }: CodeBlockProps) {
   const ref = useRef<HTMLPreElement>(null);
   const [copied, setCopied] = useState(false);
   return (
@@ -73,7 +77,11 @@ function CodeBlock({ children }: { children?: React.ReactNode }) {
   );
 }
 
-export function MarkdownPreview({ content }: { content: string }) {
+export interface MarkdownPreviewProps {
+  content: string;
+}
+
+export function MarkdownPreview({ content }: MarkdownPreviewProps) {
   return (
     <MarkdownRenderer
       content={content}

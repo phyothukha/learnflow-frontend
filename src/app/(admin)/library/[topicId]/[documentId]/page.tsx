@@ -48,8 +48,10 @@ import { DocumentKindIcon } from "@/components/document-kind-icon";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
+import { AnimatedTabs, AnimatedTabsVariant } from "@/components/animated-tabs";
 import { FALLBACK_TOPIC_COLOR } from "@/lib/topic-colors";
 import {
+  DocumentKind,
   getDocumentKind,
   getExtensionLabel,
   KIND_META,
@@ -65,9 +67,9 @@ import {
   useUpdateDocument,
   useUploadAttachment,
 } from "@/store/server/documents/mutations";
-import type {
+import {
   DocumentStatus,
-  StudyDocument,
+  type StudyDocument,
 } from "@/store/server/documents/interface";
 import { useFetchTopics } from "@/store/server/topics/queries";
 import { useFetchFolderTree } from "@/store/server/topic-folders/queries";
@@ -92,12 +94,35 @@ import {
 } from "../../components/document-viewers";
 
 const STATUS_LABEL: Record<DocumentStatus, string> = {
-  Unread: "Unread",
-  InProgress: "In progress",
-  Completed: "Completed",
+  [DocumentStatus.Unread]: "Unread",
+  [DocumentStatus.InProgress]: "In progress",
+  [DocumentStatus.Completed]: "Completed",
 };
 
-type ViewMode = "preview" | "normal";
+enum ViewMode {
+  Preview = "preview",
+  Normal = "normal",
+}
+
+interface ViewOption {
+  value: ViewMode;
+  label: string;
+  icon: typeof Eye;
+}
+
+interface DocumentViewerPageParams {
+  topicId: string;
+  documentId: string;
+}
+
+interface DocumentViewerPageSearchParams {
+  edit?: string;
+}
+
+interface DocumentViewerPageProps {
+  params: Promise<DocumentViewerPageParams>;
+  searchParams: Promise<DocumentViewerPageSearchParams>;
+}
 
 function formatSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
@@ -108,10 +133,7 @@ function formatSize(bytes: number) {
 export default function DocumentViewerPage({
   params,
   searchParams,
-}: {
-  params: Promise<{ topicId: string; documentId: string }>;
-  searchParams: Promise<{ edit?: string }>;
-}) {
+}: DocumentViewerPageProps) {
   const { topicId, documentId } = use(params);
   const { edit } = use(searchParams);
   const router = useRouter();
@@ -119,7 +141,7 @@ export default function DocumentViewerPage({
   const { hasPermission } = usePermission();
   const canView = hasPermission(PERMISSIONS.DOCUMENTS_VIEW);
 
-  const [view, setView] = useState<ViewMode>("preview");
+  const [view, setView] = useState<ViewMode>(ViewMode.Preview);
   const [editing, setEditing] = useState(edit === "1");
   const [showRelated, setShowRelated] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
@@ -193,7 +215,8 @@ export default function DocumentViewerPage({
   }
 
   const kind = getDocumentKind(document.FileType);
-  const isTextKind = kind === "markdown" || kind === "csv";
+  const isTextKind =
+    kind === DocumentKind.Markdown || kind === DocumentKind.Csv;
   const content = document.Content ?? "";
   const folderPath = document.FolderId
     ? (findFolderPath(folderTree ?? [], document.FolderId) ?? [])
@@ -202,9 +225,9 @@ export default function DocumentViewerPage({
 
   const handleDownload = () => {
     const ext =
-      kind === "csv"
+      kind === DocumentKind.Csv
         ? "csv"
-        : kind === "markdown"
+        : kind === DocumentKind.Markdown
           ? "md"
           : getExtensionLabel(document.FileType).toLowerCase();
     const downloadName = `${document.Title}.${ext}`;
@@ -212,7 +235,7 @@ export default function DocumentViewerPage({
       downloadText(
         content,
         downloadName,
-        kind === "csv" ? "text/csv" : "text/markdown",
+        kind === DocumentKind.Csv ? "text/csv" : "text/markdown",
       );
     } else if (document.FileUrl) {
       downloadFromUrl(document.FileUrl, downloadName);
@@ -231,54 +254,53 @@ export default function DocumentViewerPage({
     });
   };
 
-  const canDownload = isTextKind || (!!document.FileUrl && kind !== "link");
-  const viewOptions: { value: ViewMode; label: string; icon: typeof Eye }[] =
-    isTextKind
-      ? [
-          {
-            value: "preview",
-            label: kind === "csv" ? "Table" : "Preview",
-            icon: kind === "csv" ? Table2 : Eye,
-          },
-          { value: "normal", label: "Normal", icon: Code2 },
-        ]
-      : [{ value: "preview", label: "Preview", icon: Eye }];
-  const headings = kind === "markdown" ? extractHeadings(content) : [];
+  const canDownload =
+    isTextKind || (!!document.FileUrl && kind !== DocumentKind.Link);
+  const viewOptions: ViewOption[] = isTextKind
+    ? [
+        {
+          value: ViewMode.Preview,
+          label: kind === DocumentKind.Csv ? "Table" : "Preview",
+          icon: kind === DocumentKind.Csv ? Table2 : Eye,
+        },
+        { value: ViewMode.Normal, label: "Normal", icon: Code2 },
+      ]
+    : [{ value: ViewMode.Preview, label: "Preview", icon: Eye }];
+  const headings =
+    kind === DocumentKind.Markdown ? extractHeadings(content) : [];
   const scrollBody = fullscreen || isTextKind;
   const showOutlinePanel =
     fullscreen &&
     showOutline &&
-    kind === "markdown" &&
-    view === "preview" &&
+    kind === DocumentKind.Markdown &&
+    view === ViewMode.Preview &&
     !editing &&
     !!content.trim();
 
   const viewTabs = (
-    <div className="inline-flex items-center rounded-lg border bg-card p-1 shadow-xs">
-      {viewOptions.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          disabled={editing}
-          onClick={() => setView(option.value)}
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground disabled:pointer-events-none disabled:opacity-50",
-            view === option.value &&
-              !editing &&
-              "bg-muted text-foreground shadow-xs",
-          )}
-        >
-          <option.icon className="size-4" />
-          {option.label}
-        </button>
-      ))}
+    <AnimatedTabs
+      variant={AnimatedTabsVariant.Pill}
+      value={editing ? null : view}
+      onValueChange={setView}
+      disabled={editing}
+      tabClassName="gap-1.5"
+      tabs={viewOptions.map((option) => ({
+        value: option.value,
+        label: (
+          <>
+            <option.icon className="size-4" />
+            {option.label}
+          </>
+        ),
+      }))}
+    >
       {editing && (
         <span className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-1.5 text-sm font-medium text-primary-foreground">
           <PenLine className="size-4" />
           Editing
         </span>
       )}
-    </div>
+    </AnimatedTabs>
   );
 
   return (
@@ -323,7 +345,7 @@ export default function DocumentViewerPage({
             </div>
             <div className="flex flex-wrap items-center gap-2">
               {viewTabs}
-              {kind === "markdown" && !editing && (
+              {kind === DocumentKind.Markdown && !editing && (
                 <Button size="sm" onClick={() => setEditing(true)}>
                   <PenLine className="size-4" />
                   Edit
@@ -389,7 +411,7 @@ export default function DocumentViewerPage({
                 <span className="truncate text-sm font-semibold">
                   {fileName}
                 </span>
-                {kind === "csv" && content && (
+                {kind === DocumentKind.Csv && content && (
                   <Badge variant="secondary" className="shrink-0 text-[11px]">
                     {csvStats(content).rows} rows · {csvStats(content).columns}{" "}
                     columns
@@ -398,18 +420,20 @@ export default function DocumentViewerPage({
               </div>
               {fullscreen && (
                 <div className="hidden items-center gap-2 md:flex">
-                  {kind === "markdown" && view === "preview" && !editing && (
-                    <Button
-                      variant={showOutline ? "default" : "secondary"}
-                      size="sm"
-                      onClick={() => setShowOutline((v) => !v)}
-                    >
-                      <PanelLeft className="size-4" />
-                      Outline
-                    </Button>
-                  )}
+                  {kind === DocumentKind.Markdown &&
+                    view === ViewMode.Preview &&
+                    !editing && (
+                      <Button
+                        variant={showOutline ? "default" : "secondary"}
+                        size="sm"
+                        onClick={() => setShowOutline((v) => !v)}
+                      >
+                        <PanelLeft className="size-4" />
+                        Outline
+                      </Button>
+                    )}
                   {viewTabs}
-                  {kind === "markdown" && !editing && (
+                  {kind === DocumentKind.Markdown && !editing && (
                     <Button size="sm" onClick={() => setEditing(true)}>
                       <PenLine className="size-4" />
                       Edit
@@ -527,7 +551,7 @@ export default function DocumentViewerPage({
           <div className="min-w-0 space-y-3 lg:sticky lg:top-18">
             <InfoPanel
               document={document}
-              canEdit={kind === "markdown"}
+              canEdit={kind === DocumentKind.Markdown}
               canDownload={canDownload}
               onEdit={() => setEditing(true)}
               onDownload={handleDownload}
@@ -549,19 +573,17 @@ export default function DocumentViewerPage({
   );
 }
 
-function DocumentBody({
-  document,
-  view,
-  onEdit,
-}: {
+interface DocumentBodyProps {
   document: StudyDocument;
   view: ViewMode;
   onEdit: () => void;
-}) {
+}
+
+function DocumentBody({ document, view, onEdit }: DocumentBodyProps) {
   const kind = getDocumentKind(document.FileType);
   const content = document.Content ?? "";
 
-  if (kind === "markdown") {
+  if (kind === DocumentKind.Markdown) {
     if (!content.trim())
       return (
         <EmptyContent
@@ -574,7 +596,7 @@ function DocumentBody({
           }
         />
       );
-    return view === "preview" ? (
+    return view === ViewMode.Preview ? (
       <div className="px-4 py-5 md:px-6">
         <MarkdownPreview content={content} />
       </div>
@@ -584,9 +606,9 @@ function DocumentBody({
       </div>
     );
   }
-  if (kind === "csv") {
+  if (kind === DocumentKind.Csv) {
     if (!content.trim()) return <EmptyContent message="This file is empty." />;
-    return view === "preview" ? (
+    return view === ViewMode.Preview ? (
       <CsvTable content={content} />
     ) : (
       <div className="max-h-[70vh] overflow-auto py-3">
@@ -596,10 +618,18 @@ function DocumentBody({
   }
   if (!document.FileUrl)
     return <EmptyContent message="No file is attached to this document yet." />;
-  if (kind === "pdf") return <PdfFrame url={document.FileUrl} />;
-  if (kind === "word" || kind === "powerpoint")
+  if (kind === DocumentKind.Pdf) return <PdfFrame url={document.FileUrl} />;
+  if (kind === DocumentKind.Word || kind === DocumentKind.PowerPoint)
     return <OfficeFrame url={document.FileUrl} label={KIND_META[kind].label} />;
   return <LinkPanel url={document.FileUrl} />;
+}
+
+interface QuickActionProps {
+  icon: typeof Eye;
+  label: string;
+  onClick?: () => void;
+  disabled?: boolean;
+  destructive?: boolean;
 }
 
 function QuickAction({
@@ -608,13 +638,7 @@ function QuickAction({
   onClick,
   disabled,
   destructive,
-}: {
-  icon: typeof Eye;
-  label: string;
-  onClick?: () => void;
-  disabled?: boolean;
-  destructive?: boolean;
-}) {
+}: QuickActionProps) {
   return (
     <button
       type="button"
@@ -632,6 +656,16 @@ function QuickAction({
   );
 }
 
+interface InfoPanelProps {
+  document: StudyDocument;
+  canEdit: boolean;
+  canDownload: boolean;
+  onEdit: () => void;
+  onDownload: () => void;
+  onSettings: () => void;
+  onDelete: () => void;
+}
+
 function InfoPanel({
   document,
   canEdit,
@@ -640,15 +674,7 @@ function InfoPanel({
   onDownload,
   onSettings,
   onDelete,
-}: {
-  document: StudyDocument;
-  canEdit: boolean;
-  canDownload: boolean;
-  onEdit: () => void;
-  onDownload: () => void;
-  onSettings: () => void;
-  onDelete: () => void;
-}) {
+}: InfoPanelProps) {
   const updateDocument = useUpdateDocument();
   const kind = getDocumentKind(document.FileType);
   const meta = KIND_META[kind];
@@ -756,7 +782,11 @@ function InfoPanel({
   );
 }
 
-function AttachmentsTab({ document }: { document: StudyDocument }) {
+interface AttachmentsTabProps {
+  document: StudyDocument;
+}
+
+function AttachmentsTab({ document }: AttachmentsTabProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadAttachment = useUploadAttachment();
   const deleteAttachment = useDeleteAttachment();
@@ -844,15 +874,13 @@ function AttachmentsTab({ document }: { document: StudyDocument }) {
   );
 }
 
-function RelatedPanel({
-  document,
-  topicId,
-  className,
-}: {
+interface RelatedPanelProps {
   document: StudyDocument;
   topicId: string;
   className?: string;
-}) {
+}
+
+function RelatedPanel({ document, topicId, className }: RelatedPanelProps) {
   const { data: documentsData } = useFetchDocuments({ limit: 500, topicId });
 
   const siblings = (documentsData?.Items ?? [])

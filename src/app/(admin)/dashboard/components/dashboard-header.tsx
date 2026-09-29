@@ -5,15 +5,17 @@ import { CalendarDays, ChevronDown, Download, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+export interface DashboardHeaderProps {
+  rangeLabel: string;
+  periodLabel?: string;
+  className?: string;
+}
+
 export function DashboardHeader({
   rangeLabel,
   periodLabel = "Last 30 days",
   className,
-}: {
-  rangeLabel: string;
-  periodLabel?: string;
-  className?: string;
-}) {
+}: DashboardHeaderProps) {
   return (
     <div
       className={cn(

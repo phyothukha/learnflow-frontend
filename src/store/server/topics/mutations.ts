@@ -11,13 +11,15 @@ async function createTopic(payload: CreateTopicPayload): Promise<Topic> {
   return data;
 }
 
+interface UpdateTopicVariables {
+  id: string;
+  payload: UpdateTopicPayload;
+}
+
 async function updateTopic({
   id,
   payload,
-}: {
-  id: string;
-  payload: UpdateTopicPayload;
-}): Promise<Topic> {
+}: UpdateTopicVariables): Promise<Topic> {
   const { data } = await clientAxios.patch<Topic>(`/topics/${id}`, payload);
   return data;
 }

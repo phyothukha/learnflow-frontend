@@ -41,26 +41,21 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useFetchCourses } from "@/store/server/courses/queries";
-import type { EnrollmentStatus } from "@/store/server/enrollments/interface";
+import { EnrollmentStatus } from "@/store/server/enrollments/interface";
 import {
   useCreateEnrollment,
   useUpdateEnrollment,
   useDeleteEnrollment,
 } from "@/store/server/enrollments/mutations";
-import { useEnrollments } from "./enrollments-provider";
+import { EnrollmentsDialogType, useEnrollments } from "./enrollments-provider";
 
-const STATUSES: EnrollmentStatus[] = [
-  "Pending",
-  "Active",
-  "Completed",
-  "Cancelled",
-];
+const STATUSES = Object.values(EnrollmentStatus);
 
 const schema = z.object({
   StudentName: z.string().min(1, "Student name is required"),
   StudentEmail: z.string().email("Enter a valid email"),
   CourseId: z.string().min(1, "Course is required"),
-  Status: z.enum(["Pending", "Active", "Completed", "Cancelled"]),
+  Status: z.nativeEnum(EnrollmentStatus),
   ProgressPercent: z.coerce.number().min(0).max(100),
 });
 
@@ -70,7 +65,7 @@ const emptyValues: FormValues = {
   StudentName: "",
   StudentEmail: "",
   CourseId: "",
-  Status: "Pending",
+  Status: EnrollmentStatus.Pending,
   ProgressPercent: 0,
 };
 
@@ -84,14 +79,14 @@ export function EnrollmentsDialogs() {
   const updateEnrollment = useUpdateEnrollment();
   const deleteEnrollment = useDeleteEnrollment();
 
-  const isEdit = open === "edit";
+  const isEdit = open === EnrollmentsDialogType.Edit;
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: emptyValues,
   });
 
   useEffect(() => {
-    if (open === "edit" && currentRow) {
+    if (open === EnrollmentsDialogType.Edit && currentRow) {
       form.reset({
         StudentName: currentRow.StudentName,
         StudentEmail: currentRow.StudentEmail,
@@ -100,7 +95,7 @@ export function EnrollmentsDialogs() {
         ProgressPercent: currentRow.ProgressPercent,
       });
     }
-    if (open === "create") form.reset(emptyValues);
+    if (open === EnrollmentsDialogType.Create) form.reset(emptyValues);
   }, [open, currentRow, form]);
 
   function closeDialog() {
@@ -147,7 +142,10 @@ export function EnrollmentsDialogs() {
   return (
     <>
       <Dialog
-        open={open === "create" || open === "edit"}
+        open={
+          open === EnrollmentsDialogType.Create ||
+          open === EnrollmentsDialogType.Edit
+        }
         onOpenChange={(isOpen) => !isOpen && closeDialog()}
       >
         <DialogContent>
@@ -273,7 +271,7 @@ export function EnrollmentsDialogs() {
       </Dialog>
 
       <AlertDialog
-        open={open === "delete"}
+        open={open === EnrollmentsDialogType.Delete}
         onOpenChange={(isOpen) => !isOpen && closeDialog()}
       >
         <AlertDialogContent>

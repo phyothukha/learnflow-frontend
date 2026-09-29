@@ -36,9 +36,10 @@ import { DocumentKindIcon } from "@/components/document-kind-icon";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
+import { AnimatedTabs, AnimatedTabsVariant } from "@/components/animated-tabs";
 import { FALLBACK_TOPIC_COLOR } from "@/lib/topic-colors";
 import {
-  type DocumentKind,
+  DocumentKind,
   getDocumentKind,
   getExtensionLabel,
   KIND_META,
@@ -48,7 +49,10 @@ import { useFetchTopics } from "@/store/server/topics/queries";
 import { useFetchDocuments } from "@/store/server/documents/queries";
 import type { StudyDocument } from "@/store/server/documents/interface";
 import { useFetchFolderTree } from "@/store/server/topic-folders/queries";
-import { CreateDocumentDialog } from "../components/create-document-dialog";
+import {
+  CreateDocumentDialog,
+  CreateDocumentMode,
+} from "../components/create-document-dialog";
 import { DocumentDetailDialog } from "../components/document-detail-dialog";
 import {
   DocumentActions,
@@ -63,29 +67,58 @@ import {
   FolderBreadcrumb,
   FolderSidebar,
   FolderCard,
+  FolderDialogType,
   type FolderDialogState,
   FolderNameDialog,
   NewFolderCard,
 } from "../components/folder-explorer";
 
 const KIND_FILTERS: DocumentKind[] = [
-  "markdown",
-  "pdf",
-  "word",
-  "powerpoint",
-  "csv",
-  "link",
+  DocumentKind.Markdown,
+  DocumentKind.Pdf,
+  DocumentKind.Word,
+  DocumentKind.PowerPoint,
+  DocumentKind.Csv,
+  DocumentKind.Link,
 ];
 
-type TopicTab = "folders" | "files";
+enum TopicTab {
+  Folders = "folders",
+  Files = "files",
+}
+
+enum LayoutMode {
+  Grid = "grid",
+  List = "list",
+}
+
+interface TopicDocumentsPageParams {
+  topicId: string;
+}
+
+interface TopicDocumentsPageSearchParams {
+  folder?: string;
+  tab?: string;
+}
+
+interface TopicDocumentsPageProps {
+  params: Promise<TopicDocumentsPageParams>;
+  searchParams: Promise<TopicDocumentsPageSearchParams>;
+}
+
+interface KindCounts extends Partial<Record<DocumentKind, number>> {
+  total: number;
+}
+
+interface BuildHrefOptions {
+  folderId?: string | null;
+  tab?: TopicTab;
+}
 
 export default function TopicDocumentsPage({
   params,
   searchParams,
-}: {
-  params: Promise<{ topicId: string }>;
-  searchParams: Promise<{ folder?: string; tab?: string }>;
-}) {
+}: TopicDocumentsPageProps) {
   const { topicId } = use(params);
   const { folder: folderParam, tab: tabParam } = use(searchParams);
   const router = useRouter();
@@ -94,12 +127,13 @@ export default function TopicDocumentsPage({
   const canView = hasPermission(PERMISSIONS.DOCUMENTS_VIEW);
   const setActiveTopic = useWorkspaceStore((s) => s.setActiveTopic);
 
-  const activeTab: TopicTab = tabParam === "files" ? "files" : "folders";
+  const activeTab: TopicTab =
+    tabParam === TopicTab.Files ? TopicTab.Files : TopicTab.Folders;
 
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [activeKind, setActiveKind] = useState<DocumentKind | null>(null);
   const [search, setSearch] = useState("");
-  const [layout, setLayout] = useState<"grid" | "list">("grid");
+  const [layout, setLayout] = useState<LayoutMode>(LayoutMode.Grid);
   const [folderDialog, setFolderDialog] = useState<FolderDialogState | null>(
     null,
   );
@@ -171,8 +205,7 @@ export default function TopicDocumentsPage({
         : (doc.FolderId ?? null) === (currentFolder?.Id ?? null)) &&
       (!activeTag || doc.Tags.includes(activeTag)),
   );
-  const kindCounts: Partial<Record<DocumentKind, number>> & { total: number } =
-    { total: scopedFiles.length };
+  const kindCounts: KindCounts = { total: scopedFiles.length };
   for (const doc of scopedFiles) {
     const kind = getDocumentKind(doc.FileType);
     kindCounts[kind] = (kindCounts[kind] ?? 0) + 1;
@@ -181,13 +214,13 @@ export default function TopicDocumentsPage({
     ? scopedFiles.filter((doc) => getDocumentKind(doc.FileType) === activeKind)
     : scopedFiles;
 
-  const buildHref = (next: { folderId?: string | null; tab?: TopicTab }) => {
+  const buildHref = (next: BuildHrefOptions) => {
     const params = new URLSearchParams();
     const folderId =
       next.folderId !== undefined ? next.folderId : (folderParam ?? null);
     const tab = next.tab ?? activeTab;
     if (folderId) params.set("folder", folderId);
-    if (tab === "files") params.set("tab", "files");
+    if (tab === TopicTab.Files) params.set("tab", TopicTab.Files);
     const qs = params.toString();
     return `/library/${topicId}${qs ? `?${qs}` : ""}`;
   };
@@ -242,13 +275,13 @@ export default function TopicDocumentsPage({
           </p>
         </div>
         <div className="flex gap-2">
-          {activeTab === "folders" ? (
+          {activeTab === TopicTab.Folders ? (
             <Button
               variant="secondary"
               size="sm"
               onClick={() =>
                 setFolderDialog({
-                  type: "create",
+                  type: FolderDialogType.Create,
                   parentFolderId: currentFolder?.Id ?? null,
                 })
               }
@@ -266,7 +299,7 @@ export default function TopicDocumentsPage({
               }))}
               onCreated={(doc, mode) =>
                 router.push(
-                  `/library/${topicId}/${doc.Id}${mode === "write" ? "?edit=1" : ""}`,
+                  `/library/${topicId}/${doc.Id}${mode === CreateDocumentMode.Write ? "?edit=1" : ""}`,
                 )
               }
             />
@@ -274,40 +307,20 @@ export default function TopicDocumentsPage({
         </div>
       </div>
 
-      <div className="flex gap-1 border-b">
-        {(
-          [
-            {
-              value: "folders" as const,
-              label: "Folders",
-              count: childFolders.length,
-            },
-            {
-              value: "files" as const,
-              label: "Files",
-              count: filesInCurrent,
-            },
-          ] as const
-        ).map((tab) => (
-          <button
-            key={tab.value}
-            type="button"
-            onClick={() => setTab(tab.value)}
-            className={cn(
-              "-mb-px inline-flex items-center gap-2 border-b-2 border-transparent px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:text-foreground",
-              activeTab === tab.value &&
-                "border-primary font-medium text-foreground",
-            )}
-          >
-            {tab.label}
-            <span className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-medium tabular-nums text-muted-foreground">
-              {tab.count}
-            </span>
-          </button>
-        ))}
-      </div>
+      <AnimatedTabs
+        value={activeTab}
+        onValueChange={setTab}
+        tabs={[
+          {
+            value: TopicTab.Folders,
+            label: "Folders",
+            count: childFolders.length,
+          },
+          { value: TopicTab.Files, label: "Files", count: filesInCurrent },
+        ]}
+      />
 
-      {activeTab === "folders" ? (
+      {activeTab === TopicTab.Folders ? (
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/30 px-3 py-2">
             <FolderBreadcrumb path={path} onNavigate={navigateFolder} />
@@ -329,12 +342,15 @@ export default function TopicDocumentsPage({
                   onOpen={() => navigateFolder(node.Id)}
                   onAddSubfolder={() =>
                     setFolderDialog({
-                      type: "create",
+                      type: FolderDialogType.Create,
                       parentFolderId: node.Id,
                     })
                   }
                   onRename={() =>
-                    setFolderDialog({ type: "rename", folder: node })
+                    setFolderDialog({
+                      type: FolderDialogType.Rename,
+                      folder: node,
+                    })
                   }
                   onDeleted={() => {
                     if (path.some((p) => p.Id === node.Id))
@@ -345,7 +361,7 @@ export default function TopicDocumentsPage({
               <NewFolderCard
                 onClick={() =>
                   setFolderDialog({
-                    type: "create",
+                    type: FolderDialogType.Create,
                     parentFolderId: currentFolder?.Id ?? null,
                   })
                 }
@@ -362,7 +378,10 @@ export default function TopicDocumentsPage({
             countByFolder={countByFolder}
             onNavigate={navigateFolder}
             onCreate={(parentFolderId) =>
-              setFolderDialog({ type: "create", parentFolderId })
+              setFolderDialog({
+                type: FolderDialogType.Create,
+                parentFolderId,
+              })
             }
             className="lg:sticky lg:top-18"
           />
@@ -439,53 +458,50 @@ export default function TopicDocumentsPage({
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}
-                  <div className="inline-flex items-center rounded-lg border bg-muted/40 p-0.5">
-                    {(
-                      [
-                        ["grid", LayoutGrid, "Grid view"],
-                        ["list", List, "List view"],
-                      ] as const
-                    ).map(([value, Icon, label]) => (
-                      <button
-                        key={value}
-                        type="button"
-                        title={label}
-                        onClick={() => setLayout(value)}
-                        className={cn(
-                          "rounded-md p-1.5 text-muted-foreground transition-colors hover:text-foreground",
-                          layout === value &&
-                            "bg-background text-foreground shadow-xs",
-                        )}
-                      >
-                        <Icon className="size-4" />
-                      </button>
-                    ))}
-                  </div>
+                  <AnimatedTabs
+                    variant={AnimatedTabsVariant.Pill}
+                    value={layout}
+                    onValueChange={setLayout}
+                    className="bg-muted/40 p-0.5 shadow-none"
+                    tabClassName="p-1.5"
+                    indicatorClassName="bg-background"
+                    tabs={[
+                      {
+                        value: LayoutMode.Grid,
+                        title: "Grid view",
+                        label: <LayoutGrid className="size-4" />,
+                      },
+                      {
+                        value: LayoutMode.List,
+                        title: "List view",
+                        label: <List className="size-4" />,
+                      },
+                    ]}
+                  />
                 </div>
               </div>
 
-              <div className="mt-4 flex gap-1 overflow-x-auto border-b px-5">
-                <KindTab
-                  active={activeKind === null}
-                  onClick={() => setActiveKind(null)}
-                  count={kindCounts.total}
-                >
-                  All
-                </KindTab>
-                {KIND_FILTERS.map((kind) => (
-                  <KindTab
-                    key={kind}
-                    active={activeKind === kind}
-                    onClick={() =>
-                      setActiveKind(activeKind === kind ? null : kind)
-                    }
-                    count={kindCounts[kind] ?? 0}
-                  >
-                    <DocumentKindIcon kind={kind} size={16} />
-                    {KIND_META[kind].label}
-                  </KindTab>
-                ))}
-              </div>
+              <AnimatedTabs
+                value={activeKind ?? "all"}
+                onValueChange={(next) =>
+                  setActiveKind(next === "all" ? null : next)
+                }
+                className="scrollbar-handle mt-4 overflow-x-auto px-5"
+                tabClassName="gap-1.5 px-3"
+                tabs={[
+                  { value: "all", label: "All", count: kindCounts.total },
+                  ...KIND_FILTERS.map((kind) => ({
+                    value: kind,
+                    label: (
+                      <>
+                        <DocumentKindIcon kind={kind} size={16} />
+                        {KIND_META[kind].label}
+                      </>
+                    ),
+                    count: kindCounts[kind] || undefined,
+                  })),
+                ]}
+              />
 
               <div className="bg-muted/20 p-5">
                 {documentsLoading ? (
@@ -512,7 +528,7 @@ export default function TopicDocumentsPage({
                         : "Write a Markdown page or upload a PDF, Word, PowerPoint or CSV file."}
                     </p>
                   </div>
-                ) : layout === "grid" ? (
+                ) : layout === LayoutMode.Grid ? (
                   <div className="grid gap-5 md:grid-cols-2">
                     {files.map((doc) => (
                       <DocumentCard
@@ -553,7 +569,12 @@ export default function TopicDocumentsPage({
   );
 }
 
-function SectionTitle({ title, count }: { title: string; count?: number }) {
+interface SectionTitleProps {
+  title: string;
+  count?: number;
+}
+
+function SectionTitle({ title, count }: SectionTitleProps) {
   return (
     <h2 className="flex items-center gap-2 text-sm font-semibold">
       {title}
@@ -566,43 +587,13 @@ function SectionTitle({ title, count }: { title: string; count?: number }) {
   );
 }
 
-function KindTab({
-  active,
-  onClick,
-  count,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  count: number;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "-mb-px inline-flex shrink-0 items-center gap-1.5 border-b-2 border-transparent px-3 py-2.5 text-sm whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground",
-        active && "border-primary font-medium text-foreground",
-      )}
-    >
-      {children}
-      {count > 0 && (
-        <span className="text-[11px] text-muted-foreground">{count}</span>
-      )}
-    </button>
-  );
-}
-
-function DocumentCard({
-  document,
-  href,
-  onSettings,
-}: {
+interface DocumentCardProps {
   document: StudyDocument;
   href: string;
   onSettings: () => void;
-}) {
+}
+
+function DocumentCard({ document, href, onSettings }: DocumentCardProps) {
   const kind = getDocumentKind(document.FileType);
   const meta = KIND_META[kind];
 

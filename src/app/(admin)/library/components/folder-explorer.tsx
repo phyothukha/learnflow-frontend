@@ -69,10 +69,15 @@ export function findFolderPath(
   return null;
 }
 
+export interface FlatFolder {
+  node: TopicFolderTreeNode;
+  depth: number;
+}
+
 export function flattenFolders(
   nodes: TopicFolderTreeNode[],
   depth = 0,
-): { node: TopicFolderTreeNode; depth: number }[] {
+): FlatFolder[] {
   return nodes.flatMap((node) => [
     { node, depth },
     ...flattenFolders(node.Children, depth + 1),
@@ -83,13 +88,12 @@ export function collectFolderIds(node: TopicFolderTreeNode): string[] {
   return [node.Id, ...node.Children.flatMap(collectFolderIds)];
 }
 
-function FolderGlyph({
-  color,
-  className,
-}: {
+interface FolderGlyphProps {
   color: string;
   className?: string;
-}) {
+}
+
+function FolderGlyph({ color, className }: FolderGlyphProps) {
   return (
     <Folder
       className={cn("size-7", className)}
@@ -101,13 +105,12 @@ function FolderGlyph({
   );
 }
 
-export function FolderBreadcrumb({
-  path,
-  onNavigate,
-}: {
+export interface FolderBreadcrumbProps {
   path: TopicFolderTreeNode[];
   onNavigate: (folderId: string | null) => void;
-}) {
+}
+
+export function FolderBreadcrumb({ path, onNavigate }: FolderBreadcrumbProps) {
   const current = path[path.length - 1];
 
   return (
@@ -147,6 +150,16 @@ export function FolderBreadcrumb({
   );
 }
 
+export interface FolderSidebarProps {
+  tree: TopicFolderTreeNode[];
+  currentPath: TopicFolderTreeNode[];
+  totalFiles: number;
+  countByFolder: Map<string, number>;
+  onNavigate: (folderId: string | null) => void;
+  onCreate: (parentFolderId: string | null) => void;
+  className?: string;
+}
+
 export function FolderSidebar({
   tree,
   currentPath,
@@ -155,15 +168,7 @@ export function FolderSidebar({
   onNavigate,
   onCreate,
   className,
-}: {
-  tree: TopicFolderTreeNode[];
-  currentPath: TopicFolderTreeNode[];
-  totalFiles: number;
-  countByFolder: Map<string, number>;
-  onNavigate: (folderId: string | null) => void;
-  onCreate: (parentFolderId: string | null) => void;
-  className?: string;
-}) {
+}: FolderSidebarProps) {
   const currentId = currentPath[currentPath.length - 1]?.Id ?? null;
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
@@ -286,6 +291,15 @@ export function FolderSidebar({
   );
 }
 
+export interface FolderCardProps {
+  node: TopicFolderTreeNode;
+  fileCount: number;
+  onOpen: () => void;
+  onAddSubfolder: () => void;
+  onRename: () => void;
+  onDeleted: () => void;
+}
+
 export function FolderCard({
   node,
   fileCount,
@@ -293,14 +307,7 @@ export function FolderCard({
   onAddSubfolder,
   onRename,
   onDeleted,
-}: {
-  node: TopicFolderTreeNode;
-  fileCount: number;
-  onOpen: () => void;
-  onAddSubfolder: () => void;
-  onRename: () => void;
-  onDeleted: () => void;
-}) {
+}: FolderCardProps) {
   const queryClient = useQueryClient();
   const deleteFolder = useDeleteFolder();
   const subfolderCount = node.Children.length;
@@ -382,7 +389,11 @@ export function FolderCard({
   );
 }
 
-export function NewFolderCard({ onClick }: { onClick: () => void }) {
+export interface NewFolderCardProps {
+  onClick: () => void;
+}
+
+export function NewFolderCard({ onClick }: NewFolderCardProps) {
   return (
     <button
       type="button"
@@ -395,23 +406,39 @@ export function NewFolderCard({ onClick }: { onClick: () => void }) {
   );
 }
 
+export enum FolderDialogType {
+  Create = "create",
+  Rename = "rename",
+}
+
+export interface CreateFolderDialogState {
+  type: FolderDialogType.Create;
+  parentFolderId: string | null;
+}
+
+export interface RenameFolderDialogState {
+  type: FolderDialogType.Rename;
+  folder: TopicFolderTreeNode;
+}
+
 export type FolderDialogState =
-  | { type: "create"; parentFolderId: string | null }
-  | { type: "rename"; folder: TopicFolderTreeNode };
+  CreateFolderDialogState | RenameFolderDialogState;
+
+export interface FolderNameDialogProps {
+  topicId: string;
+  state: FolderDialogState;
+  onClose: () => void;
+}
 
 export function FolderNameDialog({
   topicId,
   state,
   onClose,
-}: {
-  topicId: string;
-  state: FolderDialogState;
-  onClose: () => void;
-}) {
+}: FolderNameDialogProps) {
   const createFolder = useCreateFolder();
   const updateFolder = useUpdateFolder();
   const [name, setName] = useState(
-    state.type === "rename" ? state.folder.Name : "",
+    state.type === FolderDialogType.Rename ? state.folder.Name : "",
   );
   const pending = createFolder.isPending || updateFolder.isPending;
 
@@ -420,7 +447,7 @@ export function FolderNameDialog({
       toast.error("Folder name is required");
       return;
     }
-    if (state.type === "rename") {
+    if (state.type === FolderDialogType.Rename) {
       updateFolder.mutate(
         { id: state.folder.Id, payload: { Name: name.trim() } },
         {
@@ -454,7 +481,9 @@ export function FolderNameDialog({
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>
-            {state.type === "rename" ? "Rename folder" : "New folder"}
+            {state.type === FolderDialogType.Rename
+              ? "Rename folder"
+              : "New folder"}
           </DialogTitle>
         </DialogHeader>
         <Input
@@ -469,7 +498,7 @@ export function FolderNameDialog({
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={pending}>
-            {state.type === "rename" ? "Save" : "Create"}
+            {state.type === FolderDialogType.Rename ? "Save" : "Create"}
           </Button>
         </DialogFooter>
       </DialogContent>

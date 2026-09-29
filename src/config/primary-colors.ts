@@ -1,15 +1,28 @@
-export const PRIMARY_COLORS = [
-  { id: "blue", label: "Blue", value: "#5992c6" },
-  { id: "indigo", label: "Indigo", value: "#6366f1" },
-  { id: "violet", label: "Violet", value: "#8b5cf6" },
-  { id: "emerald", label: "Emerald", value: "#10b981" },
-  { id: "rose", label: "Rose", value: "#f43f5e" },
-  { id: "amber", label: "Amber", value: "#f59e0b" },
-] as const;
+export enum PrimaryColorId {
+  Blue = "blue",
+  Indigo = "indigo",
+  Violet = "violet",
+  Emerald = "emerald",
+  Rose = "rose",
+  Amber = "amber",
+}
 
-export type PrimaryColorId = (typeof PRIMARY_COLORS)[number]["id"];
+export interface PrimaryColor {
+  id: PrimaryColorId;
+  label: string;
+  value: string;
+}
 
-export const DEFAULT_PRIMARY_COLOR: PrimaryColorId = "blue";
+export const PRIMARY_COLORS: readonly PrimaryColor[] = [
+  { id: PrimaryColorId.Blue, label: "Blue", value: "#5992c6" },
+  { id: PrimaryColorId.Indigo, label: "Indigo", value: "#6366f1" },
+  { id: PrimaryColorId.Violet, label: "Violet", value: "#8b5cf6" },
+  { id: PrimaryColorId.Emerald, label: "Emerald", value: "#10b981" },
+  { id: PrimaryColorId.Rose, label: "Rose", value: "#f43f5e" },
+  { id: PrimaryColorId.Amber, label: "Amber", value: "#f59e0b" },
+];
+
+export const DEFAULT_PRIMARY_COLOR: PrimaryColorId = PrimaryColorId.Blue;
 
 export const PRIMARY_COLOR_STORAGE_KEY = "learnflow-primary-color";
 

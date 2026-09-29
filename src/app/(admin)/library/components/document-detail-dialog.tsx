@@ -30,13 +30,15 @@ function formatSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+export interface DocumentDetailDialogProps {
+  document: StudyDocument;
+  onClose: () => void;
+}
+
 export function DocumentDetailDialog({
   document,
   onClose,
-}: {
-  document: StudyDocument;
-  onClose: () => void;
-}) {
+}: DocumentDetailDialogProps) {
   const [title, setTitle] = useState(document.Title);
   const [tags, setTags] = useState<string[]>(document.Tags);
   const fileInputRef = useRef<HTMLInputElement>(null);

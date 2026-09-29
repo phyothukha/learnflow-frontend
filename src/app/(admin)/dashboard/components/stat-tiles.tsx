@@ -7,14 +7,18 @@ import {
   DashboardCardValue,
 } from "./dashboard-card";
 
-export type KpiTile = {
+export interface KpiTile {
   title: string;
   value: string;
   change: number | null;
   icon: LucideIcon;
-};
+}
 
-export function StatTiles({ tiles }: { tiles: KpiTile[] }) {
+export interface StatTilesProps {
+  tiles: KpiTile[];
+}
+
+export function StatTiles({ tiles }: StatTilesProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {tiles.map((tile) => (

@@ -11,13 +11,15 @@ async function createCourse(payload: CreateCoursePayload): Promise<Course> {
   return data;
 }
 
+interface UpdateCourseVariables {
+  id: string;
+  payload: UpdateCoursePayload;
+}
+
 async function updateCourse({
   id,
   payload,
-}: {
-  id: string;
-  payload: UpdateCoursePayload;
-}): Promise<Course> {
+}: UpdateCourseVariables): Promise<Course> {
   const { data } = await clientAxios.patch<Course>(`/courses/${id}`, payload);
   return data;
 }

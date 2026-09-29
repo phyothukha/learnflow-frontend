@@ -40,6 +40,11 @@ const ROUTE_LABELS = Object.fromEntries(
   ),
 ) as Record<string, string>;
 
+interface HeaderCrumb {
+  label: string;
+  href?: string;
+}
+
 function useHeaderCrumbs(pathname: string) {
   const parts = pathname.split("/").filter(Boolean);
   const section = parts[0] ?? "dashboard";
@@ -55,7 +60,7 @@ function useHeaderCrumbs(pathname: string) {
   const { data: document } = useFetchDocument(documentId);
   const { data: note } = useFetchNote(noteId);
 
-  const crumbs: { label: string; href?: string }[] = [
+  const crumbs: HeaderCrumb[] = [
     {
       label: "Dashboard",
       href: section === "dashboard" ? undefined : "/dashboard",

@@ -52,7 +52,11 @@ export function downloadFromUrl(url: string, fileName: string) {
   link.click();
 }
 
-export type OutlineHeading = { id: string; text: string; level: number };
+export interface OutlineHeading {
+  id: string;
+  text: string;
+  level: number;
+}
 
 export function extractHeadings(content: string): OutlineHeading[] {
   const seen = new Map<string, number>();
@@ -76,15 +80,17 @@ export function extractHeadings(content: string): OutlineHeading[] {
   return headings;
 }
 
+export interface DocumentOutlineProps {
+  headings: OutlineHeading[];
+  scrollRef: React.RefObject<HTMLDivElement | null>;
+  className?: string;
+}
+
 export function DocumentOutline({
   headings,
   scrollRef,
   className,
-}: {
-  headings: OutlineHeading[];
-  scrollRef: React.RefObject<HTMLDivElement | null>;
-  className?: string;
-}) {
+}: DocumentOutlineProps) {
   const [activeId, setActiveId] = useState<string | null>(
     headings[0]?.id ?? null,
   );
@@ -143,7 +149,11 @@ export function DocumentOutline({
   );
 }
 
-export function SourceView({ content }: { content: string }) {
+export interface SourceViewProps {
+  content: string;
+}
+
+export function SourceView({ content }: SourceViewProps) {
   const lines = content.split("\n");
   return (
     <div className="overflow-x-auto font-mono text-[13px] leading-6">
@@ -204,7 +214,11 @@ export function parseCsv(text: string): string[][] {
   return rows.filter((r) => r.some((cell) => cell.trim() !== ""));
 }
 
-export function CsvTable({ content }: { content: string }) {
+export interface CsvTableProps {
+  content: string;
+}
+
+export function CsvTable({ content }: CsvTableProps) {
   const rows = useMemo(() => parseCsv(content), [content]);
   const [header, ...body] = rows;
   const visibleRows = body.slice(0, MAX_CSV_ROWS);
@@ -262,7 +276,11 @@ export function csvStats(content: string) {
   return { rows: Math.max(rows.length - 1, 0), columns: rows[0]?.length ?? 0 };
 }
 
-export function PdfFrame({ url }: { url: string }) {
+export interface PdfFrameProps {
+  url: string;
+}
+
+export function PdfFrame({ url }: PdfFrameProps) {
   return (
     <iframe
       src={url}
@@ -272,7 +290,12 @@ export function PdfFrame({ url }: { url: string }) {
   );
 }
 
-export function OfficeFrame({ url, label }: { url: string; label: string }) {
+export interface OfficeFrameProps {
+  url: string;
+  label: string;
+}
+
+export function OfficeFrame({ url, label }: OfficeFrameProps) {
   return (
     <iframe
       src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`}
@@ -282,7 +305,11 @@ export function OfficeFrame({ url, label }: { url: string; label: string }) {
   );
 }
 
-export function LinkPanel({ url }: { url: string }) {
+export interface LinkPanelProps {
+  url: string;
+}
+
+export function LinkPanel({ url }: LinkPanelProps) {
   return (
     <div className="flex flex-col items-center gap-4 px-6 py-16 text-center">
       <div className="rounded-2xl bg-muted p-4">
@@ -299,13 +326,12 @@ export function LinkPanel({ url }: { url: string }) {
   );
 }
 
-export function EmptyContent({
-  message,
-  action,
-}: {
+export interface EmptyContentProps {
   message: string;
   action?: React.ReactNode;
-}) {
+}
+
+export function EmptyContent({ message, action }: EmptyContentProps) {
   return (
     <div className="flex flex-col items-center gap-3 px-6 py-20 text-center">
       <div className="rounded-2xl bg-muted p-4">
@@ -317,17 +343,19 @@ export function EmptyContent({
   );
 }
 
+export interface MarkdownEditorPanelProps {
+  document: StudyDocument;
+  onDirtyChange: (dirty: boolean) => void;
+  onClose: () => void;
+  className?: string;
+}
+
 export function MarkdownEditorPanel({
   document,
   onDirtyChange,
   onClose,
   className,
-}: {
-  document: StudyDocument;
-  onDirtyChange: (dirty: boolean) => void;
-  onClose: () => void;
-  className?: string;
-}) {
+}: MarkdownEditorPanelProps) {
   const [content, setContent] = useState(document.Content ?? "");
   const updateDocument = useUpdateDocument();
   const isDirty = content !== (document.Content ?? "");

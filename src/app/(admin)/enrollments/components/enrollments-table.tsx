@@ -8,7 +8,7 @@ import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import { useFetchEnrollments } from "@/store/server/enrollments/queries";
 import { getEnrollmentsColumns } from "./enrollments-columns";
-import { useEnrollments } from "./enrollments-provider";
+import { EnrollmentsDialogType, useEnrollments } from "./enrollments-provider";
 
 export function EnrollmentsCreateButton() {
   const { setOpen } = useEnrollments();
@@ -17,7 +17,7 @@ export function EnrollmentsCreateButton() {
   if (!hasPermission(PERMISSIONS.ENROLLMENTS_CREATE)) return null;
 
   return (
-    <Button onClick={() => setOpen("create")}>
+    <Button onClick={() => setOpen(EnrollmentsDialogType.Create)}>
       <Plus />
       New Enrollment
     </Button>

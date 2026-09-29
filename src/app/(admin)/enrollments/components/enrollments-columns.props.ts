@@ -5,5 +5,5 @@ import type { EnrollmentsDialogType } from "./enrollments-provider";
 export interface EnrollmentsColumnsProps {
   hasPermission: (permission: PermissionCode) => boolean;
   setCurrentRow: (row: Enrollment | null) => void;
-  setOpen: (type: EnrollmentsDialogType) => void;
+  setOpen: (type: EnrollmentsDialogType | null) => void;
 }

@@ -2,6 +2,13 @@ import ReactMarkdown, { type Components, type Options } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 
+export interface MarkdownRendererProps {
+  content: string;
+  className?: string;
+  components?: Components;
+  rehypePlugins?: Options["rehypePlugins"];
+}
+
 /**
  * Renders markdown to React elements (never raw HTML) — react-markdown
  * without rehype-raw is safe by construction, so no sanitizer is needed.
@@ -13,12 +20,7 @@ export function MarkdownRenderer({
   className,
   components,
   rehypePlugins,
-}: {
-  content: string;
-  className?: string;
-  components?: Components;
-  rehypePlugins?: Options["rehypePlugins"];
-}) {
+}: MarkdownRendererProps) {
   return (
     <div
       className={cn(

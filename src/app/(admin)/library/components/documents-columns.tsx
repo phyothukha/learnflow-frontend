@@ -28,31 +28,33 @@ import {
   useDeleteDocument,
   useUpdateDocument,
 } from "@/store/server/documents/mutations";
-import type {
+import {
   DocumentStatus,
-  StudyDocument,
+  type StudyDocument,
 } from "@/store/server/documents/interface";
 import type { DocumentsColumnsProps } from "./documents-columns.props";
 
 export const DOCUMENT_STATUS_LABEL: Record<DocumentStatus, string> = {
-  Unread: "Unread",
-  InProgress: "In progress",
-  Completed: "Completed",
+  [DocumentStatus.Unread]: "Unread",
+  [DocumentStatus.InProgress]: "In progress",
+  [DocumentStatus.Completed]: "Completed",
 };
 
 export const DOCUMENT_STATUS_VARIANT: Record<DocumentStatus, BadgeVariant> = {
-  Unread: "status-slate",
-  InProgress: "status-amber",
-  Completed: "status-blue",
+  [DocumentStatus.Unread]: "status-slate",
+  [DocumentStatus.InProgress]: "status-amber",
+  [DocumentStatus.Completed]: "status-blue",
 };
+
+export interface DocumentStatusPillProps {
+  status: DocumentStatus;
+  className?: string;
+}
 
 export function DocumentStatusPill({
   status,
   className,
-}: {
-  status: DocumentStatus;
-  className?: string;
-}) {
+}: DocumentStatusPillProps) {
   return (
     <Badge variant={DOCUMENT_STATUS_VARIANT[status]} className={className}>
       {DOCUMENT_STATUS_LABEL[status]}
@@ -60,15 +62,17 @@ export function DocumentStatusPill({
   );
 }
 
+export interface DocumentActionsProps {
+  document: StudyDocument;
+  onSettings: () => void;
+  className?: string;
+}
+
 export function DocumentActions({
   document,
   onSettings,
   className,
-}: {
-  document: StudyDocument;
-  onSettings: () => void;
-  className?: string;
-}) {
+}: DocumentActionsProps) {
   const updateDocument = useUpdateDocument();
   const deleteDocument = useDeleteDocument();
 

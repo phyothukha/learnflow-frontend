@@ -39,13 +39,31 @@ import { useFetchNote } from "@/store/server/notes/queries";
 import { useDeleteNote, useUpdateNote } from "@/store/server/notes/mutations";
 import { useFetchTopics } from "@/store/server/topics/queries";
 
-type ViewMode = "preview" | "normal";
+enum ViewMode {
+  Preview = "preview",
+  Normal = "normal",
+}
 
-export default function NoteDetailPage({
-  params,
-}: {
-  params: Promise<{ noteId: string }>;
-}) {
+interface ViewOption {
+  value: ViewMode;
+  label: string;
+  icon: typeof Eye;
+}
+
+const VIEW_OPTIONS: ViewOption[] = [
+  { value: ViewMode.Preview, label: "Preview", icon: Eye },
+  { value: ViewMode.Normal, label: "Source", icon: Code2 },
+];
+
+interface NoteDetailPageParams {
+  noteId: string;
+}
+
+interface NoteDetailPageProps {
+  params: Promise<NoteDetailPageParams>;
+}
+
+export default function NoteDetailPage({ params }: NoteDetailPageProps) {
   const { noteId } = use(params);
   const router = useRouter();
   const { status } = useSession();
@@ -62,7 +80,7 @@ export default function NoteDetailPage({
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [hydrated, setHydrated] = useState(false);
-  const [view, setView] = useState<ViewMode>("preview");
+  const [view, setView] = useState<ViewMode>(ViewMode.Preview);
   const [editing, setEditing] = useState(false);
   const [copied, setCopied] = useState(false);
   const dirtyRef = useRef(false);
@@ -167,12 +185,7 @@ export default function NoteDetailPage({
         </Button>
 
         <div className="inline-flex min-w-0 items-center rounded-lg border bg-card p-0.5 shadow-xs">
-          {(
-            [
-              { value: "preview" as const, label: "Preview", icon: Eye },
-              { value: "normal" as const, label: "Source", icon: Code2 },
-            ] as const
-          ).map((option) => (
+          {VIEW_OPTIONS.map((option) => (
             <button
               key={option.value}
               type="button"
@@ -344,7 +357,7 @@ export default function NoteDetailPage({
                 </Button>
               )}
             </div>
-          ) : view === "preview" ? (
+          ) : view === ViewMode.Preview ? (
             <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6">
               <MarkdownPreview content={content} />
             </div>

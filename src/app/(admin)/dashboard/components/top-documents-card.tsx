@@ -6,22 +6,27 @@ import { DashboardCard, DashboardCardScroll } from "./dashboard-card";
 import { DocumentKindIcon } from "@/components/document-kind-icon";
 import { getDocumentKind, KIND_META } from "@/lib/document-types";
 import { cn } from "@/lib/utils";
-import type { StudyDocument } from "@/store/server/documents/interface";
+import {
+  DocumentStatus,
+  type StudyDocument,
+} from "@/store/server/documents/interface";
 import { DocumentStatusPill } from "@/app/(admin)/library/components/documents-columns";
 
-const STATUS_SCORE: Record<string, number> = {
-  Completed: 5,
-  InProgress: 3.5,
-  Unread: 2,
+const STATUS_SCORE: Record<DocumentStatus, number> = {
+  [DocumentStatus.Completed]: 5,
+  [DocumentStatus.InProgress]: 3.5,
+  [DocumentStatus.Unread]: 2,
 };
+
+export interface TopDocumentsCardProps {
+  documents: StudyDocument[];
+  className?: string;
+}
 
 export function TopDocumentsCard({
   documents,
   className,
-}: {
-  documents: StudyDocument[];
-  className?: string;
-}) {
+}: TopDocumentsCardProps) {
   const rows = [...documents]
     .sort(
       (a, b) =>

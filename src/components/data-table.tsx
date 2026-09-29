@@ -57,7 +57,11 @@ function getSelectColumn<TData>(): ColumnDef<TData, unknown> {
   };
 }
 
-function SortableHeader<TData>({ header }: { header: Header<TData, unknown> }) {
+interface SortableHeaderProps<TData> {
+  header: Header<TData, unknown>;
+}
+
+function SortableHeader<TData>({ header }: SortableHeaderProps<TData>) {
   const content = flexRender(
     header.column.columnDef.header,
     header.getContext(),

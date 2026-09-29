@@ -13,13 +13,15 @@ async function createEnrollment(
   return data;
 }
 
+interface UpdateEnrollmentVariables {
+  id: string;
+  payload: UpdateEnrollmentPayload;
+}
+
 async function updateEnrollment({
   id,
   payload,
-}: {
-  id: string;
-  payload: UpdateEnrollmentPayload;
-}): Promise<Enrollment> {
+}: UpdateEnrollmentVariables): Promise<Enrollment> {
   const { data } = await clientAxios.patch<Enrollment>(
     `/enrollments/${id}`,
     payload,

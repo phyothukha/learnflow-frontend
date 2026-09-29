@@ -4,7 +4,10 @@ import { useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useFetchStudyBlocks } from "@/store/server/study-blocks/queries";
-import type { StudyBlock } from "@/store/server/study-blocks/interface";
+import {
+  StudyBlockStatus,
+  type StudyBlock,
+} from "@/store/server/study-blocks/interface";
 import { useWorkspaceStore } from "@/store/client/workspace";
 import { initAudio, playDueAlert, playReminderChime } from "@/lib/alert-sounds";
 
@@ -62,7 +65,11 @@ export function useAudioAlerts() {
       const now = Date.now();
 
       for (const block of data?.value ?? []) {
-        if (block.Status !== "Upcoming" && block.Status !== "Active") continue;
+        if (
+          block.Status !== StudyBlockStatus.Upcoming &&
+          block.Status !== StudyBlockStatus.Active
+        )
+          continue;
 
         const startAt = new Date(block.StartAt).getTime();
         const reminderAt = startAt - block.ReminderMinutesBefore * 60_000;

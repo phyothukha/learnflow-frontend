@@ -20,6 +20,6 @@ export interface CreateTopicPayload {
   Color?: string;
 }
 
-export type UpdateTopicPayload = Partial<
-  CreateTopicPayload & { IsArchived: boolean }
->;
+export interface UpdateTopicPayload extends Partial<CreateTopicPayload> {
+  IsArchived?: boolean;
+}

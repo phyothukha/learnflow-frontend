@@ -4,17 +4,26 @@ import { CheckCircle, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { DocumentStatus } from "@/store/server/documents/interface";
 import { WidgetHeader } from "./widget-header";
+
+export interface LibraryWidgetDocument {
+  Id: string;
+  Title: string;
+  Status: DocumentStatus;
+}
+
+export interface LibraryWidgetProps {
+  documents: LibraryWidgetDocument[];
+  contextLabel: string;
+  className?: string;
+}
 
 export function LibraryWidget({
   documents,
   contextLabel,
   className,
-}: {
-  documents: { Id: string; Title: string; Status: string }[];
-  contextLabel: string;
-  className?: string;
-}) {
+}: LibraryWidgetProps) {
   return (
     <Card className={cn("shadow-sm", className)}>
       <WidgetHeader
@@ -38,11 +47,13 @@ export function LibraryWidget({
                 <span className="min-w-0 flex-1 truncate text-sm">
                   {doc.Title}
                 </span>
-                {doc.Status === "Completed" ? (
+                {doc.Status === DocumentStatus.Completed ? (
                   <CheckCircle className="size-3.5 shrink-0 text-muted-foreground" />
                 ) : (
                   <Badge variant="secondary" className="shrink-0 text-[10px]">
-                    {doc.Status === "InProgress" ? "In progress" : doc.Status}
+                    {doc.Status === DocumentStatus.InProgress
+                      ? "In progress"
+                      : doc.Status}
                   </Badge>
                 )}
               </div>

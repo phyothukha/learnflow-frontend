@@ -41,6 +41,7 @@ import {
   useDeleteCourse,
 } from "@/store/server/courses/mutations";
 import { useCourses } from "./courses-provider";
+import { CoursesDialogType } from "./courses-columns.props";
 
 const schema = z.object({
   Title: z.string().min(1, "Title is required"),
@@ -65,14 +66,14 @@ export function CoursesDialogs() {
   const updateCourse = useUpdateCourse();
   const deleteCourse = useDeleteCourse();
 
-  const isEdit = open === "edit";
+  const isEdit = open === CoursesDialogType.Edit;
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: emptyValues,
   });
 
   useEffect(() => {
-    if (open === "edit" && currentRow) {
+    if (open === CoursesDialogType.Edit && currentRow) {
       form.reset({
         Title: currentRow.Title,
         Description: currentRow.Description ?? "",
@@ -80,7 +81,7 @@ export function CoursesDialogs() {
         IsPublished: currentRow.IsPublished,
       });
     }
-    if (open === "create") form.reset(emptyValues);
+    if (open === CoursesDialogType.Create) form.reset(emptyValues);
   }, [open, currentRow, form]);
 
   function closeDialog() {
@@ -127,7 +128,9 @@ export function CoursesDialogs() {
   return (
     <>
       <Dialog
-        open={open === "create" || open === "edit"}
+        open={
+          open === CoursesDialogType.Create || open === CoursesDialogType.Edit
+        }
         onOpenChange={(isOpen) => !isOpen && closeDialog()}
       >
         <DialogContent>
@@ -214,7 +217,7 @@ export function CoursesDialogs() {
       </Dialog>
 
       <AlertDialog
-        open={open === "delete"}
+        open={open === CoursesDialogType.Delete}
         onOpenChange={(isOpen) => !isOpen && closeDialog()}
       >
         <AlertDialogContent>

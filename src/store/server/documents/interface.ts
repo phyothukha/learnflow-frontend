@@ -1,4 +1,8 @@
-export type DocumentStatus = "Unread" | "InProgress" | "Completed";
+export enum DocumentStatus {
+  Unread = "Unread",
+  InProgress = "InProgress",
+  Completed = "Completed",
+}
 
 export interface Attachment {
   Id: string;
@@ -47,9 +51,9 @@ export interface CreateDocumentPayload {
   Tags?: string[];
 }
 
-export type UpdateDocumentPayload = Partial<
-  Omit<CreateDocumentPayload, "TopicId" | "FolderId"> & {
-    TimeSpentMinutes: number;
-    LastOpenedAt: string;
-  }
->;
+export interface UpdateDocumentPayload extends Partial<
+  Omit<CreateDocumentPayload, "TopicId" | "FolderId">
+> {
+  TimeSpentMinutes?: number;
+  LastOpenedAt?: string;
+}

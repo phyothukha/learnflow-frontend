@@ -13,7 +13,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { PERMISSIONS } from "@/lib/permissions";
 import type { Course } from "@/store/server/courses/interface";
-import type { CoursesColumnsProps } from "./courses-columns.props";
+import {
+  CoursesDialogType,
+  type CoursesColumnsProps,
+} from "./courses-columns.props";
 
 export function getCoursesColumns({
   hasPermission,
@@ -71,7 +74,7 @@ export function getCoursesColumns({
               <DropdownMenuItem
                 onClick={() => {
                   setCurrentRow(row.original);
-                  setOpen("edit");
+                  setOpen(CoursesDialogType.Edit);
                 }}
               >
                 <Pencil />
@@ -83,7 +86,7 @@ export function getCoursesColumns({
                 variant="destructive"
                 onClick={() => {
                   setCurrentRow(row.original);
-                  setOpen("delete");
+                  setOpen(CoursesDialogType.Delete);
                 }}
               >
                 <Trash2 />

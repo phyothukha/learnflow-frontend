@@ -3,15 +3,17 @@ import Credentials from "next-auth/providers/credentials";
 import { serverAxios } from "@/lib/axios";
 import { authConfig } from "@/lib/auth.config";
 
+interface LoginUser {
+  Id: string;
+  Email: string;
+  Name: string;
+  Roles: string[];
+  Permissions: string[];
+}
+
 interface LoginResponse {
   token: string;
-  user: {
-    Id: string;
-    Email: string;
-    Name: string;
-    Roles: string[];
-    Permissions: string[];
-  };
+  user: LoginUser;
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
