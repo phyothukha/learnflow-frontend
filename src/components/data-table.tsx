@@ -4,11 +4,14 @@ import { useMemo, useState } from "react";
 import {
   flexRender,
   getCoreRowModel,
+  getSortedRowModel,
   useReactTable,
   type ColumnDef,
+  type Header,
   type RowSelectionState,
+  type SortingState,
 } from "@tanstack/react-table";
-import { Search } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronsUpDown, Search } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -54,6 +57,45 @@ function getSelectColumn<TData>(): ColumnDef<TData, unknown> {
   };
 }
 
+function SortableHeader<TData>({ header }: { header: Header<TData, unknown> }) {
+  const content = flexRender(
+    header.column.columnDef.header,
+    header.getContext(),
+  );
+  if (!header.column.getCanSort()) return content;
+
+  const sorted = header.column.getIsSorted();
+  const Icon =
+    sorted === "asc" ? ArrowUp : sorted === "desc" ? ArrowDown : ChevronsUpDown;
+  const label =
+    sorted === "asc"
+      ? "Sorted ascending, click to sort descending"
+      : sorted === "desc"
+        ? "Sorted descending, click to clear sorting"
+        : "Click to sort ascending";
+
+  return (
+    <button
+      type="button"
+      onClick={header.column.getToggleSortingHandler()}
+      title={label}
+      aria-label={label}
+      className={cn(
+        "-ml-2 inline-flex max-w-full items-center gap-1.5 rounded-md px-2 py-1 transition-colors hover:bg-muted hover:text-foreground",
+        sorted && "text-foreground",
+      )}
+    >
+      <span className="truncate">{content}</span>
+      <Icon
+        className={cn(
+          "size-3.5 shrink-0",
+          sorted ? "text-primary" : "text-muted-foreground/60",
+        )}
+      />
+    </button>
+  );
+}
+
 export function DataTable<TData>({
   columns,
   data,
@@ -86,6 +128,8 @@ export function DataTable<TData>({
   const [uncontrolledRowSelection, setUncontrolledRowSelection] =
     useState<RowSelectionState>({});
 
+  const [sorting, setSorting] = useState<SortingState>([]);
+
   const rowSelection = controlledRowSelection ?? uncontrolledRowSelection;
   const setRowSelection = onRowSelectionChange ?? setUncontrolledRowSelection;
 
@@ -98,6 +142,9 @@ export function DataTable<TData>({
     data,
     columns: tableColumns,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    onSortingChange: setSorting,
+    sortDescFirst: false,
     manualPagination: showPagination,
     pageCount,
     getRowId,
@@ -106,6 +153,7 @@ export function DataTable<TData>({
     state: {
       columnVisibility,
       rowSelection,
+      sorting,
     },
     onColumnVisibilityChange,
   });
@@ -157,12 +205,9 @@ export function DataTable<TData>({
                       header.column.id === "select" ? { width: 40 } : undefined
                     }
                   >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                    {header.isPlaceholder ? null : (
+                      <SortableHeader header={header} />
+                    )}
                   </TableHead>
                 ))}
               </TableRow>

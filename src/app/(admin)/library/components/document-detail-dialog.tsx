@@ -107,7 +107,7 @@ export function DocumentDetailDialog({
             <div className="flex items-center justify-between">
               <Label>Attachments</Label>
               <Button
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadAttachment.isPending}

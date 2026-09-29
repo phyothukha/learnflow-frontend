@@ -46,9 +46,9 @@ export function getCoursesColumns({
       header: "Status",
       cell: ({ row }) =>
         row.original.IsPublished ? (
-          <Badge>Published</Badge>
+          <Badge variant="status-green">Published</Badge>
         ) : (
-          <Badge variant="secondary">Draft</Badge>
+          <Badge variant="status-slate">Draft</Badge>
         ),
     },
     {

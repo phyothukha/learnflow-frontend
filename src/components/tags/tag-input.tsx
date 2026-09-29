@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { X } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Badge, tagVariant } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useFetchTags } from "@/store/server/tags/queries";
 
@@ -40,7 +40,7 @@ export function TagInput({
     <div className="space-y-1.5">
       <div className="flex flex-wrap gap-1.5">
         {value.map((tag) => (
-          <Badge key={tag} variant="secondary" className="gap-1">
+          <Badge key={tag} variant={tagVariant(tag)} className="gap-1">
             {tag}
             <button onClick={() => onChange(value.filter((t) => t !== tag))}>
               <X className="size-3" />

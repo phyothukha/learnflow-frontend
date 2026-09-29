@@ -10,6 +10,7 @@ import { Library, Plus, Search, Trash2 } from "lucide-react";
 
 dayjs.extend(relativeTime);
 import { toast } from "sonner";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -112,20 +113,17 @@ export default function LibraryPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b pb-5">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-semibold tracking-tight">Library</h1>
-            <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary tabular-nums">
-              {topics.length} {topics.length === 1 ? "topic" : "topics"}
-            </span>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Browse topics and open folders to manage your files
-          </p>
-        </div>
-        <CreateTopicDialog />
-      </div>
+      <PageHeader
+        title="Library"
+        description="Browse topics and open folders to manage your files"
+        badge={
+          <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary tabular-nums">
+            {topics.length} {topics.length === 1 ? "topic" : "topics"}
+          </span>
+        }
+        actions={<CreateTopicDialog />}
+        className="border-b pb-5"
+      />
 
       <div className={cn("space-y-3 p-3", libraryCardClassName)}>
         <div className="relative">
@@ -215,8 +213,7 @@ function TopicCard({
       className={cn(
         libraryCardClassName,
         "group relative flex flex-col border-2 border-transparent transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_44px_rgba(15,23,42,0.1)]",
-        isActive &&
-          "border-primary ring-2 ring-primary/30 dark:border-primary dark:ring-primary/50",
+        isActive && "border-primary",
       )}
     >
       <div className="flex flex-1 flex-col gap-4 p-5">

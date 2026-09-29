@@ -20,7 +20,7 @@ import {
   Tag,
   X,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Badge, tagVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -208,7 +208,7 @@ export default function TopicDocumentsPage({
         <CardContent className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
           <FolderOpen className="size-8" />
           <p className="text-sm">This topic could not be found.</p>
-          <Button variant="outline" size="sm" asChild>
+          <Button variant="secondary" size="sm" asChild>
             <Link href="/library">Open library</Link>
           </Button>
         </CardContent>
@@ -230,7 +230,7 @@ export default function TopicDocumentsPage({
               style={{ backgroundColor: color }}
             />
             {topic ? (
-              <h1 className="truncate text-2xl font-semibold tracking-tight">
+              <h1 className="truncate text-xl font-semibold tracking-tight">
                 {topic.Title}
               </h1>
             ) : (
@@ -244,7 +244,7 @@ export default function TopicDocumentsPage({
         <div className="flex gap-2">
           {activeTab === "folders" ? (
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               onClick={() =>
                 setFolderDialog({
@@ -402,7 +402,7 @@ export default function TopicDocumentsPage({
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
-                          variant={activeTag ? "default" : "outline"}
+                          variant={activeTag ? "default" : "secondary"}
                           size="sm"
                           className="h-8"
                         >
@@ -671,7 +671,7 @@ function DocumentCard({
           {document.Tags.slice(0, 2).map((tag) => (
             <Badge
               key={tag}
-              variant="secondary"
+              variant={tagVariant(tag)}
               className="h-6 max-w-28 truncate px-2 text-[11px]"
             >
               {tag}

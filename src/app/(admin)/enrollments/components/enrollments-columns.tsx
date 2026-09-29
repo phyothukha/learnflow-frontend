@@ -3,7 +3,7 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,14 +18,11 @@ import type {
 } from "@/store/server/enrollments/interface";
 import type { EnrollmentsColumnsProps } from "./enrollments-columns.props";
 
-const STATUS_VARIANT: Record<
-  EnrollmentStatus,
-  "default" | "secondary" | "outline" | "destructive"
-> = {
-  Pending: "outline",
-  Active: "default",
-  Completed: "secondary",
-  Cancelled: "destructive",
+const STATUS_VARIANT: Record<EnrollmentStatus, BadgeVariant> = {
+  Pending: "status-amber",
+  Active: "status-green",
+  Completed: "status-blue",
+  Cancelled: "status-red",
 };
 
 export function getEnrollmentsColumns({

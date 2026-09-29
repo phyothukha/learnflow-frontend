@@ -32,7 +32,7 @@ export function TopicContextSwitcher() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="outline"
+          variant="secondary"
           size="sm"
           className="h-8 w-full min-w-0 max-w-full shrink justify-start gap-2 overflow-hidden rounded-full"
         >

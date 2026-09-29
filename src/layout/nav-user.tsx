@@ -34,7 +34,7 @@ export function NavUser() {
         <Button
           variant="ghost"
           size="icon"
-          className="size-8 shrink-0 text-sidebar-foreground/70 hover:bg-white/10 hover:text-sidebar-foreground group-data-[collapsible=icon]:hidden"
+          className="size-8 shrink-0 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:hidden"
           title="Log out"
           onClick={() => signOut({ callbackUrl: "/login" })}
         >

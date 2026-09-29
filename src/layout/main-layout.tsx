@@ -11,10 +11,7 @@ export function MainLayout({ children }: PropsWithChildren) {
     <SidebarProvider
       defaultOpen={false}
       className="flex h-dvh min-h-0 w-full flex-col gap-0 overflow-hidden p-0 md:flex-row md:gap-3 md:p-3"
-      style={{
-        background:
-          "linear-gradient(108deg, rgba(0,0,0,0.10) 1.74%, rgba(0,124,106,0.10) 100%), var(--Background-other-background-primary, #007C6A)",
-      }}
+      style={{ background: "var(--sidebar-wrapper)" }}
     >
       <AppSidebar />
       <SidebarInset className="min-h-0 overflow-hidden md:rounded-xl">

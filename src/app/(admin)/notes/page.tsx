@@ -58,7 +58,7 @@ export default function NotesPage() {
           {topics.map((topic) => (
             <Button
               key={topic.Id}
-              variant="outline"
+              variant="secondary"
               size="sm"
               className="gap-2"
               onClick={() => setActiveTopic(topic.Id)}

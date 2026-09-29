@@ -201,7 +201,7 @@ export function CoursesDialogs() {
                 )}
               />
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={closeDialog}>
+                <Button type="button" variant="secondary" onClick={closeDialog}>
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isPending}>

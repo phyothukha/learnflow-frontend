@@ -13,7 +13,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -48,14 +49,11 @@ import { useFetchTopics } from "@/store/server/topics/queries";
 
 const FALLBACK_COLOR = "#8b8b8b";
 
-const statusVariant: Record<
-  StudyBlock["Status"],
-  "default" | "secondary" | "destructive" | "outline"
-> = {
-  Upcoming: "secondary",
-  Active: "default",
-  Done: "outline",
-  Missed: "destructive",
+const statusVariant: Record<StudyBlock["Status"], BadgeVariant> = {
+  Upcoming: "status-slate",
+  Active: "status-green",
+  Done: "status-blue",
+  Missed: "status-red",
 };
 
 export default function TimelinePage() {
@@ -88,26 +86,29 @@ export default function TimelinePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Timeline</h1>
-        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="size-4" />
-              Add block
-            </Button>
-          </DialogTrigger>
-          <CreateBlockDialog
-            day={day.format("YYYY-MM-DD")}
-            topics={topics}
-            onClose={() => setCreateOpen(false)}
-          />
-        </Dialog>
-      </div>
+      <PageHeader
+        title="Timeline"
+        description="Plan your study blocks for the day and mark them done as you go"
+        actions={
+          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="size-4" />
+                Add block
+              </Button>
+            </DialogTrigger>
+            <CreateBlockDialog
+              day={day.format("YYYY-MM-DD")}
+              topics={topics}
+              onClose={() => setCreateOpen(false)}
+            />
+          </Dialog>
+        }
+      />
 
       <div className="flex items-center gap-2">
         <Button
-          variant="outline"
+          variant="secondary"
           size="icon"
           className="size-8"
           onClick={() => setDayOffset((o) => o - 1)}
@@ -115,7 +116,7 @@ export default function TimelinePage() {
           <ChevronLeft className="size-4" />
         </Button>
         <Button
-          variant="outline"
+          variant="secondary"
           size="icon"
           className="size-8"
           onClick={() => setDayOffset((o) => o + 1)}
@@ -145,7 +146,7 @@ export default function TimelinePage() {
             <p>Nothing planned for this day.</p>
             <Button
               size="sm"
-              variant="outline"
+              variant="secondary"
               onClick={() => setCreateOpen(true)}
             >
               Plan your day
@@ -189,7 +190,7 @@ export default function TimelinePage() {
                   </Badge>
                   {block.Status !== "Done" && (
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       size="sm"
                       disabled={updateBlock.isPending}
                       onClick={() =>

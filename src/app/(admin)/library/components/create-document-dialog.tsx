@@ -377,7 +377,7 @@ export function CreateDocumentDialog({
 
         <DialogFooter>
           <Button
-            variant="outline"
+            variant="secondary"
             onClick={() => handleOpenChange(false)}
             disabled={submitting}
           >

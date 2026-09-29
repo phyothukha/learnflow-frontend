@@ -24,7 +24,7 @@ function BrandHeader() {
           LearnFlow
         </span>
       </div>
-      <SidebarTrigger className="size-10 shrink-0 bg-transparent text-sidebar-foreground hover:bg-white/10 hover:text-sidebar-foreground group-data-[collapsible=icon]:mx-auto" />
+      <SidebarTrigger className="size-10 shrink-0 bg-transparent text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:mx-auto" />
     </div>
   );
 }

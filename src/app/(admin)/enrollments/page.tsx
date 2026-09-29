@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@/components/page-header";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import { EnrollmentsProvider } from "./components/enrollments-provider";
@@ -28,10 +29,11 @@ export default function EnrollmentsPage() {
   return (
     <EnrollmentsProvider>
       <div className="flex h-full min-h-0 flex-col gap-6">
-        <div className="flex items-center justify-between gap-3">
-          <h1 className="text-2xl font-semibold">Enrollments</h1>
-          <EnrollmentsCreateButton />
-        </div>
+        <PageHeader
+          title="Enrollments"
+          description="Track which students are enrolled in each course and their progress"
+          actions={<EnrollmentsCreateButton />}
+        />
         <div className="min-h-0 flex-1">
           <EnrollmentsTable />
         </div>

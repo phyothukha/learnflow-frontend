@@ -5,7 +5,7 @@ import { type ColumnDef } from "@tanstack/react-table";
 import dayjs from "dayjs";
 import { MoreHorizontal, Settings2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
+import { Badge, tagVariant, type BadgeVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -40,31 +40,23 @@ export const DOCUMENT_STATUS_LABEL: Record<DocumentStatus, string> = {
   Completed: "Completed",
 };
 
-export const DOCUMENT_STATUS_DOT: Record<DocumentStatus, string> = {
-  Unread: "bg-slate-400",
-  InProgress: "bg-amber-500",
-  Completed: "bg-emerald-500",
+export const DOCUMENT_STATUS_VARIANT: Record<DocumentStatus, BadgeVariant> = {
+  Unread: "status-slate",
+  InProgress: "status-amber",
+  Completed: "status-blue",
 };
 
-export const DOCUMENT_STATUS_STYLE: Record<DocumentStatus, string> = {
-  Unread: "bg-slate-500/10 text-slate-600 dark:text-slate-300",
-  InProgress: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
-  Completed: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-};
-
-export function DocumentStatusPill({ status }: { status: DocumentStatus }) {
+export function DocumentStatusPill({
+  status,
+  className,
+}: {
+  status: DocumentStatus;
+  className?: string;
+}) {
   return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-md px-1.5 py-0.5 text-[11px] font-medium",
-        DOCUMENT_STATUS_STYLE[status],
-      )}
-    >
-      <span
-        className={cn("size-1.5 rounded-full", DOCUMENT_STATUS_DOT[status])}
-      />
+    <Badge variant={DOCUMENT_STATUS_VARIANT[status]} className={className}>
       {DOCUMENT_STATUS_LABEL[status]}
-    </span>
+    </Badge>
   );
 }
 
@@ -195,12 +187,13 @@ export function getDocumentsColumns({
       id: "Tags",
       accessorKey: "Tags",
       header: "Tags",
+      enableSorting: false,
       cell: ({ row }) => (
         <div className="flex flex-wrap gap-1">
           {row.original.Tags.slice(0, 3).map((tag) => (
             <Badge
               key={tag}
-              variant="secondary"
+              variant={tagVariant(tag)}
               className="h-5 px-1.5 text-[10px]"
             >
               {tag}

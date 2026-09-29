@@ -30,7 +30,7 @@ import {
   Upload,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
+import { Badge, tagVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -72,6 +72,7 @@ import type {
 import { useFetchTopics } from "@/store/server/topics/queries";
 import { useFetchFolderTree } from "@/store/server/topic-folders/queries";
 import { DocumentDetailDialog } from "../../components/document-detail-dialog";
+import { DocumentStatusPill } from "../../components/documents-columns";
 import { findFolderPath } from "../../components/folder-explorer";
 import { libraryCardClassName } from "../../components/library-card";
 import {
@@ -79,6 +80,7 @@ import {
   csvStats,
   DocumentOutline,
   downloadText,
+  downloadFromUrl,
   EmptyContent,
   extractHeadings,
   LinkPanel,
@@ -93,12 +95,6 @@ const STATUS_LABEL: Record<DocumentStatus, string> = {
   Unread: "Unread",
   InProgress: "In progress",
   Completed: "Completed",
-};
-
-const STATUS_STYLE: Record<DocumentStatus, string> = {
-  Unread: "bg-slate-500/10 text-slate-600 dark:text-slate-300",
-  InProgress: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
-  Completed: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
 };
 
 type ViewMode = "preview" | "normal";
@@ -188,7 +184,7 @@ export default function DocumentViewerPage({
         <CardContent className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
           <FileText className="size-8" />
           <p className="text-sm">This document could not be found.</p>
-          <Button variant="outline" size="sm" asChild>
+          <Button variant="secondary" size="sm" asChild>
             <Link href={topicHref}>Back to topic</Link>
           </Button>
         </CardContent>
@@ -205,14 +201,21 @@ export default function DocumentViewerPage({
   const fileName = `${document.Title}.${getExtensionLabel(document.FileType).toLowerCase()}`;
 
   const handleDownload = () => {
+    const ext =
+      kind === "csv"
+        ? "csv"
+        : kind === "markdown"
+          ? "md"
+          : getExtensionLabel(document.FileType).toLowerCase();
+    const downloadName = `${document.Title}.${ext}`;
     if (isTextKind) {
       downloadText(
         content,
-        `${document.Title}.${kind === "csv" ? "csv" : "md"}`,
+        downloadName,
         kind === "csv" ? "text/csv" : "text/markdown",
       );
     } else if (document.FileUrl) {
-      window.open(document.FileUrl, "_blank", "noopener");
+      downloadFromUrl(document.FileUrl, downloadName);
     }
   };
 
@@ -310,7 +313,7 @@ export default function DocumentViewerPage({
                 {document.Tags.slice(0, 3).map((tag) => (
                   <Badge
                     key={tag}
-                    variant="secondary"
+                    variant={tagVariant(tag)}
                     className="h-5 px-1.5 text-[10px]"
                   >
                     {tag}
@@ -328,7 +331,7 @@ export default function DocumentViewerPage({
               )}
               {isTextKind && (
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   size="icon"
                   className="size-8"
                   title="Full screen"
@@ -339,7 +342,7 @@ export default function DocumentViewerPage({
                 </Button>
               )}
               <Button
-                variant="outline"
+                variant="secondary"
                 size="icon"
                 className="hidden size-8 rounded-full lg:inline-flex"
                 title={showRelated ? "Hide side panel" : "Show side panel"}
@@ -397,7 +400,7 @@ export default function DocumentViewerPage({
                 <div className="hidden items-center gap-2 md:flex">
                   {kind === "markdown" && view === "preview" && !editing && (
                     <Button
-                      variant={showOutline ? "secondary" : "outline"}
+                      variant={showOutline ? "default" : "secondary"}
                       size="sm"
                       onClick={() => setShowOutline((v) => !v)}
                     >
@@ -417,7 +420,7 @@ export default function DocumentViewerPage({
               <div className="flex shrink-0 items-center gap-2">
                 {isTextKind && content && !editing && (
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     className="h-7 text-xs"
                     title="Copy document content"
@@ -437,7 +440,7 @@ export default function DocumentViewerPage({
                 )}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" className="size-7">
+                    <Button variant="secondary" size="icon" className="size-7">
                       <MoreHorizontal className="size-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -468,7 +471,7 @@ export default function DocumentViewerPage({
                 </DropdownMenu>
                 {isTextKind && (
                   <Button
-                    variant={fullscreen ? "default" : "outline"}
+                    variant={fullscreen ? "default" : "secondary"}
                     size="icon"
                     className="size-7"
                     title={
@@ -564,7 +567,7 @@ function DocumentBody({
         <EmptyContent
           message="This document is empty."
           action={
-            <Button variant="outline" size="sm" onClick={onEdit}>
+            <Button variant="secondary" size="sm" onClick={onEdit}>
               <PenLine className="size-4" />
               Start writing
             </Button>
@@ -707,14 +710,7 @@ function InfoPanel({
       </div>
 
       <div className="mt-2.5 flex items-center justify-between gap-2">
-        <span
-          className={cn(
-            "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium",
-            STATUS_STYLE[document.Status],
-          )}
-        >
-          {STATUS_LABEL[document.Status]}
-        </span>
+        <DocumentStatusPill status={document.Status} className="text-[10px]" />
         <div className="flex items-center gap-1">
           <QuickAction
             icon={PenLine}
@@ -768,7 +764,7 @@ function AttachmentsTab({ document }: { document: StudyDocument }) {
   return (
     <div className="space-y-1.5">
       <Button
-        variant="outline"
+        variant="secondary"
         size="sm"
         className="h-7 w-full text-xs"
         disabled={uploadAttachment.isPending}
@@ -815,14 +811,17 @@ function AttachmentsTab({ document }: { document: StudyDocument }) {
                 {formatSize(attachment.SizeBytes)}
               </p>
             </div>
-            <a
-              href={attachment.Url}
-              target="_blank"
-              rel="noreferrer"
+            <button
+              type="button"
               className="shrink-0 text-muted-foreground hover:text-foreground"
+              title="Download"
+              aria-label="Download"
+              onClick={() =>
+                downloadFromUrl(attachment.Url, attachment.FileName)
+              }
             >
               <Download className="size-3.5" />
-            </a>
+            </button>
             <button
               type="button"
               className="shrink-0 text-muted-foreground hover:text-destructive"

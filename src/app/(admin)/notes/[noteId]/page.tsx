@@ -106,7 +106,7 @@ export default function NoteDetailPage({
         <p className="text-sm text-muted-foreground">
           This note could not be found.
         </p>
-        <Button variant="outline" asChild>
+        <Button variant="secondary" asChild>
           <Link href="/notes">Back to notes</Link>
         </Button>
       </div>
@@ -267,7 +267,7 @@ export default function NoteDetailPage({
               className="h-auto w-full min-w-0 border-none bg-transparent p-0 text-center text-xl font-semibold shadow-none focus-visible:ring-0 sm:text-2xl read-only:truncate"
             />
           ) : (
-            <h1 className="w-full truncate text-xl font-semibold sm:text-2xl">
+            <h1 className="w-full truncate text-xl font-semibold tracking-tight">
               {title}
             </h1>
           )}
@@ -304,7 +304,7 @@ export default function NoteDetailPage({
                 </span>
                 <div className="flex gap-2">
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={() => {
                       if (!confirmLeave()) return;
@@ -335,7 +335,7 @@ export default function NoteDetailPage({
               <p className="text-sm">This note is empty.</p>
               {canUpdate && (
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
                   onClick={() => setEditing(true)}
                 >

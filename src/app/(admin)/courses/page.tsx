@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@/components/page-header";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import { CoursesProvider } from "./components/courses-provider";
@@ -25,10 +26,11 @@ export default function CoursesPage() {
   return (
     <CoursesProvider>
       <div className="flex h-full min-h-0 flex-col gap-6">
-        <div className="flex items-center justify-between gap-3">
-          <h1 className="text-2xl font-semibold">Courses</h1>
-          <CoursesCreateButton />
-        </div>
+        <PageHeader
+          title="Courses"
+          description="Create, publish and manage the courses students can enroll in"
+          actions={<CoursesCreateButton />}
+        />
         <div className="min-h-0 flex-1">
           <CoursesTable />
         </div>
