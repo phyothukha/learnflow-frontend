@@ -31,17 +31,17 @@ export const ACCEPT_ATTRIBUTE = SUPPORTED_EXTENSIONS.map((e) => `.${e}`).join(
 export const MAX_TEXT_BYTES = 2_000_000;
 export const MAX_UPLOAD_BYTES = 25_000_000;
 
-const KIND_BY_EXTENSION: Record<string, DocumentKind> = {
-  md: DocumentKind.Markdown,
-  markdown: DocumentKind.Markdown,
-  csv: DocumentKind.Csv,
-  pdf: DocumentKind.Pdf,
-  doc: DocumentKind.Word,
-  docx: DocumentKind.Word,
-  ppt: DocumentKind.PowerPoint,
-  pptx: DocumentKind.PowerPoint,
-  link: DocumentKind.Link,
-};
+const KIND_BY_EXTENSION = new Map<string, DocumentKind>([
+  ["md", DocumentKind.Markdown],
+  ["markdown", DocumentKind.Markdown],
+  ["csv", DocumentKind.Csv],
+  ["pdf", DocumentKind.Pdf],
+  ["doc", DocumentKind.Word],
+  ["docx", DocumentKind.Word],
+  ["ppt", DocumentKind.PowerPoint],
+  ["pptx", DocumentKind.PowerPoint],
+  ["link", DocumentKind.Link],
+]);
 
 export interface KindMeta {
   label: string;
@@ -52,50 +52,74 @@ export interface KindMeta {
   className: string;
 }
 
-export const KIND_META: Record<DocumentKind, KindMeta> = {
-  [DocumentKind.Markdown]: {
-    label: "Markdown",
-    icon: mdIcon,
-    fallbackIcon: FileText,
-    className: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
-  },
-  [DocumentKind.Csv]: {
-    label: "CSV",
-    icon: csvIcon,
-    fallbackIcon: FileText,
-    className: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-  },
-  [DocumentKind.Pdf]: {
-    label: "PDF",
-    icon: pdfIcon,
-    fallbackIcon: FileText,
-    className: "bg-red-500/10 text-red-600 dark:text-red-400",
-  },
-  [DocumentKind.Word]: {
-    label: "Word",
-    icon: wordIcon,
-    fallbackIcon: FileText,
-    className: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
-  },
-  [DocumentKind.PowerPoint]: {
-    label: "PowerPoint",
-    icon: pptIcon,
-    fallbackIcon: FileText,
-    className: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
-  },
-  [DocumentKind.Link]: {
-    label: "Link",
-    icon: null,
-    fallbackIcon: Link2,
-    className: "bg-slate-500/10 text-slate-600 dark:text-slate-300",
-  },
-  [DocumentKind.Other]: {
-    label: "File",
-    icon: null,
-    fallbackIcon: FileText,
-    className: "bg-muted text-muted-foreground",
-  },
+const OTHER_KIND_META: KindMeta = {
+  label: "File",
+  icon: null,
+  fallbackIcon: FileText,
+  className: "bg-muted text-muted-foreground",
 };
+
+export const KIND_META = new Map<DocumentKind, KindMeta>([
+  [
+    DocumentKind.Markdown,
+    {
+      label: "Markdown",
+      icon: mdIcon,
+      fallbackIcon: FileText,
+      className: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
+    },
+  ],
+  [
+    DocumentKind.Csv,
+    {
+      label: "CSV",
+      icon: csvIcon,
+      fallbackIcon: FileText,
+      className: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+    },
+  ],
+  [
+    DocumentKind.Pdf,
+    {
+      label: "PDF",
+      icon: pdfIcon,
+      fallbackIcon: FileText,
+      className: "bg-red-500/10 text-red-600 dark:text-red-400",
+    },
+  ],
+  [
+    DocumentKind.Word,
+    {
+      label: "Word",
+      icon: wordIcon,
+      fallbackIcon: FileText,
+      className: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
+    },
+  ],
+  [
+    DocumentKind.PowerPoint,
+    {
+      label: "PowerPoint",
+      icon: pptIcon,
+      fallbackIcon: FileText,
+      className: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+    },
+  ],
+  [
+    DocumentKind.Link,
+    {
+      label: "Link",
+      icon: null,
+      fallbackIcon: Link2,
+      className: "bg-slate-500/10 text-slate-600 dark:text-slate-300",
+    },
+  ],
+  [DocumentKind.Other, OTHER_KIND_META],
+]);
+
+export function getKindMeta(kind: DocumentKind) {
+  return KIND_META.get(kind) ?? OTHER_KIND_META;
+}
 
 export function getExtension(fileName: string) {
   const dot = fileName.lastIndexOf(".");
@@ -117,7 +141,7 @@ export function isTextExtension(extension: string) {
 
 export function getDocumentKind(fileType: string | null | undefined) {
   return (
-    KIND_BY_EXTENSION[(fileType ?? "").toLowerCase()] ?? DocumentKind.Other
+    KIND_BY_EXTENSION.get((fileType ?? "").toLowerCase()) ?? DocumentKind.Other
   );
 }
 

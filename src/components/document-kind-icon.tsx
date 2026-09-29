@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 import { cn } from "@/lib/utils";
-import { KIND_META, type DocumentKind } from "@/lib/document-types";
+import { getKindMeta, type DocumentKind } from "@/lib/document-types";
 
 export interface DocumentKindIconProps {
   kind: DocumentKind;
@@ -14,7 +14,7 @@ export function DocumentKindIcon({
   size = 16,
   className,
 }: DocumentKindIconProps) {
-  const meta = KIND_META[kind];
+  const meta = getKindMeta(kind);
 
   if (meta.icon) {
     return (

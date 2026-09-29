@@ -7,14 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFetchStudyBlocks } from "@/store/server/study-blocks/queries";
 import { StudyBlockStatus } from "@/store/server/study-blocks/interface";
-import { TOPIC_COLORS } from "@/lib/topic-colors";
-import { cn } from "@/lib/utils";
+import { cn, DEFAULT_TOPIC_COLOR } from "@/lib/utils";
 import { blockMinutes } from "./dashboard-utils";
 
 const HEATMAP_WEEKS = 26;
 // Sequential single-hue ramp (indigo, light→dark via alpha over the surface).
 const HEATMAP_STEPS = [0.18, 0.4, 0.65, 0.9];
-const HEATMAP_HUE = TOPIC_COLORS[0];
+const HEATMAP_HUE = DEFAULT_TOPIC_COLOR;
 
 function heatmapCellStyle(minutes: number): React.CSSProperties {
   if (minutes <= 0) return { backgroundColor: "var(--muted)" };

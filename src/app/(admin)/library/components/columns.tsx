@@ -8,7 +8,7 @@ import { DocumentKindIcon } from "@/components/document-kind-icon";
 import {
   getDocumentKind,
   getExtensionLabel,
-  KIND_META,
+  getKindMeta,
 } from "@/lib/document-types";
 import { cn } from "@/lib/utils";
 import type { StudyDocument } from "@/store/server/documents/interface";
@@ -22,7 +22,7 @@ export const columns: ColumnDef<StudyDocument>[] = [
     cell: ({ row }) => {
       const doc = row.original;
       const kind = getDocumentKind(doc.FileType);
-      const meta = KIND_META[kind];
+      const meta = getKindMeta(kind);
       return (
         <div className="flex min-w-0 items-center gap-3">
           <div className={cn("shrink-0 rounded-md p-1.5", meta.className)}>
@@ -47,7 +47,7 @@ export const columns: ColumnDef<StudyDocument>[] = [
       const kind = getDocumentKind(row.original.FileType);
       return (
         <span className="text-muted-foreground">
-          {KIND_META[kind].label}
+          {getKindMeta(kind).label}
           <span className="ml-1.5 rounded border px-1 py-px text-[10px]">
             {getExtensionLabel(row.original.FileType)}
           </span>

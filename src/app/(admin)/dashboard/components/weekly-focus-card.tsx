@@ -16,8 +16,7 @@ import {
   type StudyBlock,
 } from "@/store/server/study-blocks/interface";
 import type { Topic } from "@/store/server/topics/interface";
-import { FALLBACK_TOPIC_COLOR } from "@/lib/topic-colors";
-import { cn } from "@/lib/utils";
+import { cn, FALLBACK_TOPIC_COLOR } from "@/lib/utils";
 import {
   NO_TOPIC_LABEL,
   blockMinutes,
@@ -26,11 +25,12 @@ import {
 import { WidgetHeader } from "./widget-header";
 
 function topicSeries(weekBlocks: StudyBlock[], topics: Topic[]) {
-  const used = topics.filter((t) =>
-    weekBlocks.some(
-      (b) => b.TopicId === t.Id && b.Status === StudyBlockStatus.Done,
-    ),
+  const doneTopicIds = new Set(
+    weekBlocks
+      .filter((b) => b.Status === StudyBlockStatus.Done)
+      .map((b) => b.TopicId),
   );
+  const used = topics.filter((t) => doneTopicIds.has(t.Id));
   const series = used.map((t) => ({
     key: t.Title,
     color: t.Color ?? FALLBACK_TOPIC_COLOR,
@@ -53,8 +53,9 @@ export function WeeklyFocusCard({
 }: WeeklyFocusCardProps) {
   const weekStart = dayjs().startOf("week");
   const series = topicSeries(weekBlocks, topics);
+  const topicTitleById = new Map(topics.map((t) => [t.Id, t.Title]));
   const topicName = (block: StudyBlock) =>
-    topics.find((t) => t.Id === block.TopicId)?.Title ?? NO_TOPIC_LABEL;
+    (block.TopicId && topicTitleById.get(block.TopicId)) || NO_TOPIC_LABEL;
 
   const data = Array.from({ length: 7 }, (_, i) => {
     const day = weekStart.add(i, "day");

@@ -36,11 +36,11 @@ import { useFetchNote } from "@/store/server/notes/queries";
 import { useFetchDocument } from "@/store/server/documents/queries";
 import { Fragment } from "react";
 
-const ROUTE_LABELS = Object.fromEntries(
+const ROUTE_LABELS = new Map<string, string>(
   navLinks.flatMap((group) =>
     group.items.map((item) => [item.href.replace(/^\//, ""), item.title]),
   ),
-) as Record<string, string>;
+);
 
 interface HeaderCrumb {
   label: string;
@@ -51,7 +51,8 @@ function useHeaderCrumbs(pathname: string) {
   const parts = pathname.split("/").filter(Boolean);
   const section = parts[0] ?? "dashboard";
   const sectionLabel =
-    ROUTE_LABELS[section] ?? section.charAt(0).toUpperCase() + section.slice(1);
+    ROUTE_LABELS.get(section) ??
+    section.charAt(0).toUpperCase() + section.slice(1);
 
   const topicId = section === "library" && parts[1] ? parts[1] : null;
   const documentId = section === "library" && parts[2] ? parts[2] : null;

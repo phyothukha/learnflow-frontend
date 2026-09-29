@@ -4,7 +4,7 @@ import Link from "next/link";
 import { FileText, Star } from "lucide-react";
 import { DashboardCard, DashboardCardScroll } from "./dashboard-card";
 import { DocumentKindIcon } from "@/components/document-kind-icon";
-import { getDocumentKind, KIND_META } from "@/lib/document-types";
+import { getDocumentKind, getKindMeta } from "@/lib/document-types";
 import { cn } from "@/lib/utils";
 import {
   DocumentStatus,
@@ -73,7 +73,7 @@ export function TopDocumentsCard({
                         <span
                           className={cn(
                             "flex size-8 shrink-0 items-center justify-center rounded-lg",
-                            KIND_META[kind].className,
+                            getKindMeta(kind).className,
                           )}
                         >
                           <DocumentKindIcon kind={kind} size={16} />

@@ -17,8 +17,7 @@ import {
   getExtensionLabel,
 } from "@/lib/document-types";
 import { PERMISSIONS } from "@/lib/permissions";
-import { FALLBACK_TOPIC_COLOR } from "@/lib/topic-colors";
-import { cn } from "@/lib/utils";
+import { cn, FALLBACK_TOPIC_COLOR } from "@/lib/utils";
 import { useDeleteDocument } from "@/store/server/documents/mutations";
 import { useFetchDocument } from "@/store/server/documents/queries";
 import { useFetchFolderTree } from "@/store/server/topic-folders/queries";

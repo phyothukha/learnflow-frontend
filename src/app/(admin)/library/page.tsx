@@ -26,7 +26,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
-import { cn } from "@/lib/utils";
+import {
+  cn,
+  DEFAULT_TOPIC_COLOR,
+  FALLBACK_TOPIC_COLOR as FALLBACK_COLOR,
+  TOPIC_COLORS,
+} from "@/lib/utils";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { AnimatedTabs, type AnimatedTab } from "@/components/animated-tabs";
@@ -38,10 +43,6 @@ import {
   useDeleteTopic,
 } from "@/store/server/topics/mutations";
 import type { Topic } from "@/store/server/topics/interface";
-import {
-  FALLBACK_TOPIC_COLOR as FALLBACK_COLOR,
-  TOPIC_COLORS,
-} from "@/lib/topic-colors";
 
 enum SortMode {
   Recent = "recent",
@@ -271,7 +272,7 @@ function CreateTopicDialog() {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [color, setColor] = useState<string>(TOPIC_COLORS[0]);
+  const [color, setColor] = useState<string>(DEFAULT_TOPIC_COLOR);
 
   const handleSubmit = () => {
     if (!title.trim()) {
@@ -330,10 +331,12 @@ function CreateTopicDialog() {
           <div className="space-y-2">
             <Label>Accent color</Label>
             <div className="flex gap-2">
-              {TOPIC_COLORS.map((c) => (
+              {Array.from(TOPIC_COLORS, ([name, c]) => (
                 <button
                   key={c}
                   type="button"
+                  title={name}
+                  aria-label={name}
                   className={cn(
                     "size-6 rounded-full border-2",
                     color === c ? "border-foreground" : "border-transparent",

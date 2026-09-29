@@ -29,7 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { ALL_FILES_COLOR, cn, folderColor } from "@/lib/utils";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import {
@@ -38,25 +38,6 @@ import {
   useUpdateFolder,
 } from "@/store/server/topic-folders/mutations";
 import type { TopicFolderTreeNode } from "@/store/server/topic-folders/interface";
-
-const FOLDER_COLORS = [
-  "#3b82f6",
-  "#6366f1",
-  "#0ea5e9",
-  "#eab308",
-  "#22c55e",
-  "#f97316",
-  "#ec4899",
-  "#14b8a6",
-];
-
-export const ALL_FILES_COLOR = "#6366f1";
-
-export function folderColor(id: string) {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) | 0;
-  return FOLDER_COLORS[Math.abs(hash) % FOLDER_COLORS.length];
-}
 
 export function findFolderPath(
   nodes: TopicFolderTreeNode[],

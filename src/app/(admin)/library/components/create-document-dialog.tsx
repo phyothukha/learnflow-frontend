@@ -32,7 +32,7 @@ import {
   getExtension,
   isSupportedExtension,
   isTextExtension,
-  KIND_META,
+  getKindMeta,
   MAX_TEXT_BYTES,
   MAX_UPLOAD_BYTES,
   stripExtension,
@@ -285,7 +285,7 @@ export function CreateDocumentDialog({
                   <div
                     className={cn(
                       "shrink-0 rounded-md p-2",
-                      KIND_META[fileKind].className,
+                      getKindMeta(fileKind).className,
                     )}
                   >
                     <DocumentKindIcon kind={fileKind} size={20} />
@@ -293,7 +293,7 @@ export function CreateDocumentDialog({
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{file.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {KIND_META[fileKind].label} · {formatSize(file.size)}
+                      {getKindMeta(fileKind).label} · {formatSize(file.size)}
                     </p>
                   </div>
                   <Button

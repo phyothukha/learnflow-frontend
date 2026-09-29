@@ -2,7 +2,11 @@
 
 import { PenLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DocumentKind, getDocumentKind, KIND_META } from "@/lib/document-types";
+import {
+  DocumentKind,
+  getDocumentKind,
+  getKindMeta,
+} from "@/lib/document-types";
 import type { StudyDocument } from "@/store/server/documents/interface";
 import {
   CsvTable,
@@ -62,6 +66,8 @@ export function DocumentBody({ document, view, onEdit }: DocumentBodyProps) {
     return <EmptyContent message="No file is attached to this document yet." />;
   if (kind === DocumentKind.Pdf) return <PdfFrame url={document.FileUrl} />;
   if (kind === DocumentKind.Word || kind === DocumentKind.PowerPoint)
-    return <OfficeFrame url={document.FileUrl} label={KIND_META[kind].label} />;
+    return (
+      <OfficeFrame url={document.FileUrl} label={getKindMeta(kind).label} />
+    );
   return <LinkPanel url={document.FileUrl} />;
 }

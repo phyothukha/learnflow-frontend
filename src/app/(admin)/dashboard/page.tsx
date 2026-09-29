@@ -15,7 +15,7 @@ import { useFetchNotes } from "@/store/server/notes/queries";
 import { useFetchStudyBlocks } from "@/store/server/study-blocks/queries";
 import { DocumentStatus } from "@/store/server/documents/interface";
 import { StudyBlockStatus } from "@/store/server/study-blocks/interface";
-import { FALLBACK_TOPIC_COLOR } from "@/lib/topic-colors";
+import { FALLBACK_TOPIC_COLOR } from "@/lib/utils";
 import {
   DashboardHeader,
   formatDashboardRange,
@@ -170,10 +170,18 @@ export default function DashboardPage() {
   );
   const mostActiveMinutes = Math.max(...weekdayData.map((d) => d.minutes), 0);
 
+  const docCountByTopic = new Map<string, number>();
+  for (const doc of documents) {
+    docCountByTopic.set(
+      doc.TopicId,
+      (docCountByTopic.get(doc.TopicId) ?? 0) + 1,
+    );
+  }
+
   const topicSegments = topics
     .map((topic) => ({
       name: topic.Title,
-      count: documents.filter((d) => d.TopicId === topic.Id).length,
+      count: docCountByTopic.get(topic.Id) ?? 0,
       color: topic.Color ?? FALLBACK_TOPIC_COLOR,
     }))
     .filter((t) => t.count > 0)

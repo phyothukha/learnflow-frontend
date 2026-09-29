@@ -4,7 +4,7 @@ import Link from "next/link";
 import dayjs from "dayjs";
 import { ArrowUpRight } from "lucide-react";
 import { DocumentKindIcon } from "@/components/document-kind-icon";
-import { getDocumentKind, KIND_META } from "@/lib/document-types";
+import { getDocumentKind, getKindMeta } from "@/lib/document-types";
 import { cn } from "@/lib/utils";
 import type { StudyDocument } from "@/store/server/documents/interface";
 import { useFetchDocuments } from "@/store/server/documents/queries";
@@ -52,7 +52,7 @@ export function DocumentRelatedPanel({
                 <div
                   className={cn(
                     "shrink-0 rounded p-1",
-                    KIND_META[kind].className,
+                    getKindMeta(kind).className,
                   )}
                 >
                   <DocumentKindIcon kind={kind} size={12} />

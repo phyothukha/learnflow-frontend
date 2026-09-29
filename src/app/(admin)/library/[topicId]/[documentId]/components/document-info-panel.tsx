@@ -22,7 +22,7 @@ import { DocumentKindIcon } from "@/components/document-kind-icon";
 import {
   getDocumentKind,
   getExtensionLabel,
-  KIND_META,
+  getKindMeta,
 } from "@/lib/document-types";
 import { cn } from "@/lib/utils";
 import {
@@ -60,7 +60,7 @@ export function DocumentInfoPanel({
 }: DocumentInfoPanelProps) {
   const updateDocument = useUpdateDocument();
   const kind = getDocumentKind(document.FileType);
-  const meta = KIND_META[kind];
+  const meta = getKindMeta(kind);
 
   const setStatus = (value: string) =>
     updateDocument.mutate({

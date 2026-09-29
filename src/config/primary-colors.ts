@@ -26,17 +26,23 @@ export const DEFAULT_PRIMARY_COLOR: PrimaryColorId = PrimaryColorId.Blue;
 
 export const PRIMARY_COLOR_STORAGE_KEY = "learnflow-primary-color";
 
+const PRIMARY_COLOR_BY_ID = new Map<string, PrimaryColor>(
+  PRIMARY_COLORS.map((color) => [color.id, color]),
+);
+
 export function isPrimaryColorId(value: unknown): value is PrimaryColorId {
-  return PRIMARY_COLORS.some((color) => color.id === value);
+  return typeof value === "string" && PRIMARY_COLOR_BY_ID.has(value);
 }
 
 export function applyPrimaryColor(id: PrimaryColorId) {
-  const color = PRIMARY_COLORS.find((c) => c.id === id) ?? PRIMARY_COLORS[0];
+  const color = PRIMARY_COLOR_BY_ID.get(id) ?? PRIMARY_COLORS[0];
   const root = document.documentElement;
   root.dataset.primary = color.id;
   root.style.setProperty("--primary", color.value);
 }
 
+// Plain object on purpose: it is serialised into the inline script, and
+// JSON.stringify turns a Map into "{}".
 const colorMap = Object.fromEntries(PRIMARY_COLORS.map((c) => [c.id, c.value]));
 
 /** Runs before hydration so the saved color is applied without a flash. */

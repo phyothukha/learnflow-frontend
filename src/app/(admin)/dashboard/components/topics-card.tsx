@@ -8,8 +8,7 @@ import {
 } from "@/store/server/study-blocks/interface";
 import type { Topic } from "@/store/server/topics/interface";
 import { DocumentStatus } from "@/store/server/documents/interface";
-import { FALLBACK_TOPIC_COLOR } from "@/lib/topic-colors";
-import { cn } from "@/lib/utils";
+import { cn, FALLBACK_TOPIC_COLOR } from "@/lib/utils";
 import {
   NO_TOPIC_LABEL,
   blockMinutes,
@@ -30,6 +29,11 @@ export interface TopicsCardProps {
   className?: string;
 }
 
+interface DocStats {
+  total: number;
+  done: number;
+}
+
 export function TopicsCard({
   weekBlocks,
   documents,
@@ -41,18 +45,27 @@ export function TopicsCard({
   );
   const totalMinutes = doneBlocks.reduce((s, b) => s + blockMinutes(b), 0);
 
+  const minutesByTopic = new Map<string, number>();
+  let noTopicMinutes = 0;
+  for (const block of doneBlocks) {
+    const minutes = blockMinutes(block);
+    if (block.TopicId) {
+      minutesByTopic.set(
+        block.TopicId,
+        (minutesByTopic.get(block.TopicId) ?? 0) + minutes,
+      );
+    } else {
+      noTopicMinutes += minutes;
+    }
+  }
+
   const donut = topics
     .map((topic) => ({
       name: topic.Title,
       color: topic.Color ?? FALLBACK_TOPIC_COLOR,
-      minutes: doneBlocks
-        .filter((b) => b.TopicId === topic.Id)
-        .reduce((s, b) => s + blockMinutes(b), 0),
+      minutes: minutesByTopic.get(topic.Id) ?? 0,
     }))
     .filter((d) => d.minutes > 0);
-  const noTopicMinutes = doneBlocks
-    .filter((b) => !b.TopicId)
-    .reduce((s, b) => s + blockMinutes(b), 0);
   if (noTopicMinutes > 0)
     donut.push({
       name: NO_TOPIC_LABEL,
@@ -60,18 +73,24 @@ export function TopicsCard({
       minutes: noTopicMinutes,
     });
 
+  const docStatsByTopic = new Map<string, DocStats>();
+  for (const doc of documents) {
+    const stats = docStatsByTopic.get(doc.TopicId) ?? { total: 0, done: 0 };
+    stats.total += 1;
+    if (doc.Status === DocumentStatus.Completed) stats.done += 1;
+    docStatsByTopic.set(doc.TopicId, stats);
+  }
+
   const progress = topics
     .map((topic) => {
-      const topicDocs = documents.filter((d) => d.TopicId === topic.Id);
-      const done = topicDocs.filter(
-        (d) => d.Status === DocumentStatus.Completed,
-      ).length;
+      const { total, done } = docStatsByTopic.get(topic.Id) ?? {
+        total: 0,
+        done: 0,
+      };
       return {
         ...topic,
-        total: topicDocs.length,
-        percent: topicDocs.length
-          ? Math.round((done / topicDocs.length) * 100)
-          : 0,
+        total,
+        percent: total ? Math.round((done / total) * 100) : 0,
       };
     })
     .filter((t) => t.total > 0)

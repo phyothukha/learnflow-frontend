@@ -23,7 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DocumentKindIcon } from "@/components/document-kind-icon";
-import { DocumentKind, KIND_META } from "@/lib/document-types";
+import { DocumentKind, getKindMeta } from "@/lib/document-types";
 import { cn } from "@/lib/utils";
 import type { StudyDocument } from "@/store/server/documents/interface";
 import { csvStats } from "../../../components/document-viewers";
@@ -85,7 +85,7 @@ export function DocumentToolbar({
           <div
             className={cn(
               "shrink-0 rounded-md p-1.5",
-              KIND_META[kind].className,
+              getKindMeta(kind).className,
             )}
           >
             <DocumentKindIcon kind={kind} size={16} />
