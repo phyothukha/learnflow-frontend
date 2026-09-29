@@ -24,16 +24,14 @@ import {
   getExtensionLabel,
   getKindMeta,
 } from "@/lib/document-types";
+import { getDocumentStatusLabel } from "@/lib/document-status";
 import { cn } from "@/lib/utils";
 import {
   DocumentStatus,
   type StudyDocument,
 } from "@/store/server/documents/interface";
 import { useUpdateDocument } from "@/store/server/documents/mutations";
-import {
-  DOCUMENT_STATUS_LABEL,
-  DocumentStatusPill,
-} from "../../../components/document-status-pill";
+import { DocumentStatusPill } from "../../../components/document-status-pill";
 import { DocumentAttachments } from "./document-attachments";
 import { QuickAction } from "./quick-action";
 
@@ -101,7 +99,7 @@ export function DocumentInfoPanel({
             >
               {STATUSES.map((value) => (
                 <DropdownMenuRadioItem key={value} value={value}>
-                  {DOCUMENT_STATUS_LABEL[value]}
+                  {getDocumentStatusLabel(value)}
                 </DropdownMenuRadioItem>
               ))}
             </DropdownMenuRadioGroup>

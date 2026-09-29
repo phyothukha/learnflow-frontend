@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { serverAxios } from "@/lib/axios";
-import { buildQuery } from "@/lib/buildQuery";
+import { buildQuery } from "@/utils/query";
 import { isAxiosError } from "axios";
 
 export async function GET(request: NextRequest) {

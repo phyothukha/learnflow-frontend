@@ -6,15 +6,13 @@ import { useSession } from "next-auth/react";
 import { AnimatedTabs } from "@/components/animated-tabs";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
-import { useWorkspaceStore } from "@/store/client/workspace";
+import { useWorkspaceStore } from "@/store/client/use-store";
 import { useFetchDocuments } from "@/store/server/documents/queries";
 import { useFetchFolderTree } from "@/store/server/topic-folders/queries";
 import { useFetchTopics } from "@/store/server/topics/queries";
+import { countDocumentsByFolder, findFolderPath } from "@/utils/folder";
 import { DocumentsDialogs } from "../components/documents-dialogs";
 import {
-  collectFolderIds,
-  findFolderPath,
-  flattenFolders,
   FolderDialogType,
   FolderNameDialog,
   type FolderDialogState,
@@ -58,7 +56,7 @@ export default function TopicDocumentsPage({
   const { status } = useSession();
   const { hasPermission } = usePermission();
   const canView = hasPermission(PERMISSIONS.DOCUMENTS_VIEW);
-  const setActiveTopic = useWorkspaceStore((s) => s.setActiveTopic);
+  const { setActiveTopic } = useWorkspaceStore();
 
   const activeTab: TopicTab =
     tabParam === TopicTab.Files ? TopicTab.Files : TopicTab.Folders;
@@ -96,24 +94,10 @@ export default function TopicDocumentsPage({
   const currentFolder = path[path.length - 1] ?? null;
   const childFolders = currentFolder ? currentFolder.Children : tree;
 
-  const countByFolder = useMemo(() => {
-    const direct = new Map<string, number>();
-    for (const doc of allDocuments) {
-      if (doc.FolderId)
-        direct.set(doc.FolderId, (direct.get(doc.FolderId) ?? 0) + 1);
-    }
-    const totals = new Map<string, number>();
-    for (const { node } of flattenFolders(tree)) {
-      totals.set(
-        node.Id,
-        collectFolderIds(node).reduce(
-          (sum, id) => sum + (direct.get(id) ?? 0),
-          0,
-        ),
-      );
-    }
-    return totals;
-  }, [allDocuments, tree]);
+  const countByFolder = useMemo(
+    () => countDocumentsByFolder(allDocuments, tree),
+    [allDocuments, tree],
+  );
 
   if (status !== "authenticated" || !canView) return null;
 

@@ -26,16 +26,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
+import { cn } from "@/lib/utils";
 import {
-  cn,
   DEFAULT_TOPIC_COLOR,
   FALLBACK_TOPIC_COLOR as FALLBACK_COLOR,
   TOPIC_COLORS,
-} from "@/lib/utils";
+} from "@/utils/colors";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { AnimatedTabs, type AnimatedTab } from "@/components/animated-tabs";
-import { useWorkspaceStore } from "@/store/client/workspace";
+import { useWorkspaceStore } from "@/store/client/use-store";
 import { useFetchTopics } from "@/store/server/topics/queries";
 import { useFetchDocuments } from "@/store/server/documents/queries";
 import {
@@ -70,8 +70,7 @@ export default function LibraryPage() {
   const { hasPermission } = usePermission();
   const canView = hasPermission(PERMISSIONS.DOCUMENTS_VIEW);
 
-  const activeTopicId = useWorkspaceStore((s) => s.activeTopicId);
-  const setActiveTopic = useWorkspaceStore((s) => s.setActiveTopic);
+  const { activeTopicId, setActiveTopic } = useWorkspaceStore();
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortMode>(SortMode.Recent);
 

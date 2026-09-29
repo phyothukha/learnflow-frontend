@@ -1,6 +1,5 @@
 "use client";
 
-import dayjs from "dayjs";
 import { CalendarDays, ChevronDown, Download, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -55,8 +54,4 @@ export function DashboardHeader({
       </div>
     </div>
   );
-}
-
-export function formatDashboardRange(from: dayjs.Dayjs, to: dayjs.Dayjs) {
-  return `${from.format("MMM D, YYYY")} - ${to.format("MMM D, YYYY")}`;
 }

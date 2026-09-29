@@ -26,7 +26,7 @@ import { DocumentKindIcon } from "@/components/document-kind-icon";
 import { DocumentKind, getKindMeta } from "@/lib/document-types";
 import { cn } from "@/lib/utils";
 import type { StudyDocument } from "@/store/server/documents/interface";
-import { csvStats } from "../../../components/document-viewers";
+import { csvStats } from "@/utils/csv";
 import { DocumentViewTabs, ViewMode } from "./document-view-tabs";
 
 interface DocumentToolbarProps {

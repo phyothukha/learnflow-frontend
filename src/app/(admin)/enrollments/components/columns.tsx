@@ -2,19 +2,10 @@
 
 import { type ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { Badge, type BadgeVariant } from "@/components/ui/badge";
-import {
-  EnrollmentStatus,
-  type Enrollment,
-} from "@/store/server/enrollments/interface";
+import { Badge } from "@/components/ui/badge";
+import { ENROLLMENT_STATUS_VARIANT } from "@/lib/enrollment-status";
+import type { Enrollment } from "@/store/server/enrollments/interface";
 import { DataTableRowActions } from "./data-table-row-actions";
-
-const STATUS_VARIANT: Record<EnrollmentStatus, BadgeVariant> = {
-  [EnrollmentStatus.Pending]: "status-amber",
-  [EnrollmentStatus.Active]: "status-green",
-  [EnrollmentStatus.Completed]: "status-blue",
-  [EnrollmentStatus.Cancelled]: "status-red",
-};
 
 export const columns: ColumnDef<Enrollment>[] = [
   {
@@ -61,7 +52,11 @@ export const columns: ColumnDef<Enrollment>[] = [
     accessorKey: "Status",
     header: "Status",
     cell: ({ row }) => (
-      <Badge variant={STATUS_VARIANT[row.original.Status]}>
+      <Badge
+        variant={
+          ENROLLMENT_STATUS_VARIANT.get(row.original.Status) ?? "status-slate"
+        }
+      >
         {row.original.Status}
       </Badge>
     ),

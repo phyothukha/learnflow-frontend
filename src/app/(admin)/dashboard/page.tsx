@@ -1,26 +1,27 @@
 "use client";
 
 import dayjs from "dayjs";
-import {
-  CheckCircle2,
-  FileText,
-  Flame,
-  MousePointerClick,
-  Timer,
-} from "lucide-react";
-import { useWorkspaceStore } from "@/store/client/workspace";
+import { useWorkspaceStore } from "@/store/client/use-store";
 import { useFetchTopics } from "@/store/server/topics/queries";
 import { useFetchDocuments } from "@/store/server/documents/queries";
 import { useFetchNotes } from "@/store/server/notes/queries";
 import { useFetchStudyBlocks } from "@/store/server/study-blocks/queries";
 import { DocumentStatus } from "@/store/server/documents/interface";
 import { StudyBlockStatus } from "@/store/server/study-blocks/interface";
-import { FALLBACK_TOPIC_COLOR } from "@/lib/utils";
 import {
-  DashboardHeader,
+  buildFocusSeries,
+  buildKpiTiles,
+  buildNotePreview,
+  buildTopicSegments,
+  buildWeekdayData,
+  calcStreak,
+  donePercent,
   formatDashboardRange,
-} from "./components/dashboard-header";
-import { StatTiles, type KpiTile } from "./components/stat-tiles";
+  percentChange,
+  sumMinutes,
+} from "@/utils/dashboard";
+import { DashboardHeader } from "./components/dashboard-header";
+import { StatTiles } from "./components/stat-tiles";
 import { TotalFocusCard } from "./components/total-focus-card";
 import { MostActiveDayCard } from "./components/most-active-day-card";
 import { TopicsBreakdownCard } from "./components/topics-breakdown-card";
@@ -29,15 +30,9 @@ import {
   AssistantCard,
   CompletionGaugeCard,
 } from "./components/completion-gauge-card";
-import { blockMinutes, formatHours } from "./components/dashboard-utils";
-
-function percentChange(current: number, previous: number) {
-  if (previous === 0) return current === 0 ? 0 : 100;
-  return ((current - previous) / previous) * 100;
-}
 
 export default function DashboardPage() {
-  const activeTopicId = useWorkspaceStore((s) => s.activeTopicId);
+  const { activeTopicId } = useWorkspaceStore();
 
   const rangeEnd = dayjs().endOf("day");
   const rangeStart = dayjs().subtract(29, "day").startOf("day");
@@ -70,11 +65,8 @@ export default function DashboardPage() {
 
   const done = blocks.filter((b) => b.Status === StudyBlockStatus.Done);
   const prevDone = previous.filter((b) => b.Status === StudyBlockStatus.Done);
-  const focusMinutes = done.reduce((sum, b) => sum + blockMinutes(b), 0);
-  const prevFocusMinutes = prevDone.reduce(
-    (sum, b) => sum + blockMinutes(b),
-    0,
-  );
+  const focusMinutes = sumMinutes(done);
+  const prevFocusMinutes = sumMinutes(prevDone);
 
   const completedDocs = documents.filter(
     (d) => d.Status === DocumentStatus.Completed,
@@ -83,126 +75,27 @@ export default function DashboardPage() {
     ? Math.round((completedDocs / documents.length) * 100)
     : null;
 
-  const pastBlocks = blocks.filter((b) => dayjs(b.StartAt).isBefore(dayjs()));
-  const adherence = pastBlocks.length
-    ? Math.round(
-        (pastBlocks.filter((b) => b.Status === StudyBlockStatus.Done).length /
-          pastBlocks.length) *
-          100,
-      )
-    : null;
+  const adherence = donePercent(
+    blocks.filter((b) => dayjs(b.StartAt).isBefore(dayjs())),
+  );
+  const streak = calcStreak(done);
 
-  let streak = 0;
-  for (let i = 0; i < 30; i++) {
-    const day = dayjs().startOf("day").subtract(i, "day");
-    const hasDone = done.some((b) => dayjs(b.StartAt).isSame(day, "day"));
-    if (hasDone) streak++;
-    else if (i > 0) break;
-  }
-
-  const kpiTiles: KpiTile[] = [
-    {
-      title: "Focus time",
-      value: formatHours(focusMinutes),
-      change: percentChange(focusMinutes, prevFocusMinutes),
-      icon: Timer,
-    },
-    {
-      title: "Documents",
-      value: documents.length.toLocaleString(),
-      change: null,
-      icon: FileText,
-    },
-    {
-      title: "Study sessions",
-      value: done.length.toLocaleString(),
-      change: percentChange(done.length, prevDone.length),
-      icon: MousePointerClick,
-    },
-    adherence === null
-      ? {
-          title: "Streak",
-          value: `${streak} day${streak === 1 ? "" : "s"}`,
-          change: null,
-          icon: Flame,
-        }
-      : {
-          title: "Adherence",
-          value: `${adherence}%`,
-          change: percentChange(
-            adherence,
-            previous.length
-              ? Math.round(
-                  (previous.filter((b) => b.Status === StudyBlockStatus.Done)
-                    .length /
-                    previous.length) *
-                    100,
-                )
-              : 0,
-          ),
-          icon: CheckCircle2,
-        },
-  ];
-
-  const focusSeries = Array.from({ length: 30 }, (_, i) => {
-    const day = rangeStart.add(i, "day");
-    const prevDay = prevStart.add(i, "day");
-    const current = done
-      .filter((b) => dayjs(b.StartAt).isSame(day, "day"))
-      .reduce((sum, b) => sum + blockMinutes(b), 0);
-    const prev = prevDone
-      .filter((b) => dayjs(b.StartAt).isSame(prevDay, "day"))
-      .reduce((sum, b) => sum + blockMinutes(b), 0);
-    return {
-      label: day.format("MMM D"),
-      current,
-      previous: prev,
-    };
+  const kpiTiles = buildKpiTiles({
+    focusMinutes,
+    prevFocusMinutes,
+    documentCount: documents.length,
+    sessions: done.length,
+    prevSessions: prevDone.length,
+    adherence,
+    prevAdherence: donePercent(previous),
+    streak,
   });
 
-  const weekdayData = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
-    (day, index) => ({
-      day,
-      minutes: done
-        .filter((b) => dayjs(b.StartAt).day() === index)
-        .reduce((sum, b) => sum + blockMinutes(b), 0),
-    }),
-  );
+  const focusSeries = buildFocusSeries(done, prevDone, rangeStart, prevStart);
+  const weekdayData = buildWeekdayData(done);
   const mostActiveMinutes = Math.max(...weekdayData.map((d) => d.minutes), 0);
-
-  const docCountByTopic = new Map<string, number>();
-  for (const doc of documents) {
-    docCountByTopic.set(
-      doc.TopicId,
-      (docCountByTopic.get(doc.TopicId) ?? 0) + 1,
-    );
-  }
-
-  const topicSegments = topics
-    .map((topic) => ({
-      name: topic.Title,
-      count: docCountByTopic.get(topic.Id) ?? 0,
-      color: topic.Color ?? FALLBACK_TOPIC_COLOR,
-    }))
-    .filter((t) => t.count > 0)
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 3);
-
-  if (topicSegments.length === 0 && topics.length > 0) {
-    topicSegments.push(
-      ...topics.slice(0, 3).map((topic) => ({
-        name: topic.Title,
-        count: 1,
-        color: topic.Color ?? FALLBACK_TOPIC_COLOR,
-      })),
-    );
-  }
-
-  const notePreview = notes[0]
-    ? notes[0].Content?.replace(/[#>*_`\-\[\]]/g, "")
-        .trim()
-        .slice(0, 180) || notes[0].Title
-    : null;
+  const topicSegments = buildTopicSegments(documents, topics);
+  const notePreview = buildNotePreview(notes[0]);
 
   return (
     <div className="space-y-5">

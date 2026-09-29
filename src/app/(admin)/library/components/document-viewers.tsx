@@ -4,12 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import { ExternalLink, FileWarning, Loader2, Save, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { MarkdownSplitEditor } from "@/components/markdown/markdown-split-editor";
-import {
-  MarkdownPreview,
-  uniqueSlug,
-} from "@/components/markdown/markdown-preview";
+import { MarkdownSplitEditor } from "@/components/markdown-split-editor";
+import { MarkdownPreview } from "@/components/markdown-preview";
 import { cn } from "@/lib/utils";
+import { parseCsv } from "@/utils/csv";
+import { uniqueSlug } from "@/utils/string";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useUpdateDocument } from "@/store/server/documents/mutations";
@@ -18,41 +17,6 @@ import type { StudyDocument } from "@/store/server/documents/interface";
 export { MarkdownPreview };
 
 const MAX_CSV_ROWS = 1000;
-
-export function toSnakeCaseFileName(name: string) {
-  const trimmed = name.trim();
-  const lastDot = trimmed.lastIndexOf(".");
-  const hasExt = lastDot > 0 && lastDot < trimmed.length - 1;
-  const base = hasExt ? trimmed.slice(0, lastDot) : trimmed;
-  const ext = hasExt ? trimmed.slice(lastDot).toLowerCase() : "";
-  const snake = base
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
-    .replace(/[^a-zA-Z0-9]+/g, "_")
-    .replace(/_+/g, "_")
-    .replace(/^_|_$/g, "")
-    .toLowerCase();
-  return `${snake || "download"}${ext}`;
-}
-
-export function downloadText(content: string, fileName: string, type: string) {
-  const url = URL.createObjectURL(new Blob([content], { type }));
-  const link = window.document.createElement("a");
-  link.href = url;
-  link.download = toSnakeCaseFileName(fileName);
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
-export function downloadFromUrl(url: string, fileName: string) {
-  const link = window.document.createElement("a");
-  link.href = url;
-  link.download = toSnakeCaseFileName(fileName);
-  link.target = "_blank";
-  link.rel = "noopener";
-  link.click();
-}
 
 export interface OutlineHeading {
   id: string;
@@ -177,45 +141,6 @@ export function SourceView({ content }: SourceViewProps) {
   );
 }
 
-export function parseCsv(text: string): string[][] {
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let field = "";
-  let inQuotes = false;
-
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i];
-    if (inQuotes) {
-      if (char === '"' && text[i + 1] === '"') {
-        field += '"';
-        i++;
-      } else if (char === '"') {
-        inQuotes = false;
-      } else {
-        field += char;
-      }
-    } else if (char === '"') {
-      inQuotes = true;
-    } else if (char === ",") {
-      row.push(field);
-      field = "";
-    } else if (char === "\n" || char === "\r") {
-      if (char === "\r" && text[i + 1] === "\n") i++;
-      row.push(field);
-      rows.push(row);
-      row = [];
-      field = "";
-    } else {
-      field += char;
-    }
-  }
-  if (field || row.length) {
-    row.push(field);
-    rows.push(row);
-  }
-  return rows.filter((r) => r.some((cell) => cell.trim() !== ""));
-}
-
 export interface CsvTableProps {
   content: string;
 }
@@ -271,11 +196,6 @@ export function CsvTable({ content }: CsvTableProps) {
       )}
     </div>
   );
-}
-
-export function csvStats(content: string) {
-  const rows = parseCsv(content);
-  return { rows: Math.max(rows.length - 1, 0), columns: rows[0]?.length ?? 0 };
 }
 
 export interface PdfFrameProps {

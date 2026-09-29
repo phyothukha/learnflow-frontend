@@ -30,8 +30,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MarkdownSplitEditor } from "@/components/markdown/markdown-split-editor";
-import { MarkdownPreview } from "@/components/markdown/markdown-preview";
+import { MarkdownSplitEditor } from "@/components/markdown-split-editor";
+import { MarkdownPreview } from "@/components/markdown-preview";
 import { SourceView } from "@/app/(admin)/library/components/document-viewers";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";

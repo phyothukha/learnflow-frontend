@@ -2,30 +2,15 @@
 
 import { useRef, useState } from "react";
 import { Check, Copy } from "lucide-react";
-import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
+import { MarkdownRenderer } from "@/components/markdown-renderer";
+import { uniqueSlug } from "@/utils/string";
+
 interface HastNode {
   type: string;
   tagName?: string;
   value?: string;
   properties?: Record<string, unknown>;
   children?: HastNode[];
-}
-
-function slugify(text: string) {
-  return (
-    text
-      .toLowerCase()
-      .trim()
-      .replace(/[^\p{L}\p{M}\p{N}\s-]/gu, "")
-      .replace(/\s+/g, "-") || "section"
-  );
-}
-
-function uniqueSlug(text: string, seen: Map<string, number>) {
-  const base = slugify(text);
-  const count = seen.get(base) ?? 0;
-  seen.set(base, count + 1);
-  return count ? `${base}-${count}` : base;
 }
 
 function hastText(node: HastNode): string {
@@ -89,5 +74,3 @@ export function MarkdownPreview({ content }: MarkdownPreviewProps) {
     />
   );
 }
-
-export { uniqueSlug, slugify };

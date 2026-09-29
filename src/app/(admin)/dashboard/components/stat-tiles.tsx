@@ -1,18 +1,11 @@
 "use client";
 
-import type { LucideIcon } from "lucide-react";
+import type { KpiTile } from "@/utils/dashboard";
 import {
   ChangePill,
   DashboardCard,
   DashboardCardValue,
 } from "./dashboard-card";
-
-export interface KpiTile {
-  title: string;
-  value: string;
-  change: number | null;
-  icon: LucideIcon;
-}
 
 export interface StatTilesProps {
   tiles: KpiTile[];

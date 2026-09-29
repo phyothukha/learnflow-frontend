@@ -1,19 +1,18 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
   useReactTable,
   type ColumnDef,
-  type Header,
+  type OnChangeFn,
   type RowSelectionState,
   type SortingState,
+  type VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowDown, ArrowUp, ChevronsUpDown, Search } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+import type { LucideIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -23,81 +22,46 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { DataTablePagination } from "@/components/data-table-pagination";
 import { cn } from "@/lib/utils";
-import type { DataTableProps } from "./data-table.props";
+import { DataTableColumnHeader } from "@/components/data-table-column-header";
+import { DataTableEmptyState } from "@/components/data-table-empty-state";
+import { DataTablePagination } from "@/components/data-table-pagination";
+import {
+  getSelectColumn,
+  SELECT_COLUMN_ID,
+} from "@/components/data-table-select-column";
+import { DataTableToolbar } from "@/components/data-table-toolbar";
 
-function getSelectColumn<TData>(): ColumnDef<TData, unknown> {
-  return {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="translate-y-px"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        disabled={!row.getCanSelect()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        onClick={(e) => e.stopPropagation()}
-        aria-label="Select row"
-        className="translate-y-px"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-    size: 40,
-  };
-}
-
-interface SortableHeaderProps<TData> {
-  header: Header<TData, unknown>;
-}
-
-function SortableHeader<TData>({ header }: SortableHeaderProps<TData>) {
-  const content = flexRender(
-    header.column.columnDef.header,
-    header.getContext(),
-  );
-  if (!header.column.getCanSort()) return content;
-
-  const sorted = header.column.getIsSorted();
-  const Icon =
-    sorted === "asc" ? ArrowUp : sorted === "desc" ? ArrowDown : ChevronsUpDown;
-  const label =
-    sorted === "asc"
-      ? "Sorted ascending, click to sort descending"
-      : sorted === "desc"
-        ? "Sorted descending, click to clear sorting"
-        : "Click to sort ascending";
-
-  return (
-    <button
-      type="button"
-      onClick={header.column.getToggleSortingHandler()}
-      title={label}
-      aria-label={label}
-      className={cn(
-        "-ml-2 inline-flex max-w-full items-center gap-1.5 rounded-md px-2 py-1 transition-colors hover:bg-muted hover:text-foreground",
-        sorted && "text-foreground",
-      )}
-    >
-      <span className="truncate">{content}</span>
-      <Icon
-        className={cn(
-          "size-3.5 shrink-0",
-          sorted ? "text-primary" : "text-muted-foreground/60",
-        )}
-      />
-    </button>
-  );
+export interface DataTableProps<TData> {
+  columns: ColumnDef<TData, unknown>[];
+  data: TData[];
+  isLoading?: boolean;
+  /** Shown in the toolbar, e.g. "Total Courses (12)" */
+  title?: string;
+  search?: string;
+  onSearchChange?: (value: string) => void;
+  searchPlaceholder?: string;
+  page?: number;
+  pageCount?: number;
+  limit?: number;
+  onPageChange?: (page: number) => void;
+  onLimitChange?: (limit: number) => void;
+  columnVisibility?: VisibilityState;
+  onColumnVisibilityChange?: OnChangeFn<VisibilityState>;
+  emptyIcon?: LucideIcon;
+  emptyTitle?: string;
+  emptyDescription?: string;
+  emptyAction?: ReactNode;
+  onRowClick?: (row: TData) => void;
+  getRowId?: (row: TData, index: number) => string;
+  className?: string;
+  showToolbar?: boolean;
+  showPagination?: boolean;
+  /** Row selection checkboxes (default true). */
+  showCheckbox?: boolean;
+  rowSelection?: RowSelectionState;
+  onRowSelectionChange?: OnChangeFn<RowSelectionState>;
+  skeletonRows?: number;
 }
 
 export function DataTable<TData>({
@@ -107,7 +71,7 @@ export function DataTable<TData>({
   title,
   search,
   onSearchChange,
-  searchPlaceholder = "Search…",
+  searchPlaceholder,
   page = 0,
   pageCount = 1,
   limit = 10,
@@ -115,8 +79,8 @@ export function DataTable<TData>({
   onLimitChange,
   columnVisibility,
   onColumnVisibilityChange,
-  emptyIcon: EmptyIcon,
-  emptyTitle = "No results",
+  emptyIcon,
+  emptyTitle,
   emptyDescription,
   emptyAction,
   onRowClick,
@@ -131,7 +95,6 @@ export function DataTable<TData>({
 }: DataTableProps<TData>) {
   const [uncontrolledRowSelection, setUncontrolledRowSelection] =
     useState<RowSelectionState>({});
-
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const rowSelection = controlledRowSelection ?? uncontrolledRowSelection;
@@ -164,7 +127,9 @@ export function DataTable<TData>({
 
   const hasRows = table.getRowModel().rows.length > 0;
   const showEmpty = !isLoading && !hasRows;
-  const selectedCount = table.getSelectedRowModel().rows.length;
+  const selectedCount = showCheckbox
+    ? table.getSelectedRowModel().rows.length
+    : 0;
 
   return (
     <div
@@ -174,27 +139,13 @@ export function DataTable<TData>({
       )}
     >
       {showToolbar && (title || onSearchChange) && (
-        <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-3 sm:px-4 sm:py-4">
-          <div className="flex min-w-0 items-center gap-2">
-            {title ? <p className="truncate font-semibold">{title}</p> : null}
-            {showCheckbox && selectedCount > 0 && (
-              <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                {selectedCount} selected
-              </span>
-            )}
-          </div>
-          {onSearchChange && (
-            <div className="relative w-full sm:max-w-xs">
-              <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder={searchPlaceholder}
-                value={search ?? ""}
-                onChange={(e) => onSearchChange(e.target.value)}
-                className="rounded-full pl-9"
-              />
-            </div>
-          )}
-        </div>
+        <DataTableToolbar
+          title={title}
+          selectedCount={selectedCount}
+          search={search}
+          onSearchChange={onSearchChange}
+          searchPlaceholder={searchPlaceholder}
+        />
       )}
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
@@ -206,11 +157,13 @@ export function DataTable<TData>({
                   <TableHead
                     key={header.id}
                     style={
-                      header.column.id === "select" ? { width: 40 } : undefined
+                      header.column.id === SELECT_COLUMN_ID
+                        ? { width: 40 }
+                        : undefined
                     }
                   >
                     {header.isPlaceholder ? null : (
-                      <SortableHeader header={header} />
+                      <DataTableColumnHeader header={header} />
                     )}
                   </TableHead>
                 ))}
@@ -227,7 +180,9 @@ export function DataTable<TData>({
                           <Skeleton
                             className={cn(
                               "h-5",
-                              column.id === "select" ? "size-4" : "w-full",
+                              column.id === SELECT_COLUMN_ID
+                                ? "size-4"
+                                : "w-full",
                             )}
                           />
                         </TableCell>
@@ -245,7 +200,7 @@ export function DataTable<TData>({
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>
-                          {cell.column.id === "select" ? (
+                          {cell.column.id === SELECT_COLUMN_ID ? (
                             flexRender(
                               cell.column.columnDef.cell,
                               cell.getContext(),
@@ -267,22 +222,12 @@ export function DataTable<TData>({
         </Table>
 
         {showEmpty && (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
-            {EmptyIcon && (
-              <div className="flex size-12 items-center justify-center rounded-full bg-muted">
-                <EmptyIcon className="size-6 text-muted-foreground" />
-              </div>
-            )}
-            <div className="space-y-1">
-              <p className="font-medium">{emptyTitle}</p>
-              {emptyDescription && (
-                <p className="text-sm text-muted-foreground">
-                  {emptyDescription}
-                </p>
-              )}
-            </div>
-            {emptyAction}
-          </div>
+          <DataTableEmptyState
+            icon={emptyIcon}
+            title={emptyTitle}
+            description={emptyDescription}
+            action={emptyAction}
+          />
         )}
       </div>
 

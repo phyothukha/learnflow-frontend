@@ -9,10 +9,10 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TopicContextSwitcher } from "@/components/topic-context-switcher";
-import { MarkdownSplitEditor } from "@/components/markdown/markdown-split-editor";
+import { MarkdownSplitEditor } from "@/components/markdown-split-editor";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
-import { useWorkspaceStore } from "@/store/client/workspace";
+import { useWorkspaceStore } from "@/store/client/use-store";
 import { useFetchTopics } from "@/store/server/topics/queries";
 import { useCreateNote } from "@/store/server/notes/mutations";
 
@@ -22,7 +22,7 @@ export default function NewNotePage() {
   const { hasPermission } = usePermission();
   const canCreate = hasPermission(PERMISSIONS.NOTES_CREATE);
 
-  const activeTopicId = useWorkspaceStore((s) => s.activeTopicId);
+  const { activeTopicId } = useWorkspaceStore();
   const { data: topicsData } = useFetchTopics({ limit: 100 });
   const createNote = useCreateNote();
 

@@ -10,17 +10,13 @@ import {
   YAxis,
 } from "recharts";
 import { CalendarDays } from "lucide-react";
-import { chartTooltipStyle } from "./dashboard-utils";
+import { chartTooltipStyle } from "@/utils/dashboard";
 import {
   DashboardCard,
   DashboardCardScroll,
   DashboardCardValue,
 } from "./dashboard-card";
-
-export interface DayActivePoint {
-  day: string;
-  minutes: number;
-}
+import type { DayActivePoint } from "@/utils/dashboard";
 
 export interface MostActiveDayCardProps {
   totalLabel: string;

@@ -4,11 +4,9 @@ import { useRouter } from "next/navigation";
 import { FolderPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { TopicFolderTreeNode } from "@/store/server/topic-folders/interface";
-import {
-  CreateDocumentDialog,
-  CreateDocumentMode,
-} from "../../components/create-document-dialog";
-import { flattenFolders } from "../../components/folder-explorer";
+import { CreateDocumentMode } from "@/lib/document-create-modes";
+import { CreateDocumentDialog } from "../../components/create-document-dialog";
+import { flattenFolders } from "@/utils/folder";
 
 export enum TopicTab {
   Folders = "folders",

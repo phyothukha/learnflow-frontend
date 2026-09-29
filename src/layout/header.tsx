@@ -11,7 +11,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { PrimaryColorPicker } from "@/components/primary-color-picker";
 import { TopicContextSwitcher } from "@/components/topic-context-switcher";
-import { useWorkspaceStore } from "@/store/client/workspace";
+import { useWorkspaceStore } from "@/store/client/use-store";
 import { Separator } from "@/components/ui/separator";
 import {
   Breadcrumb,
@@ -101,8 +101,7 @@ export function Header() {
   const { confirmLogout, dialogProps } = useConfirmLogout();
   const pathname = usePathname();
   const { data: session } = useSession();
-  const soundMuted = useWorkspaceStore((s) => s.soundMuted);
-  const toggleSoundMuted = useWorkspaceStore((s) => s.toggleSoundMuted);
+  const { soundMuted, toggleSoundMuted } = useWorkspaceStore();
   const crumbs = useHeaderCrumbs(pathname);
 
   const showTopicSwitcher = pathname.startsWith("/notes");

@@ -29,7 +29,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { ALL_FILES_COLOR, cn, folderColor } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { ALL_FILES_COLOR, folderColor } from "@/utils/colors";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import {
@@ -38,37 +39,6 @@ import {
   useUpdateFolder,
 } from "@/store/server/topic-folders/mutations";
 import type { TopicFolderTreeNode } from "@/store/server/topic-folders/interface";
-
-export function findFolderPath(
-  nodes: TopicFolderTreeNode[],
-  id: string,
-): TopicFolderTreeNode[] | null {
-  for (const node of nodes) {
-    if (node.Id === id) return [node];
-    const childPath = findFolderPath(node.Children, id);
-    if (childPath) return [node, ...childPath];
-  }
-  return null;
-}
-
-export interface FlatFolder {
-  node: TopicFolderTreeNode;
-  depth: number;
-}
-
-export function flattenFolders(
-  nodes: TopicFolderTreeNode[],
-  depth = 0,
-): FlatFolder[] {
-  return nodes.flatMap((node) => [
-    { node, depth },
-    ...flattenFolders(node.Children, depth + 1),
-  ]);
-}
-
-export function collectFolderIds(node: TopicFolderTreeNode): string[] {
-  return [node.Id, ...node.Children.flatMap(collectFolderIds)];
-}
 
 interface FolderGlyphProps {
   color: string;

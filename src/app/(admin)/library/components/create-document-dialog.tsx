@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { isAxiosError } from "axios";
-import { FilePlus2, Link2, Loader2, PenLine, Upload, X } from "lucide-react";
+import { FilePlus2, Loader2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,8 +24,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DocumentKindIcon } from "@/components/document-kind-icon";
-import { TagInput } from "@/components/tags/tag-input";
+import { TagInput } from "@/components/tag-input";
+import {
+  CREATE_DOCUMENT_MODES,
+  CreateDocumentMode,
+} from "@/lib/document-create-modes";
 import { cn } from "@/lib/utils";
+import { formatSize } from "@/utils/format";
 import {
   ACCEPT_ATTRIBUTE,
   getDocumentKind,
@@ -46,49 +51,9 @@ import {
 } from "@/store/server/documents/mutations";
 import type { StudyDocument } from "@/store/server/documents/interface";
 
-export enum CreateDocumentMode {
-  Write = "write",
-  Upload = "upload",
-  Link = "link",
-}
-
-interface ModeOption {
-  value: CreateDocumentMode;
-  label: string;
-  description: string;
-  icon: typeof PenLine;
-}
-
 interface FolderOption {
   id: string;
   label: string;
-}
-
-const MODES: ModeOption[] = [
-  {
-    value: CreateDocumentMode.Write,
-    label: "Write",
-    description: "New Markdown page",
-    icon: PenLine,
-  },
-  {
-    value: CreateDocumentMode.Upload,
-    label: "Upload",
-    description: "PDF, Word, PPT, CSV, MD",
-    icon: Upload,
-  },
-  {
-    value: CreateDocumentMode.Link,
-    label: "Link",
-    description: "External URL",
-    icon: Link2,
-  },
-];
-
-function formatSize(bytes: number) {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export interface CreateDocumentDialogProps {
@@ -257,14 +222,14 @@ export function CreateDocumentDialog({
         </DialogHeader>
 
         <div className="grid grid-cols-3 gap-2">
-          {MODES.map((option) => (
+          {Array.from(CREATE_DOCUMENT_MODES, ([value, option]) => (
             <button
-              key={option.value}
+              key={value}
               type="button"
-              onClick={() => setMode(option.value)}
+              onClick={() => setMode(value)}
               className={cn(
                 "flex min-w-0 flex-col items-start gap-1 rounded-lg border p-3 text-left transition-colors hover:bg-accent",
-                mode === option.value &&
+                mode === value &&
                   "border-primary bg-accent ring-1 ring-primary",
               )}
             >
@@ -407,11 +372,7 @@ export function CreateDocumentDialog({
           </Button>
           <Button onClick={handleSubmit} disabled={submitting}>
             {submitting && <Loader2 className="size-4 animate-spin" />}
-            {mode === CreateDocumentMode.Write
-              ? "Create & start writing"
-              : mode === CreateDocumentMode.Upload
-                ? "Upload"
-                : "Save link"}
+            {CREATE_DOCUMENT_MODES.get(mode)?.submitLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -8,7 +8,7 @@ import {
   StudyBlockStatus,
   type StudyBlock,
 } from "@/store/server/study-blocks/interface";
-import { useWorkspaceStore } from "@/store/client/workspace";
+import { useWorkspaceStore } from "@/store/client/use-store";
 import { initAudio, playDueAlert, playReminderChime } from "@/lib/alert-sounds";
 
 const CHECK_INTERVAL_MS = 30_000;
@@ -21,8 +21,7 @@ const LATE_ALERT_GRACE_MS = 10 * 60 * 1000;
  */
 export function useAudioAlerts() {
   const router = useRouter();
-  const soundMuted = useWorkspaceStore((s) => s.soundMuted);
-  const setActiveTopic = useWorkspaceStore((s) => s.setActiveTopic);
+  const { soundMuted, setActiveTopic } = useWorkspaceStore();
   const alertedRef = useRef<Set<string>>(new Set());
 
   // Window from the start of the current hour to 24h out; stable per mount so

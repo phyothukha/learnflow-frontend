@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useFetchTopics } from "@/store/server/topics/queries";
-import { useWorkspaceStore } from "@/store/client/workspace";
+import { useWorkspaceStore } from "@/store/client/use-store";
 import { cn } from "@/lib/utils";
 
 const FALLBACK_COLOR = "#8b8b8b";
@@ -22,8 +22,7 @@ const FALLBACK_COLOR = "#8b8b8b";
  */
 export function TopicContextSwitcher() {
   const { data } = useFetchTopics({ limit: 100 });
-  const activeTopicId = useWorkspaceStore((s) => s.activeTopicId);
-  const setActiveTopic = useWorkspaceStore((s) => s.setActiveTopic);
+  const { activeTopicId, setActiveTopic } = useWorkspaceStore();
 
   const topics = data?.Items ?? [];
   const activeTopic = topics.find((t) => t.Id === activeTopicId) ?? null;

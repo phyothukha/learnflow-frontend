@@ -10,7 +10,8 @@ import {
   StudyBlockStatus,
   type StudyBlock,
 } from "@/store/server/study-blocks/interface";
-import { cn, FALLBACK_TOPIC_COLOR } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { FALLBACK_TOPIC_COLOR } from "@/utils/colors";
 import { WidgetHeader } from "./widget-header";
 
 export interface TodayTimelineWidgetProps {

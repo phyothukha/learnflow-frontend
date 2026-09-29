@@ -12,46 +12,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
-import { useWorkspaceStore } from "@/store/client/workspace";
+import { useWorkspaceStore } from "@/store/client/use-store";
 import { useFetchNotes } from "@/store/server/notes/queries";
 import { useCreateNote } from "@/store/server/notes/mutations";
-import type { Note } from "@/store/server/notes/interface";
-
-function previewText(content: string | null) {
-  if (!content?.trim()) return "No content yet";
-  return content
-    .replace(/```[\s\S]*?```/g, " ")
-    .replace(/[#*_>`[\]()!~-]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-interface NoteGroup {
-  label: string;
-  items: Note[];
-}
+import { groupNotes, previewText, searchNotes } from "@/utils/note";
 
 interface NotesLayoutProps {
   children: React.ReactNode;
-}
-
-function groupNotes(notes: Note[]) {
-  const now = dayjs();
-  const groups: NoteGroup[] = [
-    { label: "Today", items: [] },
-    { label: "Previous 7 Days", items: [] },
-    { label: "Previous 30 Days", items: [] },
-    { label: "Older", items: [] },
-  ];
-  for (const note of notes) {
-    const updated = dayjs(note.UpdatedAt);
-    const days = now.diff(updated, "day");
-    if (updated.isSame(now, "day")) groups[0]!.items.push(note);
-    else if (days <= 7) groups[1]!.items.push(note);
-    else if (days <= 30) groups[2]!.items.push(note);
-    else groups[3]!.items.push(note);
-  }
-  return groups.filter((g) => g.items.length > 0);
 }
 
 export default function NotesLayout({ children }: NotesLayoutProps) {
@@ -59,7 +26,7 @@ export default function NotesLayout({ children }: NotesLayoutProps) {
   const router = useRouter();
   const { hasPermission } = usePermission();
   const canCreate = hasPermission(PERMISSIONS.NOTES_CREATE);
-  const activeTopicId = useWorkspaceStore((s) => s.activeTopicId);
+  const { activeTopicId } = useWorkspaceStore();
   const [search, setSearch] = useState("");
 
   const { data: notesData, isLoading } = useFetchNotes({
@@ -86,19 +53,8 @@ export default function NotesLayout({ children }: NotesLayoutProps) {
   const activeNoteId = pathname.match(/^\/notes\/([^/]+)$/)?.[1];
   const showHeader = pathname === "/notes";
   const notes = notesData?.Items ?? [];
-  const query = search.trim().toLowerCase();
-  const visibleNotes = query
-    ? notes.filter(
-        (n) =>
-          n.Title.toLowerCase().includes(query) ||
-          n.Content?.toLowerCase().includes(query),
-      )
-    : notes;
-  const groups = groupNotes(
-    [...visibleNotes].sort(
-      (a, b) => dayjs(b.UpdatedAt).valueOf() - dayjs(a.UpdatedAt).valueOf(),
-    ),
-  );
+  const query = search.trim();
+  const groups = groupNotes(searchNotes(notes, query));
 
   const handleCreate = () => {
     createNote.mutate(

@@ -10,13 +10,8 @@ import {
   useDeleteAttachment,
   useUploadAttachment,
 } from "@/store/server/documents/mutations";
-import { downloadFromUrl } from "../../../components/document-viewers";
-
-function formatSize(bytes: number) {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
+import { downloadFromUrl } from "@/utils/file";
+import { formatSize } from "@/utils/format";
 
 interface DocumentAttachmentsProps {
   document: StudyDocument;

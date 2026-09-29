@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FALLBACK_TOPIC_COLOR } from "@/lib/utils";
+import { FALLBACK_TOPIC_COLOR } from "@/utils/colors";
 import type { Topic } from "@/store/server/topics/interface";
 
 interface TopicHeaderProps {

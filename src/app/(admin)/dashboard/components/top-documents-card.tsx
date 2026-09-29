@@ -5,18 +5,10 @@ import { FileText, Star } from "lucide-react";
 import { DashboardCard, DashboardCardScroll } from "./dashboard-card";
 import { DocumentKindIcon } from "@/components/document-kind-icon";
 import { getDocumentKind, getKindMeta } from "@/lib/document-types";
+import { DOCUMENT_STATUS_SCORE } from "@/lib/document-status";
 import { cn } from "@/lib/utils";
-import {
-  DocumentStatus,
-  type StudyDocument,
-} from "@/store/server/documents/interface";
+import type { StudyDocument } from "@/store/server/documents/interface";
 import { DocumentStatusPill } from "@/app/(admin)/library/components/document-status-pill";
-
-const STATUS_SCORE: Record<DocumentStatus, number> = {
-  [DocumentStatus.Completed]: 5,
-  [DocumentStatus.InProgress]: 3.5,
-  [DocumentStatus.Unread]: 2,
-};
 
 export interface TopDocumentsCardProps {
   documents: StudyDocument[];
@@ -31,7 +23,8 @@ export function TopDocumentsCard({
     .sort(
       (a, b) =>
         b.TimeSpentMinutes - a.TimeSpentMinutes ||
-        (STATUS_SCORE[b.Status] ?? 0) - (STATUS_SCORE[a.Status] ?? 0),
+        (DOCUMENT_STATUS_SCORE.get(b.Status) ?? 0) -
+          (DOCUMENT_STATUS_SCORE.get(a.Status) ?? 0),
     )
     .slice(0, 5);
 
@@ -56,7 +49,7 @@ export function TopDocumentsCard({
             <tbody>
               {rows.map((doc, index) => {
                 const kind = getDocumentKind(doc.FileType);
-                const score = STATUS_SCORE[doc.Status] ?? 2;
+                const score = DOCUMENT_STATUS_SCORE.get(doc.Status) ?? 2;
                 return (
                   <tr
                     key={doc.Id}

@@ -11,19 +11,15 @@ import {
   YAxis,
 } from "recharts";
 import { Timer } from "lucide-react";
-import { chartTooltipStyle, formatHours } from "./dashboard-utils";
+import { formatHours } from "@/utils/format";
+import { chartTooltipStyle } from "@/utils/dashboard";
 import {
   ChangePill,
   DashboardCard,
   DashboardCardScroll,
   DashboardCardValue,
 } from "./dashboard-card";
-
-export interface FocusPoint {
-  label: string;
-  current: number;
-  previous: number;
-}
+import type { FocusPoint } from "@/utils/dashboard";
 
 export interface TotalFocusCardProps {
   totalMinutes: number;

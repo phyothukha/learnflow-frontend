@@ -7,31 +7,23 @@ import {
   type StudyBlock,
 } from "@/store/server/study-blocks/interface";
 import type { Topic } from "@/store/server/topics/interface";
-import { DocumentStatus } from "@/store/server/documents/interface";
-import { cn, FALLBACK_TOPIC_COLOR } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { FALLBACK_TOPIC_COLOR } from "@/utils/colors";
+import { formatHours } from "@/utils/format";
 import {
-  NO_TOPIC_LABEL,
-  blockMinutes,
+  buildTopicDonut,
+  buildTopicProgress,
   chartTooltipStyle,
-  formatHours,
-} from "./dashboard-utils";
+  sumMinutes,
+  type TopicDocument,
+} from "@/utils/dashboard";
 import { WidgetHeader } from "./widget-header";
-
-export interface TopicsCardDocument {
-  TopicId: string;
-  Status: DocumentStatus;
-}
 
 export interface TopicsCardProps {
   weekBlocks: StudyBlock[];
-  documents: TopicsCardDocument[];
+  documents: TopicDocument[];
   topics: Topic[];
   className?: string;
-}
-
-interface DocStats {
-  total: number;
-  done: number;
 }
 
 export function TopicsCard({
@@ -43,59 +35,9 @@ export function TopicsCard({
   const doneBlocks = weekBlocks.filter(
     (b) => b.Status === StudyBlockStatus.Done,
   );
-  const totalMinutes = doneBlocks.reduce((s, b) => s + blockMinutes(b), 0);
-
-  const minutesByTopic = new Map<string, number>();
-  let noTopicMinutes = 0;
-  for (const block of doneBlocks) {
-    const minutes = blockMinutes(block);
-    if (block.TopicId) {
-      minutesByTopic.set(
-        block.TopicId,
-        (minutesByTopic.get(block.TopicId) ?? 0) + minutes,
-      );
-    } else {
-      noTopicMinutes += minutes;
-    }
-  }
-
-  const donut = topics
-    .map((topic) => ({
-      name: topic.Title,
-      color: topic.Color ?? FALLBACK_TOPIC_COLOR,
-      minutes: minutesByTopic.get(topic.Id) ?? 0,
-    }))
-    .filter((d) => d.minutes > 0);
-  if (noTopicMinutes > 0)
-    donut.push({
-      name: NO_TOPIC_LABEL,
-      color: FALLBACK_TOPIC_COLOR,
-      minutes: noTopicMinutes,
-    });
-
-  const docStatsByTopic = new Map<string, DocStats>();
-  for (const doc of documents) {
-    const stats = docStatsByTopic.get(doc.TopicId) ?? { total: 0, done: 0 };
-    stats.total += 1;
-    if (doc.Status === DocumentStatus.Completed) stats.done += 1;
-    docStatsByTopic.set(doc.TopicId, stats);
-  }
-
-  const progress = topics
-    .map((topic) => {
-      const { total, done } = docStatsByTopic.get(topic.Id) ?? {
-        total: 0,
-        done: 0,
-      };
-      return {
-        ...topic,
-        total,
-        percent: total ? Math.round((done / total) * 100) : 0,
-      };
-    })
-    .filter((t) => t.total > 0)
-    .sort((a, b) => b.percent - a.percent)
-    .slice(0, 4);
+  const totalMinutes = sumMinutes(doneBlocks);
+  const donut = buildTopicDonut(doneBlocks, topics);
+  const progress = buildTopicProgress(documents, topics);
 
   return (
     <Card className={cn("shadow-sm", className)}>

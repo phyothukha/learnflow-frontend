@@ -14,21 +14,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { TagInput } from "@/components/tags/tag-input";
+import { TagInput } from "@/components/tag-input";
 import {
   useDeleteAttachment,
   useUpdateDocument,
   useUploadAttachment,
 } from "@/store/server/documents/mutations";
 import type { StudyDocument } from "@/store/server/documents/interface";
+import { formatSize } from "@/utils/format";
 
 const MAX_ATTACHMENT_BYTES = 25_000_000;
-
-function formatSize(bytes: number) {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 export interface DocumentDetailDialogProps {
   document: StudyDocument;

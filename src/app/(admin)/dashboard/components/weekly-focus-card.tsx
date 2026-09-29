@@ -1,6 +1,5 @@
 "use client";
 
-import dayjs from "dayjs";
 import {
   Bar,
   BarChart,
@@ -11,34 +10,15 @@ import {
   YAxis,
 } from "recharts";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  StudyBlockStatus,
-  type StudyBlock,
-} from "@/store/server/study-blocks/interface";
+import type { StudyBlock } from "@/store/server/study-blocks/interface";
 import type { Topic } from "@/store/server/topics/interface";
-import { cn, FALLBACK_TOPIC_COLOR } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import {
-  NO_TOPIC_LABEL,
-  blockMinutes,
+  buildTopicSeries,
+  buildWeeklyFocusData,
   chartTooltipStyle,
-} from "./dashboard-utils";
+} from "@/utils/dashboard";
 import { WidgetHeader } from "./widget-header";
-
-function topicSeries(weekBlocks: StudyBlock[], topics: Topic[]) {
-  const doneTopicIds = new Set(
-    weekBlocks
-      .filter((b) => b.Status === StudyBlockStatus.Done)
-      .map((b) => b.TopicId),
-  );
-  const used = topics.filter((t) => doneTopicIds.has(t.Id));
-  const series = used.map((t) => ({
-    key: t.Title,
-    color: t.Color ?? FALLBACK_TOPIC_COLOR,
-  }));
-  if (weekBlocks.some((b) => !b.TopicId && b.Status === StudyBlockStatus.Done))
-    series.push({ key: NO_TOPIC_LABEL, color: FALLBACK_TOPIC_COLOR });
-  return series;
-}
 
 export interface WeeklyFocusCardProps {
   weekBlocks: StudyBlock[];
@@ -51,23 +31,8 @@ export function WeeklyFocusCard({
   topics,
   className,
 }: WeeklyFocusCardProps) {
-  const weekStart = dayjs().startOf("week");
-  const series = topicSeries(weekBlocks, topics);
-  const topicTitleById = new Map(topics.map((t) => [t.Id, t.Title]));
-  const topicName = (block: StudyBlock) =>
-    (block.TopicId && topicTitleById.get(block.TopicId)) || NO_TOPIC_LABEL;
-
-  const data = Array.from({ length: 7 }, (_, i) => {
-    const day = weekStart.add(i, "day");
-    const row: Record<string, number | string> = { day: day.format("ddd") };
-    for (const block of weekBlocks) {
-      if (block.Status !== StudyBlockStatus.Done) continue;
-      if (!dayjs(block.StartAt).isSame(day, "day")) continue;
-      const key = topicName(block);
-      row[key] = ((row[key] as number) ?? 0) + blockMinutes(block);
-    }
-    return row;
-  });
+  const series = buildTopicSeries(weekBlocks, topics);
+  const data = buildWeeklyFocusData(weekBlocks, topics);
 
   return (
     <Card className={cn("shadow-sm", className)}>

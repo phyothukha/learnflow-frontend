@@ -17,7 +17,10 @@ import {
   getExtensionLabel,
 } from "@/lib/document-types";
 import { PERMISSIONS } from "@/lib/permissions";
-import { cn, FALLBACK_TOPIC_COLOR } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { FALLBACK_TOPIC_COLOR } from "@/utils/colors";
+import { downloadFromUrl, downloadText } from "@/utils/file";
+import { findFolderPath } from "@/utils/folder";
 import { useDeleteDocument } from "@/store/server/documents/mutations";
 import { useFetchDocument } from "@/store/server/documents/queries";
 import { useFetchFolderTree } from "@/store/server/topic-folders/queries";
@@ -25,12 +28,9 @@ import { useFetchTopics } from "@/store/server/topics/queries";
 import { DocumentDetailDialog } from "../../components/document-detail-dialog";
 import {
   DocumentOutline,
-  downloadFromUrl,
-  downloadText,
   extractHeadings,
   MarkdownEditorPanel,
 } from "../../components/document-viewers";
-import { findFolderPath } from "../../components/folder-explorer";
 import { DocumentBody } from "./components/document-body";
 import { DocumentHeader } from "./components/document-header";
 import { DocumentInfoPanel } from "./components/document-info-panel";

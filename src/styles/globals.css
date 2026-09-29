@@ -153,6 +153,10 @@
   @apply rounded-xl bg-card text-card-foreground shadow-[0_10px_40px_rgba(15,23,42,0.06)] ring-1 ring-black/[0.04] dark:shadow-[0_12px_40px_rgba(0,0,0,0.35)] dark:ring-white/[0.06];
 }
 
+@utility library-grid {
+  @apply grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4;
+}
+
 /* Long-form reading styles for document + note markdown previews. */
 @utility markdown-prose {
   @apply mx-auto max-w-4xl min-w-0 text-[15px] leading-7 text-foreground/90 [overflow-wrap:anywhere];

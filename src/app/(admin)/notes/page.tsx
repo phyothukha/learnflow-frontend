@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
-import { useWorkspaceStore } from "@/store/client/workspace";
+import { useWorkspaceStore } from "@/store/client/use-store";
 import { useFetchTopics } from "@/store/server/topics/queries";
 import { useFetchNotes } from "@/store/server/notes/queries";
 import { useCreateNote } from "@/store/server/notes/mutations";
@@ -23,8 +23,7 @@ export default function NotesPage() {
   const canView = hasPermission(PERMISSIONS.NOTES_VIEW);
   const canCreate = hasPermission(PERMISSIONS.NOTES_CREATE);
 
-  const activeTopicId = useWorkspaceStore((s) => s.activeTopicId);
-  const setActiveTopic = useWorkspaceStore((s) => s.setActiveTopic);
+  const { activeTopicId, setActiveTopic } = useWorkspaceStore();
 
   const { data: topicsData } = useFetchTopics({ limit: 100 });
   const { data: notesData } = useFetchNotes({

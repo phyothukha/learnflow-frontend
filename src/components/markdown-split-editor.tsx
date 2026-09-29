@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { MarkdownPreview } from "./markdown-preview";
+import { MarkdownPreview } from "@/components/markdown-preview";
 
 enum ViewMode {
   Write = "write",

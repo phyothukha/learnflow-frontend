@@ -8,8 +8,6 @@ import {
   NewFolderCard,
 } from "../../components/folder-explorer";
 
-const GRID_CLASS = "grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4";
-
 interface TopicFoldersViewProps {
   path: TopicFolderTreeNode[];
   folders: TopicFolderTreeNode[];
@@ -38,13 +36,13 @@ export function TopicFoldersView({
       </div>
 
       {isLoading ? (
-        <div className={GRID_CLASS}>
+        <div className="library-grid">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-[116px] rounded-xl" />
           ))}
         </div>
       ) : (
-        <div className={GRID_CLASS}>
+        <div className="library-grid">
           {folders.map((node) => (
             <FolderCard
               key={node.Id}

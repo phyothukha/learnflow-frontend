@@ -28,7 +28,7 @@ import {
   DocumentsDialogType,
   useDocuments,
 } from "../context/documents-context";
-import { DOCUMENT_STATUS_LABEL } from "./document-status-pill";
+import { getDocumentStatusLabel } from "@/lib/document-status";
 
 const STATUSES = Object.values(DocumentStatus);
 
@@ -76,7 +76,7 @@ export function DocumentActions({ document, className }: DocumentActionsProps) {
           >
             {STATUSES.map((value) => (
               <DropdownMenuRadioItem key={value} value={value}>
-                {DOCUMENT_STATUS_LABEL[value]}
+                {getDocumentStatusLabel(value)}
               </DropdownMenuRadioItem>
             ))}
           </DropdownMenuRadioGroup>

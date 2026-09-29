@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFetchStudyBlocks } from "@/store/server/study-blocks/queries";
 import { StudyBlockStatus } from "@/store/server/study-blocks/interface";
-import { cn, DEFAULT_TOPIC_COLOR } from "@/lib/utils";
-import { blockMinutes } from "./dashboard-utils";
+import { cn } from "@/lib/utils";
+import { DEFAULT_TOPIC_COLOR } from "@/utils/colors";
+import { blockMinutes } from "@/utils/dashboard";
 
 const HEATMAP_WEEKS = 26;
 // Sequential single-hue ramp (indigo, light→dark via alpha over the surface).

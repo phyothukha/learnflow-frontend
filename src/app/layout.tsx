@@ -1,7 +1,12 @@
 import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
 import { NavigationProgress } from "@/components/navigation-progress";
-import { primaryColorInitScript } from "@/config/primary-colors";
+import { PRIMARY_COLORS } from "@/lib/primary-colors";
+import {
+  PRIMARY_COLOR_COOKIE,
+  resolvePrimaryColorId,
+} from "@/store/client/primary-color-slice";
 import "@/styles/globals.css";
 import { fontSans, fontMono, fontPoppins } from "@/styles/font";
 import Providers from "@/app/provider";
@@ -43,12 +48,24 @@ interface RootLayoutProps {
   children: React.ReactNode;
 }
 
-export default function RootLayout({ children }: Readonly<RootLayoutProps>) {
+export default async function RootLayout({
+  children,
+}: Readonly<RootLayoutProps>) {
+  const cookieStore = await cookies();
+  const primaryColor = resolvePrimaryColorId(
+    cookieStore.get(PRIMARY_COLOR_COOKIE)?.value,
+  );
+  const primaryStyle = {
+    "--primary": PRIMARY_COLORS.get(primaryColor)?.value,
+  } as React.CSSProperties;
+
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: primaryColorInitScript }} />
-      </head>
+    <html
+      lang="en"
+      data-primary={primaryColor}
+      style={primaryStyle}
+      suppressHydrationWarning
+    >
       <body
         className={`${fontSans.variable} ${fontMono.variable} ${fontPoppins.variable} antialiased`}
       >
