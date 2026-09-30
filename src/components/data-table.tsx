@@ -42,7 +42,8 @@ export interface DataTableProps<TData> {
   onSearchChange?: (value: string) => void;
   searchPlaceholder?: string;
   page?: number;
-  pageCount?: number;
+  /** Total rows across all pages. */
+  total?: number;
   limit?: number;
   onPageChange?: (page: number) => void;
   onLimitChange?: (limit: number) => void;
@@ -76,7 +77,7 @@ export function DataTable<TData>({
   onSearchChange,
   searchPlaceholder,
   page = 0,
-  pageCount = 1,
+  total = 0,
   limit = 10,
   onPageChange,
   onLimitChange,
@@ -261,7 +262,7 @@ export function DataTable<TData>({
       {showPagination && onPageChange && onLimitChange && (
         <DataTablePagination
           page={page}
-          pageCount={pageCount}
+          total={total}
           limit={limit}
           onPageChange={onPageChange}
           onLimitChange={onLimitChange}

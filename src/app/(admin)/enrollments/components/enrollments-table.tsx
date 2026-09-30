@@ -30,7 +30,6 @@ export function EnrollmentsTable() {
   });
 
   const total = data?.["@odata.count"] ?? 0;
-  const pageCount = Math.max(1, Math.ceil(total / limit));
 
   return (
     <DataTable
@@ -45,7 +44,7 @@ export function EnrollmentsTable() {
       }}
       searchPlaceholder="Search by name or email"
       page={page}
-      pageCount={pageCount}
+      total={total}
       limit={limit}
       onPageChange={setPage}
       onLimitChange={(value) => {

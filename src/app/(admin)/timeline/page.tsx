@@ -4,57 +4,43 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import dayjs from "dayjs";
-import {
-  CalendarClock,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  Trash2,
-} from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
-import { Badge, type BadgeVariant } from "@/components/ui/badge";
+import type { AnimatedTab } from "@/components/animated-tabs";
+import { CalendarEventContent } from "@/components/calendar-time-grid";
+import { CalendarView } from "@/components/calendar-view";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { PageHeader } from "@/components/page-header";
+import { ScheduleFilters } from "@/components/schedule-filters";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
-import { cn } from "@/lib/utils";
-import { useFetchStudyBlocks } from "@/store/server/study-blocks/queries";
 import {
-  useCreateStudyBlock,
+  STUDY_BLOCK_FALLBACK_COLOR,
+  STUDY_BLOCK_STATUS,
+} from "@/lib/study-block-status";
+import {
   useDeleteStudyBlock,
   useUpdateStudyBlock,
 } from "@/store/server/study-blocks/mutations";
-import { StudyBlockStatus } from "@/store/server/study-blocks/interface";
+import { useFetchStudyBlocks } from "@/store/server/study-blocks/queries";
+import {
+  StudyBlockStatus,
+  type StudyBlock,
+} from "@/store/server/study-blocks/interface";
 import { useFetchTopics } from "@/store/server/topics/queries";
+import { CalendarMode, calendarRange } from "@/utils/calendar";
+import {
+  StudyBlockDialog,
+  type StudyBlockEditorState,
+} from "./components/study-block-dialog";
+import { StudyBlockPopover } from "./components/study-block-popover";
 
-const FALLBACK_COLOR = "#8b8b8b";
+const ALL_STATUSES = "all";
+const NO_TOPIC = "none";
 
-const statusVariant: Record<StudyBlockStatus, BadgeVariant> = {
-  [StudyBlockStatus.Upcoming]: "status-slate",
-  [StudyBlockStatus.Active]: "status-green",
-  [StudyBlockStatus.Done]: "status-blue",
-  [StudyBlockStatus.Missed]: "status-red",
-};
+type StatusFilter = StudyBlockStatus | typeof ALL_STATUSES;
 
 export default function TimelinePage() {
   const router = useRouter();
@@ -62,300 +48,203 @@ export default function TimelinePage() {
   const { hasPermission } = usePermission();
   const canView = hasPermission(PERMISSIONS.SCHEDULE_VIEW);
 
-  const [dayOffset, setDayOffset] = useState(0);
-  const [createOpen, setCreateOpen] = useState(false);
-
-  const day = dayjs().startOf("day").add(dayOffset, "day");
-  const { data, isLoading } = useFetchStudyBlocks({
-    from: day.toISOString(),
-    to: day.add(1, "day").toISOString(),
-    limit: 100,
-  });
-  const { data: topicsData } = useFetchTopics({ limit: 100 });
-  const updateBlock = useUpdateStudyBlock();
-  const deleteBlock = useDeleteStudyBlock();
-
   useEffect(() => {
     if (status === "authenticated" && !canView) router.replace("/forbidden");
   }, [status, canView, router]);
 
   if (status !== "authenticated" || !canView) return null;
 
+  return <TimelineContent />;
+}
+
+function TimelineContent() {
+  const [mode, setMode] = useState(CalendarMode.Week);
+  const [cursor, setCursor] = useState(() => dayjs().startOf("day"));
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState<StatusFilter>(ALL_STATUSES);
+  const [hiddenTopics, setHiddenTopics] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [editor, setEditor] = useState<StudyBlockEditorState | null>(null);
+  const { confirmDelete, dialogProps } = useConfirmDialog();
+
+  const range = calendarRange(cursor, mode);
+  const { data, isFetching } = useFetchStudyBlocks({
+    from: range.start.toISOString(),
+    to: range.end.toISOString(),
+    limit: 100,
+  });
+  const { data: topicsData } = useFetchTopics({ limit: 100 });
+  const updateBlock = useUpdateStudyBlock();
+  const deleteBlock = useDeleteStudyBlock();
+
   const blocks = data?.value ?? [];
-  const topics = topicsData?.Items ?? [];
+  const topics = (topicsData?.Items ?? []).filter((topic) => !topic.IsArchived);
+  const topicsById = new Map(topics.map((topic) => [topic.Id, topic]));
+
+  const topicKey = (block: StudyBlock) => block.TopicId ?? NO_TOPIC;
+  const topicTitle = (block: StudyBlock) =>
+    (block.TopicId && topicsById.get(block.TopicId)?.Title) ??
+    block.Topic?.Title ??
+    null;
+  const colorOf = (block: StudyBlock) =>
+    (block.TopicId && topicsById.get(block.TopicId)?.Color) ||
+    block.Topic?.Color ||
+    STUDY_BLOCK_FALLBACK_COLOR;
+
+  const query = search.trim().toLowerCase();
+  const searched = blocks.filter(
+    (block) =>
+      !query ||
+      block.Title.toLowerCase().includes(query) ||
+      topicTitle(block)?.toLowerCase().includes(query),
+  );
+  const visible = searched.filter(
+    (block) => !hiddenTopics.has(topicKey(block)),
+  );
+  const filtered =
+    status === ALL_STATUSES
+      ? visible
+      : visible.filter((block) => block.Status === status);
+
+  const statusCounts = Map.groupBy(visible, (block) => block.Status);
+  const statusTabs: AnimatedTab<StatusFilter>[] = [
+    { value: ALL_STATUSES, label: "All Blocks", count: visible.length },
+    ...Array.from(STUDY_BLOCK_STATUS, ([value, meta]) => ({
+      value,
+      label: meta.label,
+      count: statusCounts.get(value)?.length ?? 0,
+    })),
+  ];
+
+  const topicCounts = Map.groupBy(searched, topicKey);
+  const categories = [
+    ...topics.map((topic) => ({
+      value: topic.Id,
+      label: topic.Title,
+      color: topic.Color ?? STUDY_BLOCK_FALLBACK_COLOR,
+      count: topicCounts.get(topic.Id)?.length ?? 0,
+    })),
+    {
+      value: NO_TOPIC,
+      label: "No topic",
+      color: STUDY_BLOCK_FALLBACK_COLOR,
+      count: topicCounts.get(NO_TOPIC)?.length ?? 0,
+    },
+  ];
+
+  const toggleTopic = (topic: string) =>
+    setHiddenTopics((current) => {
+      const next = new Set(current);
+      if (!next.delete(topic)) next.add(topic);
+      return next;
+    });
+
+  const openDelete = (block: StudyBlock) =>
+    void confirmDelete({
+      itemName: block.Title,
+      onConfirm: () => deleteBlock.mutateAsync(block.Id),
+      successMessage: "Study block deleted.",
+      errorMessage: "Failed to delete block",
+    });
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-full min-h-0 flex-col gap-3 sm:gap-4">
       <PageHeader
         title="Timeline"
-        description="Plan your study blocks for the day and mark them done as you go"
+        description="Plan your study blocks by day, week or month and drag them to reschedule"
         actions={
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="size-4" />
-                Add block
-              </Button>
-            </DialogTrigger>
-            <CreateBlockDialog
-              day={day.format("YYYY-MM-DD")}
-              topics={topics}
-              onClose={() => setCreateOpen(false)}
-            />
-          </Dialog>
+          <Button
+            onClick={() => setEditor({ block: null, draft: null })}
+            aria-label="New block"
+            className="size-8 has-[>svg]:px-0 sm:h-10 sm:w-auto sm:has-[>svg]:px-4"
+          >
+            <Plus className="size-3.5 sm:size-4" />
+            <span className="hidden sm:inline">New block</span>
+          </Button>
         }
       />
 
-      <div className="flex items-center gap-2">
-        <Button
-          variant="secondary"
-          size="icon"
-          className="size-8"
-          onClick={() => setDayOffset((o) => o - 1)}
-        >
-          <ChevronLeft className="size-4" />
-        </Button>
-        <Button
-          variant="secondary"
-          size="icon"
-          className="size-8"
-          onClick={() => setDayOffset((o) => o + 1)}
-        >
-          <ChevronRight className="size-4" />
-        </Button>
-        <span className="text-sm font-medium">
-          {day.format("dddd, MMM D YYYY")}
-        </span>
-        {dayOffset !== 0 && (
-          <Button variant="ghost" size="sm" onClick={() => setDayOffset(0)}>
-            Today
-          </Button>
-        )}
-      </div>
-
-      {isLoading ? (
-        <div className="space-y-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-20 w-full" />
-          ))}
-        </div>
-      ) : blocks.length === 0 ? (
-        <Card className="border-none shadow-none">
-          <CardContent className="flex flex-col items-center gap-2 py-12 text-muted-foreground">
-            <CalendarClock className="size-8" />
-            <p>Nothing planned for this day.</p>
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => setCreateOpen(true)}
+      <div className="schedule-card">
+        <ScheduleFilters
+          statusTabs={statusTabs}
+          status={status}
+          onStatusChange={setStatus}
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="Search blocks or topics"
+          categoriesLabel="Topics"
+          categories={categories}
+          hiddenCategories={hiddenTopics}
+          onToggleCategory={toggleTopic}
+          onShowAllCategories={() => setHiddenTopics(new Set())}
+        />
+        <CalendarView
+          mode={mode}
+          onModeChange={setMode}
+          cursor={cursor}
+          onCursorChange={setCursor}
+          status={
+            isFetching && (
+              <Loader2 className="size-4 animate-spin text-muted-foreground" />
+            )
+          }
+          events={filtered}
+          getColor={colorOf}
+          isMuted={(block) => block.Status === StudyBlockStatus.Done}
+          renderPopover={(block, trigger, side) => (
+            <StudyBlockPopover
+              block={block}
+              color={colorOf(block)}
+              topicTitle={topicTitle(block)}
+              side={side}
+              onEdit={(target) => setEditor({ block: target, draft: null })}
+              onDelete={openDelete}
             >
-              Plan your day
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {blocks.map((block) => {
-            const color = block.Topic?.Color ?? FALLBACK_COLOR;
-            const isPast = dayjs(block.EndAt).isBefore(dayjs());
-            return (
-              <Card
-                key={block.Id}
-                className={cn(
-                  "shadow-sm",
-                  block.Status === StudyBlockStatus.Done && "opacity-60",
-                )}
-              >
-                <CardContent className="flex items-center gap-4 py-4">
-                  <div
-                    className="h-12 w-1 shrink-0 rounded-full"
-                    style={{ backgroundColor: color }}
-                  />
-                  <div className="w-28 shrink-0 text-sm tabular-nums text-muted-foreground">
-                    {dayjs(block.StartAt).format("HH:mm")} –{" "}
-                    {dayjs(block.EndAt).format("HH:mm")}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium">{block.Title}</p>
-                    {block.Topic && (
-                      <p className="truncate text-xs text-muted-foreground">
-                        {block.Topic.Title}
-                      </p>
-                    )}
-                  </div>
-                  <Badge variant={statusVariant[block.Status]}>
-                    {block.Status === StudyBlockStatus.Upcoming && isPast
-                      ? "Overdue"
-                      : block.Status}
-                  </Badge>
-                  {block.Status !== StudyBlockStatus.Done && (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      disabled={updateBlock.isPending}
-                      onClick={() =>
-                        updateBlock.mutate(
-                          {
-                            id: block.Id,
-                            payload: { Status: StudyBlockStatus.Done },
-                          },
-                          { onSuccess: () => toast.success("Block completed") },
-                        )
-                      }
-                    >
-                      <Check className="size-4" />
-                      Done
-                    </Button>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-8 text-muted-foreground"
-                    disabled={deleteBlock.isPending}
-                    onClick={() =>
-                      deleteBlock.mutate(block.Id, {
-                        onSuccess: () => toast.success("Block deleted"),
-                      })
-                    }
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-interface TopicOption {
-  Id: string;
-  Title: string;
-}
-
-interface CreateBlockDialogProps {
-  day: string;
-  topics: TopicOption[];
-  onClose: () => void;
-}
-
-function CreateBlockDialog({ day, topics, onClose }: CreateBlockDialogProps) {
-  const createBlock = useCreateStudyBlock();
-  const [title, setTitle] = useState("");
-  const [topicId, setTopicId] = useState<string>("none");
-  const [date, setDate] = useState(day);
-  const [startTime, setStartTime] = useState("09:00");
-  const [endTime, setEndTime] = useState("10:00");
-  const [reminder, setReminder] = useState(5);
-
-  const handleSubmit = () => {
-    if (!title.trim()) {
-      toast.error("Title is required");
-      return;
-    }
-    const startAt = dayjs(`${date}T${startTime}`);
-    const endAt = dayjs(`${date}T${endTime}`);
-    if (!endAt.isAfter(startAt)) {
-      toast.error("End time must be after start time");
-      return;
-    }
-    createBlock.mutate(
-      {
-        Title: title.trim(),
-        TopicId: topicId === "none" ? undefined : topicId,
-        StartAt: startAt.toISOString(),
-        EndAt: endAt.toISOString(),
-        ReminderMinutesBefore: reminder,
-      },
-      {
-        onSuccess: () => {
-          toast.success("Study block scheduled");
-          onClose();
-        },
-        onError: () => toast.error("Failed to schedule block"),
-      },
-    );
-  };
-
-  return (
-    <DialogContent>
-      <DialogHeader>
-        <DialogTitle>Schedule a study block</DialogTitle>
-      </DialogHeader>
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="block-title">Title</Label>
-          <Input
-            id="block-title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. ML Course Ch. 4"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label>Topic</Label>
-          <Select value={topicId} onValueChange={setTopicId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select topic" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">No topic</SelectItem>
-              {topics.map((t) => (
-                <SelectItem key={t.Id} value={t.Id}>
-                  {t.Title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="grid grid-cols-3 gap-3">
-          <div className="space-y-2">
-            <Label htmlFor="block-date">Date</Label>
-            <Input
-              id="block-date"
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
+              {trigger}
+            </StudyBlockPopover>
+          )}
+          renderContent={(block, state) => (
+            <CalendarEventContent
+              title={block.Title}
+              {...state}
+              subtitle={
+                topicTitle(block) && (
+                  <span className="truncate text-[11px] text-muted-foreground">
+                    {topicTitle(block)}
+                  </span>
+                )
+              }
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="block-start">Start</Label>
-            <Input
-              id="block-start"
-              type="time"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="block-end">End</Label>
-            <Input
-              id="block-end"
-              type="time"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-            />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="block-reminder">Remind me (minutes before)</Label>
-          <Input
-            id="block-reminder"
-            type="number"
-            min={0}
-            max={120}
-            value={reminder}
-            onChange={(e) => setReminder(Number(e.target.value))}
-          />
-        </div>
+          )}
+          onEventChange={(block, schedule) =>
+            updateBlock.mutate(
+              { id: block.Id, payload: schedule },
+              {
+                onSuccess: () => toast.success("Study block rescheduled."),
+                onError: () => toast.error("Failed to reschedule block"),
+              },
+            )
+          }
+          onCreateAt={(start) =>
+            setEditor({
+              block: null,
+              draft: {
+                StartAt: start.toISOString(),
+                EndAt: start.add(1, "hour").toISOString(),
+              },
+            })
+          }
+          createHint="Click an empty slot to plan a study block"
+        />
       </div>
-      <DialogFooter>
-        <Button onClick={handleSubmit} disabled={createBlock.isPending}>
-          Schedule
-        </Button>
-      </DialogFooter>
-    </DialogContent>
+
+      <StudyBlockDialog
+        editor={editor}
+        topics={topics}
+        onClose={() => setEditor(null)}
+      />
+      <ConfirmDialog {...dialogProps} />
+    </div>
   );
 }

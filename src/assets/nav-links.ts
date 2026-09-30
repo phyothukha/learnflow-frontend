@@ -5,6 +5,7 @@ import {
   CalendarClock,
   FolderOpen,
   NotebookPen,
+  SquareKanban,
   type LucideIcon,
 } from "lucide-react";
 import { PERMISSIONS, type PermissionCode } from "@/lib/permissions";
@@ -46,6 +47,12 @@ export const navLinks: NavLinkGroup[] = [
         title: "Timeline",
         href: "/timeline",
         icon: CalendarClock,
+        requiredPermissions: [PERMISSIONS.SCHEDULE_VIEW],
+      },
+      {
+        title: "Tasks",
+        href: "/tasks",
+        icon: SquareKanban,
         requiredPermissions: [PERMISSIONS.SCHEDULE_VIEW],
       },
       {

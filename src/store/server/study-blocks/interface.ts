@@ -48,4 +48,9 @@ export interface CreateStudyBlockPayload {
   RecurrenceRule?: string;
 }
 
-export type UpdateStudyBlockPayload = Partial<CreateStudyBlockPayload>;
+export interface UpdateStudyBlockPayload extends Partial<
+  Omit<CreateStudyBlockPayload, "TopicId">
+> {
+  /** `null` clears the topic. */
+  TopicId?: string | null;
+}

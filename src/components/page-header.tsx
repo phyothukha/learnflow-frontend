@@ -19,23 +19,27 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "flex shrink-0 flex-wrap items-end justify-between gap-4",
+        "flex shrink-0 items-center justify-between gap-3 sm:flex-wrap sm:items-end sm:gap-4",
         className,
       )}
     >
       <div className="min-w-0 space-y-1">
         <div className="flex flex-wrap items-center gap-2.5">
-          <h1 className="truncate text-xl font-semibold tracking-tight">
+          <h1 className="truncate text-lg font-semibold tracking-tight sm:text-xl">
             {title}
           </h1>
           {badge}
         </div>
         {description && (
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="hidden text-sm text-muted-foreground sm:block">
+            {description}
+          </p>
         )}
       </div>
       {actions && (
-        <div className="flex flex-wrap items-center gap-2">{actions}</div>
+        <div className="flex shrink-0 items-center gap-2 sm:flex-wrap">
+          {actions}
+        </div>
       )}
     </div>
   );

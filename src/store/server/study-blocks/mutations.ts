@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { clientAxios } from "@/lib/axios";
 import type {
   CreateStudyBlockPayload,
+  ListResponse,
   StudyBlock,
   UpdateStudyBlockPayload,
 } from "./interface";
@@ -46,6 +47,28 @@ export function useUpdateStudyBlock() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateStudyBlock,
+    onMutate: async ({ id, payload }) => {
+      await queryClient.cancelQueries({ queryKey: ["study-block-list"] });
+      const snapshot = queryClient.getQueriesData<ListResponse<StudyBlock>>({
+        queryKey: ["study-block-list"],
+      });
+      queryClient.setQueriesData<ListResponse<StudyBlock>>(
+        { queryKey: ["study-block-list"] },
+        (list) =>
+          list && {
+            ...list,
+            value: list.value.map((block) =>
+              block.Id === id ? { ...block, ...payload } : block,
+            ),
+          },
+      );
+      return { snapshot };
+    },
+    onError: (_error, _variables, context) => {
+      context?.snapshot.forEach(([key, data]) =>
+        queryClient.setQueryData(key, data),
+      );
+    },
     onSettled: () =>
       queryClient.invalidateQueries({ queryKey: ["study-block-list"] }),
   });

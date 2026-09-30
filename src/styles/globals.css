@@ -157,8 +157,19 @@
   @apply grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4;
 }
 
+/* Tinted surface for a task; set --task-color on the element. */
+@utility task-chip {
+  border-color: color-mix(in srgb, var(--task-color) 28%, transparent);
+  background-color: color-mix(in srgb, var(--task-color) 9%, var(--card));
+}
+
 @utility dashboard-card {
   @apply flex min-w-0 flex-col rounded-2xl border border-border bg-card p-5 shadow-sm;
+}
+
+/* Filters + calendar card; nearly full screen on phones so the time grid isn't squeezed. */
+@utility schedule-card {
+  @apply flex min-h-[calc(100dvh-7rem)] flex-1 flex-col overflow-hidden rounded-xl border bg-card shadow-xs md:min-h-[560px];
 }
 
 /* Long-form reading styles for document + note markdown previews. */
@@ -239,5 +250,13 @@
   }
   &::-webkit-scrollbar-thumb:hover {
     background: var(--primary);
+  }
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
   }
 }

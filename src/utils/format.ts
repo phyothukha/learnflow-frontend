@@ -1,3 +1,10 @@
+import dayjs from "dayjs";
+
+/** e.g. "08:00 AM - 08:30 AM" */
+export function formatTimeRange(start: string, end: string) {
+  return `${dayjs(start).format("hh:mm A")} - ${dayjs(end).format("hh:mm A")}`;
+}
+
 export function formatSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;

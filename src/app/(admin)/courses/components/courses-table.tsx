@@ -15,7 +15,6 @@ export function CoursesTable() {
   const { data, isLoading } = useFetchCourses({ page, limit, search });
 
   const total = data?.TotalCount ?? 0;
-  const pageCount = Math.max(1, Math.ceil(total / limit));
 
   return (
     <DataTable
@@ -30,7 +29,7 @@ export function CoursesTable() {
       }}
       searchPlaceholder="Search courses"
       page={page}
-      pageCount={pageCount}
+      total={total}
       limit={limit}
       onPageChange={setPage}
       onLimitChange={(value) => {
