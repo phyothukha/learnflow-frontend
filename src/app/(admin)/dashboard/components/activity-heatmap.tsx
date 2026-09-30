@@ -8,19 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFetchStudyBlocks } from "@/store/server/study-blocks/queries";
 import { StudyBlockStatus } from "@/store/server/study-blocks/interface";
 import { cn } from "@/lib/utils";
-import { DEFAULT_TOPIC_COLOR } from "@/utils/colors";
-import { blockMinutes } from "@/utils/dashboard";
-
-const HEATMAP_WEEKS = 26;
-// Sequential single-hue ramp (indigo, light→dark via alpha over the surface).
-const HEATMAP_STEPS = [0.18, 0.4, 0.65, 0.9];
-const HEATMAP_HUE = DEFAULT_TOPIC_COLOR;
-
-function heatmapCellStyle(minutes: number): React.CSSProperties {
-  if (minutes <= 0) return { backgroundColor: "var(--muted)" };
-  const step = minutes >= 120 ? 3 : minutes >= 60 ? 2 : minutes >= 30 ? 1 : 0;
-  return { backgroundColor: HEATMAP_HUE, opacity: HEATMAP_STEPS[step] };
-}
+import { HEATMAP_STEPS, HEATMAP_WEEKS } from "@/lib/dashboard";
+import { blockMinutes, heatmapCellStyle } from "@/utils/dashboard";
 
 interface DayActivity {
   minutes: number;

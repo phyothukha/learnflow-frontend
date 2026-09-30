@@ -18,7 +18,8 @@ import {
 } from "@/store/server/study-blocks/interface";
 import type { Topic } from "@/store/server/topics/interface";
 import type { Note } from "@/store/server/notes/interface";
-import { FALLBACK_TOPIC_COLOR } from "@/utils/colors";
+import { HEATMAP_STEPS } from "@/lib/dashboard";
+import { DEFAULT_TOPIC_COLOR, FALLBACK_TOPIC_COLOR } from "@/utils/colors";
 import { toCsv } from "@/utils/csv";
 import { formatHours } from "@/utils/format";
 
@@ -32,6 +33,12 @@ export const chartTooltipStyle: React.CSSProperties = {
   color: "var(--popover-foreground)",
   boxShadow: "0 4px 12px rgb(0 0 0 / 0.08)",
 };
+
+export function heatmapCellStyle(minutes: number): React.CSSProperties {
+  if (minutes <= 0) return { backgroundColor: "var(--muted)" };
+  const step = minutes >= 120 ? 3 : minutes >= 60 ? 2 : minutes >= 30 ? 1 : 0;
+  return { backgroundColor: DEFAULT_TOPIC_COLOR, opacity: HEATMAP_STEPS[step] };
+}
 
 export function blockMinutes(block: StudyBlock) {
   return Math.max(0, dayjs(block.EndAt).diff(dayjs(block.StartAt), "minute"));

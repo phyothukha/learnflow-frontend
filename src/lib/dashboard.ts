@@ -21,6 +21,10 @@ export const DASHBOARD_PERIOD_LABELS = new Map<DashboardPeriod, string>([
   [DashboardPeriod.Custom, "Custom range"],
 ]);
 
+export const HEATMAP_WEEKS = 26;
+// Sequential single-hue ramp (indigo, light→dark via alpha over the surface).
+export const HEATMAP_STEPS = [0.18, 0.4, 0.65, 0.9];
+
 export enum DashboardWidget {
   Stats = "stats",
   TotalFocus = "total-focus",

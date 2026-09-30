@@ -23,7 +23,7 @@ export function CompletionGaugeCard({
 
   return (
     <DashboardCard title="Study Completion" icon={Gauge} className={className}>
-      <div className="relative mx-auto mt-4 flex h-32 w-full max-w-[220px] items-end justify-center">
+      <div className="relative mx-auto mt-4 flex h-32 w-full max-w-55 items-end justify-center">
         <svg viewBox="0 0 140 90" className="h-full w-full">
           <path
             d="M 16 80 A 54 54 0 0 1 124 80"
