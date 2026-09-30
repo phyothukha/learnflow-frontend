@@ -61,6 +61,9 @@ export interface DataTableProps<TData> {
   showCheckbox?: boolean;
   rowSelection?: RowSelectionState;
   onRowSelectionChange?: OnChangeFn<RowSelectionState>;
+  /** Passing `onSortingChange` switches to server-side (manual) sorting. */
+  sorting?: SortingState;
+  onSortingChange?: OnChangeFn<SortingState>;
   skeletonRows?: number;
 }
 
@@ -92,10 +95,27 @@ export function DataTable<TData>({
   skeletonRows = 5,
   rowSelection: controlledRowSelection,
   onRowSelectionChange,
+  sorting: controlledSorting,
+  onSortingChange,
 }: DataTableProps<TData>) {
   const [uncontrolledRowSelection, setUncontrolledRowSelection] =
     useState<RowSelectionState>({});
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [uncontrolledSorting, setUncontrolledSorting] = useState<SortingState>(
+    [],
+  );
+
+  const manualSorting = !!onSortingChange;
+  const sorting = controlledSorting ?? uncontrolledSorting;
+
+  // Row ids default to the row index, so a selection must not survive a page/search/sort change.
+  const selectionScope = `${page}:${limit}:${search ?? ""}:${
+    manualSorting ? JSON.stringify(sorting) : ""
+  }`;
+  const [prevSelectionScope, setPrevSelectionScope] = useState(selectionScope);
+  if (prevSelectionScope !== selectionScope) {
+    setPrevSelectionScope(selectionScope);
+    setUncontrolledRowSelection({});
+  }
 
   const rowSelection = controlledRowSelection ?? uncontrolledRowSelection;
   const setRowSelection = onRowSelectionChange ?? setUncontrolledRowSelection;
@@ -109,11 +129,11 @@ export function DataTable<TData>({
     data,
     columns: tableColumns,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    onSortingChange: setSorting,
+    getSortedRowModel: manualSorting ? undefined : getSortedRowModel(),
+    manualSorting,
+    enableMultiSort: !manualSorting,
+    onSortingChange: onSortingChange ?? setUncontrolledSorting,
     sortDescFirst: false,
-    manualPagination: showPagination,
-    pageCount,
     getRowId,
     enableRowSelection: showCheckbox,
     onRowSelectionChange: setRowSelection,
@@ -192,14 +212,21 @@ export function DataTable<TData>({
                 : table.getRowModel().rows.map((row) => (
                     <TableRow
                       key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
+                      data-state={row.getIsSelected() ? "selected" : undefined}
                       className={cn(onRowClick && "cursor-pointer")}
                       onClick={
                         onRowClick ? () => onRowClick(row.original) : undefined
                       }
                     >
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
+                        <TableCell
+                          key={cell.id}
+                          onClick={
+                            cell.column.id === SELECT_COLUMN_ID
+                              ? (e) => e.stopPropagation()
+                              : undefined
+                          }
+                        >
                           {cell.column.id === SELECT_COLUMN_ID ? (
                             flexRender(
                               cell.column.columnDef.cell,

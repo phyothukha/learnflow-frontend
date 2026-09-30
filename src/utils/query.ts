@@ -8,6 +8,28 @@ export interface QueryOptions {
   count?: boolean;
 }
 
+export interface SortEntry {
+  id: string;
+  desc: boolean;
+}
+
+/**
+ * Translates table sorting into an OData `$orderby` value.
+ * `fields` maps a column id to its OData path when they differ.
+ *
+ * toOrderBy([{ id: "Course", desc: true }], new Map([["Course", "Course/Title"]]))
+ * // => "Course/Title desc"
+ */
+export function toOrderBy(
+  sorting: SortEntry[],
+  fields?: Map<string, string>,
+): string | undefined {
+  if (!sorting.length) return undefined;
+  return sorting
+    .map(({ id, desc }) => `${fields?.get(id) ?? id} ${desc ? "desc" : "asc"}`)
+    .join(",");
+}
+
 /**
  * Translates UI filter state into an OData-compatible query string.
  *

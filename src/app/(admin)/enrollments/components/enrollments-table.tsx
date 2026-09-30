@@ -1,13 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import type { SortingState } from "@tanstack/react-table";
 import { Users } from "lucide-react";
 import { DataTable } from "@/components/data-table";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import { useFetchEnrollments } from "@/store/server/enrollments/queries";
+import { toOrderBy } from "@/utils/query";
 import { columns } from "./columns";
 import { EnrollmentsPrimaryButtons } from "./enrollments-primary-buttons";
+
+const ENROLLMENT_SORT_FIELDS = new Map([["Course", "Course/Title"]]);
 
 export function EnrollmentsTable() {
   const { hasPermission } = usePermission();
@@ -16,8 +20,14 @@ export function EnrollmentsTable() {
   const [page, setPage] = useState(0);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
+  const [sorting, setSorting] = useState<SortingState>([]);
 
-  const { data, isLoading } = useFetchEnrollments({ page, limit, search });
+  const { data, isLoading } = useFetchEnrollments({
+    page,
+    limit,
+    search,
+    orderby: toOrderBy(sorting, ENROLLMENT_SORT_FIELDS),
+  });
 
   const total = data?.["@odata.count"] ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / limit));
@@ -40,6 +50,11 @@ export function EnrollmentsTable() {
       onPageChange={setPage}
       onLimitChange={(value) => {
         setLimit(value);
+        setPage(0);
+      }}
+      sorting={sorting}
+      onSortingChange={(updater) => {
+        setSorting(updater);
         setPage(0);
       }}
       columnVisibility={{ StudentEmail: canViewEmail }}
