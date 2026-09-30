@@ -7,6 +7,7 @@ import { DocumentKindIcon } from "@/components/document-kind-icon";
 import { getDocumentKind, getKindMeta } from "@/lib/document-types";
 import { DOCUMENT_STATUS_SCORE } from "@/lib/document-status";
 import { cn } from "@/lib/utils";
+import { topDocuments } from "@/utils/dashboard";
 import type { StudyDocument } from "@/store/server/documents/interface";
 import { DocumentStatusPill } from "@/app/(admin)/library/components/document-status-pill";
 
@@ -19,14 +20,7 @@ export function TopDocumentsCard({
   documents,
   className,
 }: TopDocumentsCardProps) {
-  const rows = [...documents]
-    .sort(
-      (a, b) =>
-        b.TimeSpentMinutes - a.TimeSpentMinutes ||
-        (DOCUMENT_STATUS_SCORE.get(b.Status) ?? 0) -
-          (DOCUMENT_STATUS_SCORE.get(a.Status) ?? 0),
-    )
-    .slice(0, 5);
+  const rows = topDocuments(documents);
 
   return (
     <DashboardCard title="Top Documents" icon={FileText} className={className}>

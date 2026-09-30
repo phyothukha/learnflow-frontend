@@ -8,7 +8,7 @@ import {
   resolvePrimaryColorId,
 } from "@/store/client/primary-color-slice";
 import "@/styles/globals.css";
-import { fontSans, fontMono, fontPoppins } from "@/styles/font";
+import { fontSans, fontMono, fontPoppins, fontBrand } from "@/styles/font";
 import Providers from "@/app/provider";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -67,7 +67,7 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body
-        className={`${fontSans.variable} ${fontMono.variable} ${fontPoppins.variable} antialiased`}
+        className={`${fontSans.variable} ${fontMono.variable} ${fontPoppins.variable} ${fontBrand.variable} antialiased`}
       >
         <Suspense fallback={null}>
           <NavigationProgress />

@@ -25,8 +25,11 @@ export function useWorkspaceStore() {
     useShallow((state) => ({
       activeTopicId: state.activeTopicId,
       soundMuted: state.soundMuted,
+      hiddenWidgets: state.hiddenWidgets,
       setActiveTopic: state.setActiveTopic,
       toggleSoundMuted: state.toggleSoundMuted,
+      toggleWidget: state.toggleWidget,
+      showAllWidgets: state.showAllWidgets,
     })),
   );
 }

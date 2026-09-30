@@ -7,7 +7,11 @@ import {
   Timer,
   type LucideIcon,
 } from "lucide-react";
-import { DocumentStatus } from "@/store/server/documents/interface";
+import { DOCUMENT_STATUS_SCORE } from "@/lib/document-status";
+import {
+  DocumentStatus,
+  type StudyDocument,
+} from "@/store/server/documents/interface";
 import {
   StudyBlockStatus,
   type StudyBlock,
@@ -15,6 +19,7 @@ import {
 import type { Topic } from "@/store/server/topics/interface";
 import type { Note } from "@/store/server/notes/interface";
 import { FALLBACK_TOPIC_COLOR } from "@/utils/colors";
+import { toCsv } from "@/utils/csv";
 import { formatHours } from "@/utils/format";
 
 export const NO_TOPIC_LABEL = "No topic";
@@ -257,6 +262,61 @@ export function buildNotePreview(note: Note | undefined, length = 180) {
       .trim()
       .slice(0, length) || note.Title
   );
+}
+
+export function topDocuments(documents: StudyDocument[], limit = 5) {
+  return [...documents]
+    .sort(
+      (a, b) =>
+        b.TimeSpentMinutes - a.TimeSpentMinutes ||
+        (DOCUMENT_STATUS_SCORE.get(b.Status) ?? 0) -
+          (DOCUMENT_STATUS_SCORE.get(a.Status) ?? 0),
+    )
+    .slice(0, limit);
+}
+
+export function dashboardGridTemplate(weights: number[]) {
+  return weights.map((weight) => `minmax(0,${weight}fr)`).join(" ");
+}
+
+export interface DashboardCsvInput {
+  rangeLabel: string;
+  tiles: KpiTile[];
+  focusSeries: FocusPoint[];
+  weekdayData: DayActivePoint[];
+  documents: StudyDocument[];
+}
+
+export function buildDashboardCsv({
+  rangeLabel,
+  tiles,
+  focusSeries,
+  weekdayData,
+  documents,
+}: DashboardCsvInput) {
+  return toCsv([
+    ["LearnFlow dashboard", rangeLabel],
+    [],
+    ["Metric", "Value", "Change vs previous period"],
+    ...tiles.map((tile) => [
+      tile.title,
+      tile.value,
+      tile.change === null ? "" : `${tile.change.toFixed(1)}%`,
+    ]),
+    [],
+    ["Date", "Focus minutes", "Previous period minutes"],
+    ...focusSeries.map((point) => [point.label, point.current, point.previous]),
+    [],
+    ["Weekday", "Focus minutes"],
+    ...weekdayData.map((point) => [point.day, point.minutes]),
+    [],
+    ["Top document", "Time spent (min)", "Status"],
+    ...topDocuments(documents).map((doc) => [
+      doc.Title,
+      doc.TimeSpentMinutes,
+      doc.Status,
+    ]),
+  ]);
 }
 
 export interface KpiTile {

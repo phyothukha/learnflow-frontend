@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { DatePicker, TimePicker } from "@/components/date-picker";
 import { TagInput } from "@/components/tag-input";
 import { Button } from "@/components/ui/button";
 import {
@@ -310,7 +311,7 @@ export function TasksDialogs() {
                 />
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1fr)]">
                 <FormField
                   control={form.control}
                   name="Date"
@@ -318,7 +319,11 @@ export function TasksDialogs() {
                     <FormItem>
                       <FormLabel>Date</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <DatePicker
+                          value={field.value}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -331,7 +336,11 @@ export function TasksDialogs() {
                     <FormItem>
                       <FormLabel>Start</FormLabel>
                       <FormControl>
-                        <Input type="time" step={900} {...field} />
+                        <TimePicker
+                          value={field.value}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -344,7 +353,11 @@ export function TasksDialogs() {
                     <FormItem>
                       <FormLabel>End</FormLabel>
                       <FormControl>
-                        <Input type="time" step={900} {...field} />
+                        <TimePicker
+                          value={field.value}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

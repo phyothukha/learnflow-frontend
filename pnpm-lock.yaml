@@ -58,6 +58,9 @@ importers:
       react:
         specifier: 19.1.0
         version: 19.1.0
+      react-day-picker:
+        specifier: ^10.0.2
+        version: 10.0.2(@types/react@19.2.17)(react@19.1.0)
       react-dom:
         specifier: 19.1.0
         version: 19.1.0(react@19.1.0)
@@ -156,6 +159,12 @@ packages:
         optional: true
       nodemailer:
         optional: true
+
+  "@date-fns/tz@1.5.0":
+    resolution:
+      {
+        integrity: sha512-lwYN/vDPeNRULcepoE/LO2Pgx+7/RV+S9ARfbc9lr2DtGkOD7pAiruHvbR1RX3Qyf6ja47EWJDMsNK5vK08DJg==,
+      }
 
   "@emnapi/core@1.10.0":
     resolution:
@@ -4605,6 +4614,19 @@ packages:
       "@types/react-dom":
         optional: true
 
+  react-day-picker@10.0.2:
+    resolution:
+      {
+        integrity: sha512-QetiKtZWE9Uaw/pM/SYNv6WPYOTRnSJ2puL0GgwkmUFMIwiY0dtjH1W4B7DOVXVNQM0ZOClGpH/heOfBSzWeiA==,
+      }
+    engines: { node: ">=18" }
+    peerDependencies:
+      "@types/react": ">=16.8.0"
+      react: ">=16.8.0"
+    peerDependenciesMeta:
+      "@types/react":
+        optional: true
+
   react-dom@19.1.0:
     resolution:
       {
@@ -5469,6 +5491,8 @@ snapshots:
       oauth4webapi: 3.8.6
       preact: 10.24.3
       preact-render-to-string: 6.5.11(preact@10.24.3)
+
+  "@date-fns/tz@1.5.0": {}
 
   "@emnapi/core@1.10.0":
     dependencies:
@@ -8626,6 +8650,14 @@ snapshots:
     optionalDependencies:
       "@types/react": 19.2.17
       "@types/react-dom": 19.2.3(@types/react@19.2.17)
+
+  react-day-picker@10.0.2(@types/react@19.2.17)(react@19.1.0):
+    dependencies:
+      "@date-fns/tz": 1.5.0
+      date-fns: 4.4.0
+      react: 19.1.0
+    optionalDependencies:
+      "@types/react": 19.2.17
 
   react-dom@19.1.0(react@19.1.0):
     dependencies:

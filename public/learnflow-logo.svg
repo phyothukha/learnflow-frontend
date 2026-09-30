@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">LearnFlow</title>
+  <defs>
+    <linearGradient id="lf-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a7cff"/>
+      <stop offset="0.6" stop-color="#3a5bf0"/>
+      <stop offset="1" stop-color="#6236f5"/>
+    </linearGradient>
+    <radialGradient id="lf-glow" cx="0.3" cy="0.25" r="0.75">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="lf-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#1e1b4b" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="url(#lf-bg)"/>
+  <rect width="512" height="512" rx="112" fill="url(#lf-glow)"/>
+
+  <g transform="translate(-14 14)" filter="url(#lf-shadow)" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Book: back cover -->
+    <path d="M112 190 V344 Q112 368 136 368 H222 Q238 368 250 380" stroke-width="20"/>
+    <!-- Book: left page -->
+    <path d="M130 160 Q130 140 150 142 Q215 148 250 190 V350 Q210 318 150 316 Q130 316 130 296 Z" fill="#ffffff" stroke="none"/>
+    <!-- Flow: rising wave with arrow -->
+    <path d="M258 352 C270 282 318 252 360 238 C400 224 426 196 452 156" stroke-width="22"/>
+    <path d="M414 162 L452 156 L448 194" stroke-width="22"/>
+    <!-- Flow: lower wave -->
+    <path d="M262 364 C300 324 340 304 380 294 C418 283 436 262 440 240" stroke-width="18"/>
+    <!-- Sparkle -->
+    <path d="M466 76 Q470 96 490 100 Q470 104 466 124 Q462 104 442 100 Q462 96 466 76 Z" fill="#ffffff" stroke="none"/>
+  </g>
+</svg>

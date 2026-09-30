@@ -40,6 +40,7 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-poppins: var(--font-poppins);
+  --font-brand: var(--font-lexend);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -170,6 +171,18 @@
 /* Filters + calendar card; nearly full screen on phones so the time grid isn't squeezed. */
 @utility schedule-card {
   @apply flex min-h-[calc(100dvh-7rem)] flex-1 flex-col overflow-hidden rounded-xl border bg-card shadow-xs md:min-h-[560px];
+}
+
+@utility dashboard-chip {
+  @apply inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm text-muted-foreground transition-colors hover:text-foreground data-[state=open]:text-foreground;
+}
+
+@utility picker-trigger {
+  @apply flex h-9 w-full min-w-0 items-center gap-2 rounded-md border border-input bg-transparent px-3 text-left text-sm font-normal whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[state=open]:border-ring dark:bg-input/30 dark:hover:bg-input/50;
+}
+
+@utility brand-wordmark {
+  @apply font-brand font-bold tracking-[-0.02em];
 }
 
 /* Long-form reading styles for document + note markdown previews. */

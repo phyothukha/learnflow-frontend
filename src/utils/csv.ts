@@ -37,6 +37,15 @@ export function parseCsv(text: string): string[][] {
   return rows.filter((r) => r.some((cell) => cell.trim() !== ""));
 }
 
+function escapeCsvCell(value: string | number) {
+  const text = String(value);
+  return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+export function toCsv(rows: (string | number)[][]) {
+  return rows.map((row) => row.map(escapeCsvCell).join(",")).join("\n");
+}
+
 export function csvStats(content: string) {
   const rows = parseCsv(content);
   return { rows: Math.max(rows.length - 1, 0), columns: rows[0]?.length ?? 0 };
