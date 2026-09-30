@@ -38,6 +38,7 @@ export interface DashboardRange {
 }
 
 export interface DashboardHeaderProps {
+  greeting: string;
   period: DashboardPeriod;
   range: DashboardRange;
   rangeLabel: string;
@@ -119,6 +120,7 @@ function RangePicker({ range, rangeLabel, onRangeChange }: RangePickerProps) {
 }
 
 export function DashboardHeader({
+  greeting,
   period,
   range,
   rangeLabel,
@@ -140,9 +142,9 @@ export function DashboardHeader({
       )}
     >
       <div className="min-w-0 space-y-1">
-        <h1 className="text-xl font-semibold tracking-tight">Dashboard</h1>
+        <h1 className="text-xl font-semibold tracking-tight">{greeting}</h1>
         <p className="text-sm text-muted-foreground">
-          Your focus time, study sessions and document progress at a glance
+          Your goals, focus time and study progress at a glance
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-2">

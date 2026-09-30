@@ -7,9 +7,12 @@ import {
   type ReactNode,
 } from "react";
 import dayjs from "dayjs";
+import { useSession } from "next-auth/react";
 import { LayoutGrid } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { usePlannerData } from "@/hooks/use-planner-data";
+import { usePlannerHydration } from "@/hooks/use-planner-hydration";
 import {
   DASHBOARD_PERIOD_DAYS,
   DashboardPeriod,
@@ -33,6 +36,7 @@ import {
   dashboardGridTemplate,
   donePercent,
   formatDashboardRange,
+  greeting,
   percentChange,
   sumMinutes,
 } from "@/utils/dashboard";
@@ -41,7 +45,10 @@ import {
   DashboardHeader,
   type DashboardRange,
 } from "./components/dashboard-header";
+import { PrimaryGoalCard } from "./components/primary-goal-card";
 import { StatTiles } from "./components/stat-tiles";
+import { TodayFocusCard } from "./components/today-focus-card";
+import { WeeklyProgressCard } from "./components/weekly-progress-card";
 import { TotalFocusCard } from "./components/total-focus-card";
 import { MostActiveDayCard } from "./components/most-active-day-card";
 import { TopicsBreakdownCard } from "./components/topics-breakdown-card";
@@ -107,6 +114,9 @@ export default function DashboardPage() {
     () => true,
     () => false,
   );
+  const { data: session } = useSession();
+  const plannerReady = usePlannerHydration();
+  const plannerData = usePlannerData();
   const [period, setPeriod] = useState(DEFAULT_PERIOD);
   const [range, setRange] = useState(() => presetRange(DEFAULT_PERIOD));
 
@@ -213,6 +223,9 @@ export default function DashboardPage() {
   return (
     <div className="space-y-5">
       <DashboardHeader
+        greeting={
+          hydrated ? greeting(dayjs().hour(), session?.user?.name) : "Dashboard"
+        }
         period={period}
         range={range}
         rangeLabel={rangeLabel}
@@ -223,6 +236,31 @@ export default function DashboardPage() {
         onShowAllWidgets={showAllWidgets}
         onExport={handleExport}
       />
+
+      {plannerReady && (
+        <DashboardRow
+          items={[
+            {
+              key: DashboardWidget.PrimaryGoal,
+              weight: 5,
+              visible: isVisible(DashboardWidget.PrimaryGoal),
+              node: <PrimaryGoalCard data={plannerData} />,
+            },
+            {
+              key: DashboardWidget.TodayFocus,
+              weight: 4,
+              visible: isVisible(DashboardWidget.TodayFocus),
+              node: <TodayFocusCard data={plannerData} />,
+            },
+            {
+              key: DashboardWidget.WeeklyProgress,
+              weight: 3,
+              visible: isVisible(DashboardWidget.WeeklyProgress),
+              node: <WeeklyProgressCard data={plannerData} />,
+            },
+          ]}
+        />
+      )}
 
       {isVisible(DashboardWidget.Stats) && <StatTiles tiles={kpiTiles} />}
 

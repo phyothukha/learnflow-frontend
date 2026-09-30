@@ -25,6 +25,12 @@ import { formatHours } from "@/utils/format";
 
 export const NO_TOPIC_LABEL = "No topic";
 
+export function greeting(hour: number, name?: string | null) {
+  const part = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
+  const firstName = name?.trim().split(/\s+/)[0];
+  return firstName ? `Good ${part}, ${firstName}` : `Good ${part}`;
+}
+
 export const chartTooltipStyle: React.CSSProperties = {
   backgroundColor: "var(--popover)",
   border: "1px solid var(--border)",

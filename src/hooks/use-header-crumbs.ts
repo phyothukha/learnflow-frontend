@@ -1,4 +1,5 @@
 import { navLinks } from "@/assets/nav-links";
+import { usePlannerStore } from "@/store/client/planner-store";
 import { useFetchDocument } from "@/store/server/documents/queries";
 import { useFetchNote } from "@/store/server/notes/queries";
 import { useFetchTopic } from "@/store/server/topics/queries";
@@ -29,6 +30,10 @@ export function useHeaderCrumbs(pathname: string) {
   const { data: topic } = useFetchTopic(topicId);
   const { data: document } = useFetchDocument(documentId);
   const { data: note } = useFetchNote(noteId);
+  const goalId = section === "goals" && parts[1] ? parts[1] : null;
+  const goalTitle = usePlannerStore(
+    (state) => state.goals.find((goal) => goal.Id === goalId)?.Title,
+  );
 
   const crumbs: HeaderCrumb[] = [
     {
@@ -53,6 +58,10 @@ export function useHeaderCrumbs(pathname: string) {
 
   if (documentId) {
     crumbs.push({ label: document?.Title ?? "Document" });
+  }
+
+  if (goalId) {
+    crumbs.push({ label: goalTitle ?? "Goal" });
   }
 
   if (section === "notes" && parts[1] === "new") {

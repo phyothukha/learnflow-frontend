@@ -173,6 +173,14 @@
   @apply flex min-h-[calc(100dvh-7rem)] flex-1 flex-col overflow-hidden rounded-xl border bg-card shadow-xs md:min-h-[560px];
 }
 
+@utility planner-panel {
+  @apply min-w-0 rounded-xl border bg-card p-4 shadow-xs sm:p-5;
+}
+
+@utility planner-label {
+  @apply text-xs font-medium tracking-wide text-muted-foreground uppercase;
+}
+
 @utility dashboard-chip {
   @apply inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm text-muted-foreground transition-colors hover:text-foreground data-[state=open]:text-foreground;
 }

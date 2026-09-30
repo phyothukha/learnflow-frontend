@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
@@ -13,6 +13,7 @@ import type { TaskCategory } from "@/store/server/tasks/interface";
 import { TaskCalendarView } from "./components/task-calendar-view";
 import { TaskKanbanView } from "./components/task-kanban-view";
 import { TaskListView } from "./components/task-list-view";
+import { TaskPlannerView } from "./components/task-planner-view";
 import { TasksDialogs } from "./components/tasks-dialogs";
 import {
   ALL_STATUSES,
@@ -37,15 +38,22 @@ export default function TasksPage() {
 
   return (
     <TasksProvider>
-      <TasksContent />
+      <Suspense>
+        <TasksContent />
+      </Suspense>
       <TasksDialogs />
     </TasksProvider>
   );
 }
 
 function TasksContent() {
-  const { tasks, openCreate } = useTasks();
-  const [view, setView] = useState(TaskView.Timeline);
+  const { tasks, openCreate, openEdit } = useTasks();
+  const searchParams = useSearchParams();
+  const [view, setView] = useState(() =>
+    searchParams.get("view") === TaskView.Planner
+      ? TaskView.Planner
+      : TaskView.Timeline,
+  );
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<TaskStatusFilter>(ALL_STATUSES);
   const [hiddenCategories, setHiddenCategories] = useState<Set<TaskCategory>>(
@@ -107,22 +115,26 @@ function TasksContent() {
           </>
         }
       />
-      <div className="schedule-card">
-        <TaskFilters
-          status={status}
-          onStatusChange={setStatus}
-          statusCounts={statusCounts}
-          search={search}
-          onSearchChange={setSearch}
-          hiddenCategories={hiddenCategories}
-          onToggleCategory={toggleCategory}
-          onShowAllCategories={() => setHiddenCategories(new Set())}
-          categoryCounts={categoryCounts}
-        />
-        {view === TaskView.Kanban && <TaskKanbanView tasks={filtered} />}
-        {view === TaskView.List && <TaskListView tasks={filtered} />}
-        {view === TaskView.Timeline && <TaskCalendarView tasks={filtered} />}
-      </div>
+      {view === TaskView.Planner ? (
+        <TaskPlannerView tasks={tasks} onTaskClick={openEdit} />
+      ) : (
+        <div className="schedule-card">
+          <TaskFilters
+            status={status}
+            onStatusChange={setStatus}
+            statusCounts={statusCounts}
+            search={search}
+            onSearchChange={setSearch}
+            hiddenCategories={hiddenCategories}
+            onToggleCategory={toggleCategory}
+            onShowAllCategories={() => setHiddenCategories(new Set())}
+            categoryCounts={categoryCounts}
+          />
+          {view === TaskView.Kanban && <TaskKanbanView tasks={filtered} />}
+          {view === TaskView.List && <TaskListView tasks={filtered} />}
+          {view === TaskView.Timeline && <TaskCalendarView tasks={filtered} />}
+        </div>
+      )}
     </div>
   );
 }

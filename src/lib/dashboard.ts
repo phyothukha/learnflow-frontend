@@ -26,6 +26,9 @@ export const HEATMAP_WEEKS = 26;
 export const HEATMAP_STEPS = [0.18, 0.4, 0.65, 0.9];
 
 export enum DashboardWidget {
+  PrimaryGoal = "primary-goal",
+  TodayFocus = "today-focus",
+  WeeklyProgress = "weekly-progress",
   Stats = "stats",
   TotalFocus = "total-focus",
   MostActiveDay = "most-active-day",
@@ -36,6 +39,9 @@ export enum DashboardWidget {
 }
 
 export const DASHBOARD_WIDGET_LABELS = new Map<DashboardWidget, string>([
+  [DashboardWidget.PrimaryGoal, "Primary goal"],
+  [DashboardWidget.TodayFocus, "Today's focus"],
+  [DashboardWidget.WeeklyProgress, "Weekly progress"],
   [DashboardWidget.Stats, "Summary tiles"],
   [DashboardWidget.TotalFocus, "Total focus"],
   [DashboardWidget.MostActiveDay, "Most active day"],

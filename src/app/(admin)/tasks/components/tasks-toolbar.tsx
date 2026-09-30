@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, List, SquareKanban } from "lucide-react";
+import { CalendarDays, List, Sparkles, SquareKanban } from "lucide-react";
 import {
   AnimatedTabs,
   AnimatedTabsVariant,
@@ -45,6 +45,16 @@ const VIEW_TABS: AnimatedTab<TaskView>[] = [
       <>
         <CalendarDays className="size-4" />
         <span className="hidden sm:inline">Timeline</span>
+      </>
+    ),
+  },
+  {
+    value: TaskView.Planner,
+    title: "Goal planner",
+    label: (
+      <>
+        <Sparkles className="size-4" />
+        <span className="hidden sm:inline">Planner</span>
       </>
     ),
   },
