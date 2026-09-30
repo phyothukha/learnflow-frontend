@@ -13,6 +13,7 @@ export interface CourseListParams {
   page: number;
   limit: number;
   search?: string;
+  isPublished?: boolean;
 }
 
 export interface CreateCoursePayload {

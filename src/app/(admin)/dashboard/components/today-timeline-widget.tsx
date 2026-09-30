@@ -28,7 +28,7 @@ export function TodayTimelineWidget({
     <Card className={cn("shadow-sm", className)}>
       <WidgetHeader
         title={`Today · ${dayjs().format("dddd, MMM D")}`}
-        href="/timeline"
+        href="/tasks"
         linkLabel="Open timeline"
       />
       <CardContent>
@@ -39,7 +39,7 @@ export function TodayTimelineWidget({
             <Button
               size="sm"
               variant="outline"
-              onClick={() => router.push("/timeline")}
+              onClick={() => router.push("/tasks")}
             >
               Plan your day
             </Button>

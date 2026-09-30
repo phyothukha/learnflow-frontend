@@ -2,7 +2,6 @@ import {
   LayoutDashboard,
   BookOpen,
   Users,
-  CalendarClock,
   FolderOpen,
   NotebookPen,
   SquareKanban,
@@ -42,12 +41,6 @@ export const navLinks: NavLinkGroup[] = [
         href: "/enrollments",
         icon: Users,
         requiredPermissions: [PERMISSIONS.ENROLLMENTS_VIEW],
-      },
-      {
-        title: "Timeline",
-        href: "/timeline",
-        icon: CalendarClock,
-        requiredPermissions: [PERMISSIONS.SCHEDULE_VIEW],
       },
       {
         title: "Tasks",

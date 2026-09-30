@@ -12,11 +12,14 @@ export async function GET(request: NextRequest) {
   const page = Number(searchParams.get("page") ?? 0);
   const limit = Number(searchParams.get("limit") ?? 10);
   const search = searchParams.get("search") ?? "";
+  const isPublished = searchParams.get("isPublished");
 
   const params = new URLSearchParams();
   params.set("page", String(page + 1));
   params.set("pageSize", String(limit));
   if (search) params.set("search", search);
+  if (isPublished === "true" || isPublished === "false")
+    params.set("isPublished", isPublished);
 
   try {
     const { data } = await serverAxios.get(`/v1/Courses?${params}`, {

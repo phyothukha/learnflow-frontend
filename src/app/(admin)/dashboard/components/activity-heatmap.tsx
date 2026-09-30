@@ -90,7 +90,7 @@ export function ActivityHeatmap({ className }: ActivityHeatmapProps) {
           </p>
         </div>
         <Button variant="ghost" size="sm" className="h-7 text-xs" asChild>
-          <Link href="/timeline">
+          <Link href="/tasks">
             Open timeline
             <ArrowRight className="size-3" />
           </Link>

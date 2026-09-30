@@ -28,6 +28,8 @@ export interface EnrollmentListParams {
   page: number;
   limit: number;
   search?: string;
+  /** Comma-separated statuses. */
+  status?: string;
   expand?: string;
   orderby?: string;
 }

@@ -41,6 +41,10 @@ export interface DataTableProps<TData> {
   search?: string;
   onSearchChange?: (value: string) => void;
   searchPlaceholder?: string;
+  /** Filter buttons shown in the toolbar, e.g. `DataTableFacetedFilter`s. */
+  filters?: ReactNode;
+  /** Shows a reset button in the toolbar; pass only while a filter is active. */
+  onResetFilters?: () => void;
   page?: number;
   /** Total rows across all pages. */
   total?: number;
@@ -76,6 +80,8 @@ export function DataTable<TData>({
   search,
   onSearchChange,
   searchPlaceholder,
+  filters,
+  onResetFilters,
   page = 0,
   total = 0,
   limit = 10,
@@ -159,13 +165,15 @@ export function DataTable<TData>({
         className,
       )}
     >
-      {showToolbar && (title || onSearchChange) && (
+      {showToolbar && (title || onSearchChange || filters) && (
         <DataTableToolbar
           title={title}
           selectedCount={selectedCount}
           search={search}
           onSearchChange={onSearchChange}
           searchPlaceholder={searchPlaceholder}
+          filters={filters}
+          onResetFilters={onResetFilters}
         />
       )}
 

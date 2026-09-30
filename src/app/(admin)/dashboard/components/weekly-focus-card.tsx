@@ -38,7 +38,7 @@ export function WeeklyFocusCard({
     <Card className={cn("shadow-sm", className)}>
       <WidgetHeader
         title="Weekly focus"
-        href="/timeline"
+        href="/tasks"
         linkLabel="Open timeline"
       />
       <CardContent>

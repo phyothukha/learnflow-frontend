@@ -3,6 +3,9 @@ import { auth } from "@/lib/auth";
 import { serverAxios } from "@/lib/axios";
 import { buildQuery } from "@/utils/query";
 import { isAxiosError } from "axios";
+import { EnrollmentStatus } from "@/store/server/enrollments/interface";
+
+const ENUM_TYPE = "learnflow_service.Models.EnrollmentStatus";
 
 export async function GET(request: NextRequest) {
   const session = await auth();
@@ -15,15 +18,28 @@ export async function GET(request: NextRequest) {
   const search = searchParams.get("search") ?? "";
   const expand = searchParams.get("expand") ?? "Course";
   const orderby = searchParams.get("orderby") ?? "CreatedAt desc";
+  const statuses = (searchParams.get("status") ?? "")
+    .split(",")
+    .filter((status): status is EnrollmentStatus =>
+      Object.values(EnrollmentStatus).includes(status as EnrollmentStatus),
+    );
+
+  const filters: string[] = [];
+  if (search)
+    filters.push(
+      `contains(tolower(StudentName), '${search.toLowerCase().replace(/'/g, "''")}')`,
+    );
+  if (statuses.length)
+    filters.push(
+      `(${statuses.map((status) => `Status eq ${ENUM_TYPE}'${status}'`).join(" or ")})`,
+    );
 
   const query = buildQuery({
     page,
     limit,
     expand,
     orderby,
-    filter: search
-      ? `contains(tolower(StudentName), '${search.toLowerCase().replace(/'/g, "''")}')`
-      : undefined,
+    filter: filters.length ? filters.join(" and ") : undefined,
   });
 
   try {
