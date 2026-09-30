@@ -3,11 +3,12 @@
 import {
   Bar,
   BarChart,
-  Cell,
+  Rectangle,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
+  type BarShapeProps,
 } from "recharts";
 import { CalendarDays } from "lucide-react";
 import { chartTooltipStyle } from "@/utils/dashboard";
@@ -56,18 +57,25 @@ export function MostActiveDayCard({
               contentStyle={chartTooltipStyle}
               formatter={(value) => [`${value} min`, "Focus"]}
             />
-            <Bar dataKey="minutes" radius={[6, 6, 6, 6]} maxBarSize={28}>
-              {data.map((entry) => (
-                <Cell
-                  key={entry.day}
-                  fill={
-                    entry.minutes === max && entry.minutes > 0
-                      ? "var(--primary)"
-                      : "color-mix(in srgb, var(--primary) 18%, transparent)"
-                  }
-                />
-              ))}
-            </Bar>
+            <Bar
+              dataKey="minutes"
+              radius={[6, 6, 6, 6]}
+              maxBarSize={28}
+              shape={(props: BarShapeProps) => {
+                const entry = props.payload as DayActivePoint;
+                const isPeak = entry.minutes === max && entry.minutes > 0;
+                return (
+                  <Rectangle
+                    {...props}
+                    fill={
+                      isPeak
+                        ? "var(--primary)"
+                        : "color-mix(in srgb, var(--primary) 18%, transparent)"
+                    }
+                  />
+                );
+              }}
+            />
           </BarChart>
         </ResponsiveContainer>
       </DashboardCardScroll>

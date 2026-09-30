@@ -2,9 +2,6 @@ import type { ReactNode } from "react";
 import { ArrowDownRight, ArrowUpRight, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export const dashboardCardClass =
-  "flex min-w-0 flex-col rounded-2xl border border-border bg-card p-5 shadow-sm";
-
 export interface DashboardCardScrollProps {
   minWidth: number;
   className?: string;
@@ -47,7 +44,7 @@ export function DashboardCard({
   children,
 }: DashboardCardProps) {
   return (
-    <div className={cn(dashboardCardClass, className)}>
+    <div className={cn("dashboard-card", className)}>
       <div className="flex items-start justify-between gap-3">
         <p className="text-sm text-muted-foreground">{title}</p>
         {action ??

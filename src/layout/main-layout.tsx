@@ -6,10 +6,14 @@ import { AppSidebar } from "@/layout/app-sidebar";
 import { Header } from "@/layout/header";
 import { AudioAlerts } from "@/hooks/use-audio-alerts";
 
-export function MainLayout({ children }: PropsWithChildren) {
+export interface MainLayoutProps extends PropsWithChildren {
+  sidebarOpen: boolean;
+}
+
+export function MainLayout({ sidebarOpen, children }: MainLayoutProps) {
   return (
     <SidebarProvider
-      defaultOpen={false}
+      defaultOpen={sidebarOpen}
       className="flex h-dvh min-h-0 w-full flex-col gap-0 overflow-hidden p-0 md:flex-row md:gap-3 md:p-3"
       style={{ background: "var(--sidebar-wrapper)" }}
     >

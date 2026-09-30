@@ -157,6 +157,10 @@
   @apply grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4;
 }
 
+@utility dashboard-card {
+  @apply flex min-w-0 flex-col rounded-2xl border border-border bg-card p-5 shadow-sm;
+}
+
 /* Long-form reading styles for document + note markdown previews. */
 @utility markdown-prose {
   @apply mx-auto max-w-4xl min-w-0 text-[15px] leading-7 text-foreground/90 [overflow-wrap:anywhere];

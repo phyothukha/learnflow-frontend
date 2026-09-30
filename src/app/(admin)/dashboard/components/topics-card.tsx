@@ -1,6 +1,13 @@
 "use client";
 
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import {
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Sector,
+  Tooltip,
+  type PieSectorShapeProps,
+} from "recharts";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   StudyBlockStatus,
@@ -16,6 +23,7 @@ import {
   chartTooltipStyle,
   sumMinutes,
   type TopicDocument,
+  type TopicDonutSlice,
 } from "@/utils/dashboard";
 import { WidgetHeader } from "./widget-header";
 
@@ -64,11 +72,13 @@ export function TopicsCard({
                     outerRadius={78}
                     paddingAngle={3}
                     strokeWidth={0}
-                  >
-                    {donut.map((d) => (
-                      <Cell key={d.name} fill={d.color} />
-                    ))}
-                  </Pie>
+                    shape={(props: PieSectorShapeProps) => (
+                      <Sector
+                        {...props}
+                        fill={(props.payload as TopicDonutSlice).color}
+                      />
+                    )}
+                  />
                   <Tooltip
                     contentStyle={chartTooltipStyle}
                     formatter={(value) => [`${value} min`]}

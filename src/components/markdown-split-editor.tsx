@@ -98,6 +98,46 @@ const VIEW_MODES: ViewModeOption[] = [
   { value: ViewMode.Preview, label: "Preview", icon: Eye },
 ];
 
+const LIST_ITEM = /^(\s*)([-*+>]|\d+[.)])(\s+)(\[[ xX]\]\s+)?/;
+
+interface ListContinuation {
+  next: string;
+  caret: number;
+}
+
+/** Continues a list / quote on Enter, or ends it when the current item is empty. */
+function continueList(
+  value: string,
+  start: number,
+  end: number,
+): ListContinuation | null {
+  const lineStart = value.lastIndexOf("\n", start - 1) + 1;
+  const line = value.slice(lineStart, start);
+  const match = LIST_ITEM.exec(line);
+  if (!match) return null;
+
+  const [marker, indent, bullet, gap, task] = match;
+  const lineEnd = value.indexOf("\n", end);
+  const rest = value.slice(end, lineEnd === -1 ? undefined : lineEnd);
+
+  if (!line.slice(marker.length).trim() && !rest.trim()) {
+    return {
+      next: value.slice(0, lineStart) + value.slice(end),
+      caret: lineStart,
+    };
+  }
+
+  const number = /^\d+/.exec(bullet)?.[0];
+  const nextBullet = number
+    ? `${Number(number) + 1}${bullet.slice(number.length)}`
+    : bullet;
+  const insert = `\n${indent}${nextBullet}${gap}${task ? "[ ] " : ""}`;
+  return {
+    next: value.slice(0, start) + insert + value.slice(end),
+    caret: start + insert.length,
+  };
+}
+
 export interface MarkdownSplitEditorProps {
   value: string;
   onChange: (value: string) => void;
@@ -210,7 +250,29 @@ export function MarkdownSplitEditor({
                 if ((e.metaKey || e.ctrlKey) && e.key === "s") {
                   e.preventDefault();
                   onSave?.();
+                  return;
                 }
+                if (
+                  e.key !== "Enter" ||
+                  e.shiftKey ||
+                  e.metaKey ||
+                  e.ctrlKey ||
+                  e.altKey ||
+                  e.nativeEvent.isComposing
+                )
+                  return;
+                const textarea = e.currentTarget;
+                const result = continueList(
+                  value,
+                  textarea.selectionStart,
+                  textarea.selectionEnd,
+                );
+                if (!result) return;
+                e.preventDefault();
+                onChange(result.next);
+                requestAnimationFrame(() =>
+                  textarea.setSelectionRange(result.caret, result.caret),
+                );
               }}
               placeholder={
                 "# Start writing\n\nUse **Markdown** to format your document…"
