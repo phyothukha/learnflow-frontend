@@ -2,9 +2,10 @@ import {
   LayoutDashboard,
   BookOpen,
   Users,
+  UsersRound,
   FolderOpen,
-  NotebookPen,
-  SquareKanban,
+  GraduationCap,
+  ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
 import { PERMISSIONS, type PermissionCode } from "@/lib/permissions";
@@ -31,6 +32,12 @@ export const navLinks: NavLinkGroup[] = [
         requiredPermissions: [PERMISSIONS.DASHBOARD_VIEW],
       },
       {
+        title: "Learners",
+        href: "/learners",
+        icon: GraduationCap,
+        requiredPermissions: [PERMISSIONS.LEARNERS_VIEW],
+      },
+      {
         title: "Courses",
         href: "/courses",
         icon: BookOpen,
@@ -43,10 +50,10 @@ export const navLinks: NavLinkGroup[] = [
         requiredPermissions: [PERMISSIONS.ENROLLMENTS_VIEW],
       },
       {
-        title: "Tasks",
-        href: "/tasks",
-        icon: SquareKanban,
-        requiredPermissions: [PERMISSIONS.SCHEDULE_VIEW],
+        title: "Teams",
+        href: "/teams",
+        icon: UsersRound,
+        requiredPermissions: [PERMISSIONS.TEAMS_VIEW],
       },
       {
         title: "Library",
@@ -54,11 +61,16 @@ export const navLinks: NavLinkGroup[] = [
         icon: FolderOpen,
         requiredPermissions: [PERMISSIONS.DOCUMENTS_VIEW],
       },
+    ],
+  },
+  {
+    title: "Access",
+    items: [
       {
-        title: "Notes",
-        href: "/notes",
-        icon: NotebookPen,
-        requiredPermissions: [PERMISSIONS.NOTES_VIEW],
+        title: "Roles & Permissions",
+        href: "/roles",
+        icon: ShieldCheck,
+        requiredPermissions: [PERMISSIONS.ROLES_VIEW],
       },
     ],
   },

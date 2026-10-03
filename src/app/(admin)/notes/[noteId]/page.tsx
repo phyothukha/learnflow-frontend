@@ -11,15 +11,17 @@ import {
   Code2,
   Copy,
   Eye,
-  Loader2,
+  Lock,
   MoreHorizontal,
   PenLine,
   Save,
   Trash2,
+  UsersRound,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,11 +36,17 @@ import { MarkdownSplitEditor } from "@/components/markdown-split-editor";
 import { MarkdownPreview } from "@/components/markdown-preview";
 import { SourceView } from "@/app/(admin)/library/components/document-viewers";
 import { usePermission } from "@/hooks/use-permission";
+import { useWorkspaceNotesHydration } from "@/hooks/use-workspace-notes-hydration";
+import { NOTE_VISIBILITY } from "@/lib/team-meta";
 import { PERMISSIONS } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
-import { useFetchNote } from "@/store/server/notes/queries";
-import { useDeleteNote, useUpdateNote } from "@/store/server/notes/mutations";
-import { useFetchTopics } from "@/store/server/topics/queries";
+import { accessibleNotes, useNotesStore } from "@/store/client/notes-store";
+import {
+  CURRENT_USER_ID,
+  isTeamMember,
+  useTeamsStore,
+} from "@/store/client/teams-store";
+import { NoteVisibility } from "@/store/server/notes/interface";
 
 enum ViewMode {
   Preview = "preview",
@@ -56,12 +64,8 @@ const VIEW_OPTIONS: ViewOption[] = [
   { value: ViewMode.Normal, label: "Source", icon: Code2 },
 ];
 
-interface NoteDetailPageParams {
-  noteId: string;
-}
-
 interface NoteDetailPageProps {
-  params: Promise<NoteDetailPageParams>;
+  params: Promise<{ noteId: string }>;
 }
 
 export default function NoteDetailPage({ params }: NoteDetailPageProps) {
@@ -72,21 +76,35 @@ export default function NoteDetailPage({ params }: NoteDetailPageProps) {
   const canView = hasPermission(PERMISSIONS.NOTES_VIEW);
   const canUpdate = hasPermission(PERMISSIONS.NOTES_UPDATE);
   const canDelete = hasPermission(PERMISSIONS.NOTES_DELETE);
-
-  const { data: note, isLoading, isError } = useFetchNote(noteId);
-  const { data: topicsData } = useFetchTopics({ limit: 100 });
-  const updateNote = useUpdateNote();
-  const deleteNote = useDeleteNote();
+  const ready = useWorkspaceNotesHydration();
+  const note = useNotesStore((state) =>
+    state.notes.find((item) => item.Id === noteId),
+  );
+  const updateNote = useNotesStore((state) => state.updateNote);
+  const deleteNote = useNotesStore((state) => state.deleteNote);
+  const teams = useTeamsStore((state) => state.teams);
   const { confirmDelete, confirmDiscardChanges, dialogProps } =
     useConfirmDialog();
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [hydrated, setHydrated] = useState(false);
-  const [view, setView] = useState<ViewMode>(ViewMode.Preview);
+  const [view, setView] = useState(ViewMode.Preview);
   const [editing, setEditing] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [saving, setSaving] = useState(false);
   const dirtyRef = useRef(false);
+
+  const joinedIds = new Set(
+    teams.filter((team) => isTeamMember(team)).map((team) => team.Id),
+  );
+  const allowed =
+    !!note &&
+    accessibleNotes([note], joinedIds).some((item) => item.Id === note.Id);
+  const team =
+    note?.TeamId != null ? teams.find((item) => item.Id === note.TeamId) : null;
+  const isOwner = note?.OwnerId === CURRENT_USER_ID;
+  const canEditNote = canUpdate && allowed && (isOwner || !!team);
 
   const isDirty =
     title !== (note?.Title ?? "") || content !== (note?.Content ?? "");
@@ -115,17 +133,17 @@ export default function NoteDetailPage({ params }: NoteDetailPageProps) {
     return !dirtyRef.current || (await confirmDiscardChanges());
   }, [confirmDiscardChanges]);
 
-  if (status !== "authenticated" || !canView) return null;
+  if (status !== "authenticated" || !canView || !ready) return null;
 
-  if (isLoading || !hydrated) {
+  if (!hydrated && note) {
     return <Skeleton className="h-full min-h-0 rounded-xl" />;
   }
 
-  if (isError || !note) {
+  if (!note || !allowed) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
         <p className="text-sm text-muted-foreground">
-          This note could not be found.
+          This note could not be found, or you don’t have access.
         </p>
         <Button variant="secondary" asChild>
           <Link href="/notes">Back to notes</Link>
@@ -134,32 +152,26 @@ export default function NoteDetailPage({ params }: NoteDetailPageProps) {
     );
   }
 
-  const topic = topicsData?.Items.find((t) => t.Id === note.TopicId);
+  const visibility = NOTE_VISIBILITY.get(note.Visibility);
 
   const handleSave = (closeAfter = false) => {
     if (!title.trim()) {
       toast.error("Title is required");
       return;
     }
-    updateNote.mutate(
-      { id: note.Id, payload: { Title: title.trim(), Content: content } },
-      {
-        onSuccess: () => {
-          toast.success("Note saved");
-          if (closeAfter) setEditing(false);
-        },
-        onError: () => toast.error("Failed to save note"),
-      },
-    );
+    setSaving(true);
+    updateNote(note.Id, { Title: title.trim(), Content: content });
+    toast.success("Note saved");
+    setSaving(false);
+    if (closeAfter) setEditing(false);
   };
 
   const handleDelete = () =>
     confirmDelete({
       itemName: note.Title,
       successMessage: "Note deleted",
-      errorMessage: "Failed to delete note",
       onConfirm: async () => {
-        await deleteNote.mutateAsync(note.Id);
+        deleteNote(note.Id);
         router.push("/notes");
       },
     });
@@ -171,12 +183,7 @@ export default function NoteDetailPage({ params }: NoteDetailPageProps) {
 
   return (
     <>
-      <div
-        className={cn(
-          "flex h-full min-h-0 flex-col overflow-hidden",
-          "library-card",
-        )}
-      >
+      <div className="library-card flex h-full min-h-0 flex-col overflow-hidden">
         <div className="flex shrink-0 items-center gap-1.5 border-b px-2 py-2 sm:gap-2 sm:px-3">
           <Button
             variant="ghost"
@@ -216,7 +223,7 @@ export default function NoteDetailPage({ params }: NoteDetailPageProps) {
           </div>
 
           <div className="ml-auto flex shrink-0 items-center gap-0.5">
-            {canUpdate && !editing && (
+            {canEditNote && !editing && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -251,12 +258,11 @@ export default function NoteDetailPage({ params }: NoteDetailPageProps) {
                     Copy content
                   </DropdownMenuItem>
                 )}
-                {canDelete && (
+                {canDelete && isOwner && (
                   <>
                     {content && !editing && <DropdownMenuSeparator />}
                     <DropdownMenuItem
                       variant="destructive"
-                      disabled={deleteNote.isPending}
                       onClick={handleDelete}
                     >
                       <Trash2 className="size-4" />
@@ -271,11 +277,23 @@ export default function NoteDetailPage({ params }: NoteDetailPageProps) {
 
         <div className="flex min-h-0 flex-1 flex-col">
           <div className="min-w-0 shrink-0 space-y-1 overflow-hidden px-4 pt-4 pb-2 text-center sm:px-6 sm:pt-5">
-            <p className="w-full truncate text-[11px] text-muted-foreground">
-              {topic?.Title ? `${topic.Title} · ` : ""}
-              {dayjs(note.UpdatedAt).format("MMM D, YYYY")}
-            </p>
-            {editing || canUpdate ? (
+            <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] text-muted-foreground">
+              <Badge variant="outline" className="gap-1 font-normal">
+                {note.Visibility === NoteVisibility.Private ? (
+                  <Lock className="size-3" />
+                ) : (
+                  <UsersRound
+                    className="size-3"
+                    style={team ? { color: team.Color } : undefined}
+                  />
+                )}
+                {team?.Name ?? visibility?.label}
+              </Badge>
+              <span>
+                {note.OwnerName} · {dayjs(note.UpdatedAt).format("MMM D, YYYY")}
+              </span>
+            </div>
+            {editing || canEditNote ? (
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -304,7 +322,7 @@ export default function NoteDetailPage({ params }: NoteDetailPageProps) {
                     <span
                       className={cn(
                         "size-2 rounded-full",
-                        updateNote.isPending
+                        saving
                           ? "animate-pulse bg-amber-500"
                           : isDirty
                             ? "bg-amber-500"
@@ -312,7 +330,7 @@ export default function NoteDetailPage({ params }: NoteDetailPageProps) {
                       )}
                     />
                     <span className="hidden sm:inline">
-                      {updateNote.isPending
+                      {saving
                         ? "Saving…"
                         : isDirty
                           ? "Unsaved changes"
@@ -335,13 +353,9 @@ export default function NoteDetailPage({ params }: NoteDetailPageProps) {
                     <Button
                       size="sm"
                       onClick={() => handleSave(true)}
-                      disabled={updateNote.isPending}
+                      disabled={saving}
                     >
-                      {updateNote.isPending ? (
-                        <Loader2 className="size-4 animate-spin" />
-                      ) : (
-                        <Save className="size-4" />
-                      )}
+                      <Save className="size-4" />
                       Save
                     </Button>
                   </div>
@@ -350,7 +364,7 @@ export default function NoteDetailPage({ params }: NoteDetailPageProps) {
             ) : !content.trim() ? (
               <div className="flex flex-1 flex-col items-center justify-center gap-3 text-muted-foreground">
                 <p className="text-sm">This note is empty.</p>
-                {canUpdate && (
+                {canEditNote && (
                   <Button
                     variant="secondary"
                     size="sm"

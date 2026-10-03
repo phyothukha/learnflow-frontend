@@ -124,7 +124,7 @@ export default function LibraryPage() {
       <div className="space-y-6">
         <PageHeader
           title="Library"
-          description="Browse topics and open folders to manage your files"
+          description="Store uploaded books and documents in one place. Viewing only — markdown notes live under Notes / Teams."
           badge={
             <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary tabular-nums">
               {topics.length} {topics.length === 1 ? "topic" : "topics"}

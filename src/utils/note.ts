@@ -1,5 +1,11 @@
 import dayjs from "dayjs";
-import type { Note } from "@/store/server/notes/interface";
+
+export interface NoteLike {
+  Id: string;
+  Title: string;
+  Content: string | null;
+  UpdatedAt: string;
+}
 
 export enum NoteGroupLabel {
   Today = "Today",
@@ -8,9 +14,9 @@ export enum NoteGroupLabel {
   Older = "Older",
 }
 
-export interface NoteGroup {
+export interface NoteGroup<T extends NoteLike = NoteLike> {
   label: NoteGroupLabel;
-  items: Note[];
+  items: T[];
 }
 
 export function previewText(content: string | null) {
@@ -22,7 +28,7 @@ export function previewText(content: string | null) {
     .trim();
 }
 
-export function searchNotes(notes: Note[], query: string) {
+export function searchNotes<T extends NoteLike>(notes: T[], query: string) {
   const q = query.trim().toLowerCase();
   if (!q) return notes;
   return notes.filter(
@@ -31,7 +37,7 @@ export function searchNotes(notes: Note[], query: string) {
   );
 }
 
-function noteGroupLabel(note: Note, now: dayjs.Dayjs) {
+function noteGroupLabel(note: NoteLike, now: dayjs.Dayjs) {
   const updated = dayjs(note.UpdatedAt);
   if (updated.isSame(now, "day")) return NoteGroupLabel.Today;
   const days = now.diff(updated, "day");
@@ -41,7 +47,7 @@ function noteGroupLabel(note: Note, now: dayjs.Dayjs) {
 }
 
 /** Newest first, bucketed into Today / 7 days / 30 days / Older. */
-export function groupNotes(notes: Note[]): NoteGroup[] {
+export function groupNotes<T extends NoteLike>(notes: T[]): NoteGroup<T>[] {
   const now = dayjs();
   const sorted = [...notes].sort(
     (a, b) => dayjs(b.UpdatedAt).valueOf() - dayjs(a.UpdatedAt).valueOf(),

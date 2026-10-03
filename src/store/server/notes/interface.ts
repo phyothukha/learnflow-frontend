@@ -1,3 +1,4 @@
+/** Topic-scoped API note (legacy backend shape). */
 export interface Note {
   Id: string;
   TopicId: string;
@@ -23,3 +24,28 @@ export interface CreateNotePayload {
 }
 
 export type UpdateNotePayload = Partial<Omit<CreateNotePayload, "TopicId">>;
+
+/** Notes live under Private or a Team — not under topics. */
+export enum NoteVisibility {
+  Private = "Private",
+  Team = "Team",
+}
+
+/** Markdown note used by the Teams / Notes UI (local until API catches up). */
+export interface WorkspaceNote {
+  Id: string;
+  Title: string;
+  Content: string | null;
+  Visibility: NoteVisibility;
+  /** Set when Visibility is Team. */
+  TeamId: string | null;
+  OwnerId: string;
+  OwnerName: string;
+  CreatedAt: string;
+  UpdatedAt: string;
+}
+
+export type WorkspaceNoteInput = Omit<
+  WorkspaceNote,
+  "Id" | "CreatedAt" | "UpdatedAt"
+>;

@@ -1,6 +1,11 @@
 import { navLinks } from "@/assets/nav-links";
+import {
+  LearnerStatus,
+  useLearnersStore,
+} from "@/store/client/mock/learners-store";
+import { useNotesStore } from "@/store/client/notes-store";
+import { useTeamsStore } from "@/store/client/teams-store";
 import { useFetchDocument } from "@/store/server/documents/queries";
-import { useFetchNote } from "@/store/server/notes/queries";
 import { useFetchTopic } from "@/store/server/topics/queries";
 
 const ROUTE_LABELS = new Map<string, string>(
@@ -25,10 +30,28 @@ export function useHeaderCrumbs(pathname: string) {
   const documentId = section === "library" && parts[2] ? parts[2] : null;
   const noteId =
     section === "notes" && parts[1] && parts[1] !== "new" ? parts[1] : null;
+  const teamId = section === "teams" && parts[1] ? parts[1] : null;
+  const learnerId =
+    section === "learners" &&
+    parts[1] &&
+    parts[1] !== "invite" &&
+    parts[1] !== "new"
+      ? parts[1]
+      : null;
 
   const { data: topic } = useFetchTopic(topicId);
   const { data: document } = useFetchDocument(documentId);
-  const { data: note } = useFetchNote(noteId);
+  const note = useNotesStore((state) =>
+    noteId ? state.notes.find((item) => item.Id === noteId) : undefined,
+  );
+  const team = useTeamsStore((state) =>
+    teamId ? state.teams.find((item) => item.Id === teamId) : undefined,
+  );
+  const learner = useLearnersStore((state) =>
+    learnerId
+      ? state.learners.find((item) => item.Id === learnerId)
+      : undefined,
+  );
 
   const crumbs: HeaderCrumb[] = [
     {
@@ -55,10 +78,30 @@ export function useHeaderCrumbs(pathname: string) {
     crumbs.push({ label: document?.Title ?? "Document" });
   }
 
+  if (teamId) {
+    crumbs.push({ label: team?.Name ?? "Team" });
+  }
+
   if (section === "notes" && parts[1] === "new") {
     crumbs.push({ label: "New note" });
   } else if (noteId) {
     crumbs.push({ label: note?.Title ?? "Note" });
+  }
+
+  if (section === "learners" && parts[1] === "invite") {
+    crumbs.push({ label: "Invite" });
+  } else if (learnerId) {
+    const label =
+      learner?.Status === LearnerStatus.Invited
+        ? (learner.Email ?? "Learner")
+        : (learner?.Name ?? "Learner");
+    crumbs.push({
+      label,
+      href: parts[2] ? `/learners/${learnerId}` : undefined,
+    });
+    if (parts[2] === "edit") {
+      crumbs.push({ label: "Edit" });
+    }
   }
 
   return crumbs;

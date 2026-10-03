@@ -41,6 +41,12 @@ export const PERMISSIONS = {
   NOTES_UPDATE: "notes_update",
   NOTES_DELETE: "notes_delete",
 
+  // Teams
+  TEAMS_VIEW: "teams_view",
+  TEAMS_CREATE: "teams_create",
+  TEAMS_UPDATE: "teams_update",
+  TEAMS_DELETE: "teams_delete",
+
   // Schedule (study blocks)
   SCHEDULE_VIEW: "schedule_view",
   SCHEDULE_CREATE: "schedule_create",
@@ -49,6 +55,18 @@ export const PERMISSIONS = {
 
   // Analytics
   ANALYTICS_VIEW: "analytics_view",
+
+  // Learners
+  LEARNERS_VIEW: "learners_view",
+  LEARNERS_CREATE: "learners_create",
+  LEARNERS_UPDATE: "learners_update",
+  LEARNERS_DELETE: "learners_delete",
+
+  // Roles & permissions
+  ROLES_VIEW: "roles_view",
+  ROLES_CREATE: "roles_create",
+  ROLES_UPDATE: "roles_update",
+  ROLES_DELETE: "roles_delete",
 } as const;
 
 export type PermissionCode = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

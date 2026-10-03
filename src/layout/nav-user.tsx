@@ -7,15 +7,7 @@ import { LogOut } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { SidebarMenu, SidebarMenuItem } from "@/components/ui/sidebar";
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-}
+import { getInitials } from "@/utils/string";
 
 export function NavUser() {
   const { confirmLogout, dialogProps } = useConfirmLogout();
