@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/page-header";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import { InviteLearnerForm } from "../components/invite-learner-form";
@@ -23,30 +21,13 @@ export default function InviteLearnerPage() {
   if (status !== "authenticated" || !canCreate) return null;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-start gap-3">
-        <Button
-          variant="subtle"
-          size="icon"
-          className="size-9 shrink-0"
-          asChild
-        >
-          <Link href="/learners">
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="min-w-0">
-          <h1 className="text-xl font-semibold tracking-tight">
-            Invite learner
-          </h1>
-          <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-            Invite by email. Everyone gets the Learner role — just choose which
-            portal tabs they can open. They set their name when they accept.
-          </p>
-        </div>
-      </div>
-
-      <div className="library-card mx-auto w-full max-w-xl p-5 sm:p-6">
+    <div className="flex h-full min-h-0 flex-col gap-6 overflow-hidden">
+      <PageHeader
+        className="shrink-0"
+        title="Invite Learner"
+        description="Invite by email. They get the Learner role — set portal access below."
+      />
+      <div className="min-h-0 flex-1">
         <InviteLearnerForm />
       </div>
     </div>

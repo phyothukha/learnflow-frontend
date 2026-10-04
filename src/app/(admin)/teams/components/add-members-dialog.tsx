@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Mail, NotebookPen, UserPlus, X } from "lucide-react";
+import { Mail, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +15,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { useTeamsStore } from "@/store/client/teams-store";
 import {
@@ -152,7 +152,8 @@ export function AddMembersDialog({ team }: { team: Team }) {
     >
       <DialogTrigger asChild>
         <Button>
-          <UserPlus /> Add learners
+          <UserPlus />
+          Add learners
         </Button>
       </DialogTrigger>
       <DialogContent className="gap-0 overflow-visible p-0 sm:max-w-[520px]">
@@ -279,30 +280,43 @@ export function AddMembersDialog({ team }: { team: Team }) {
             )}
           </div>
 
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              Permissions ({canAccessNotes ? 1 : 0} selected)
-            </p>
-            <div className="rounded-2xl bg-muted/40 p-2">
-              <label className="flex cursor-pointer items-start gap-3 rounded-xl border bg-background px-3.5 py-3.5 shadow-xs">
-                <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <NotebookPen className="size-4" />
-                </span>
-                <span className="min-w-0 flex-1 pt-0.5">
-                  <span className="block text-sm font-semibold">
-                    Access to team notes
+          <div
+            className={cn(
+              "rounded-xl border bg-muted/20 p-3 transition-colors sm:p-4",
+              canAccessNotes && "border-primary/25 bg-primary/[0.03]",
+            )}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex rounded-md border bg-background px-2.5 py-1 text-sm font-semibold shadow-xs">
+                    Team notes
                   </span>
-                  <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">
-                    Read and write shared markdown notes in {team.Name}. Off
-                    means membership only.
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {canAccessNotes ? 1 : 0}/1
                   </span>
-                </span>
-                <Switch
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Shared markdown notes in {team.Name}. Unchecked means
+                  membership only.
+                </p>
+              </div>
+            </div>
+            <div className="mt-3">
+              <Label
+                htmlFor="add-members-notes"
+                className={cn(
+                  "flex cursor-pointer items-center gap-2 text-sm font-normal",
+                  canAccessNotes ? "text-foreground" : "text-muted-foreground",
+                )}
+              >
+                <Checkbox
+                  id="add-members-notes"
                   checked={canAccessNotes}
-                  onCheckedChange={setCanAccessNotes}
-                  className="mt-1"
+                  onCheckedChange={(value) => setCanAccessNotes(value === true)}
                 />
-              </label>
+                <span className="min-w-0 leading-snug">Access team notes</span>
+              </Label>
             </div>
           </div>
         </div>

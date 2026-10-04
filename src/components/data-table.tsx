@@ -45,6 +45,8 @@ export interface DataTableProps<TData> {
   filters?: ReactNode;
   /** Shows a reset button in the toolbar; pass only while a filter is active. */
   onResetFilters?: () => void;
+  /** Primary actions in the toolbar after search. */
+  toolbarActions?: ReactNode;
   page?: number;
   /** Total rows across all pages. */
   total?: number;
@@ -82,6 +84,7 @@ export function DataTable<TData>({
   searchPlaceholder,
   filters,
   onResetFilters,
+  toolbarActions,
   page = 0,
   total = 0,
   limit = 10,
@@ -161,41 +164,48 @@ export function DataTable<TData>({
   return (
     <div
       className={cn(
-        "flex h-full min-h-0 flex-col rounded-xl border bg-card",
+        "flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border bg-card",
         className,
       )}
     >
-      {showToolbar && (title || onSearchChange || filters) && (
-        <DataTableToolbar
-          title={title}
-          selectedCount={selectedCount}
-          search={search}
-          onSearchChange={onSearchChange}
-          searchPlaceholder={searchPlaceholder}
-          filters={filters}
-          onResetFilters={onResetFilters}
-        />
-      )}
+      {showToolbar &&
+        (title || onSearchChange || filters || toolbarActions) && (
+          <DataTableToolbar
+            title={title}
+            selectedCount={selectedCount}
+            search={search}
+            onSearchChange={onSearchChange}
+            searchPlaceholder={searchPlaceholder}
+            filters={filters}
+            onResetFilters={onResetFilters}
+            actions={toolbarActions}
+          />
+        )}
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+      <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-auto md:overflow-x-hidden">
         <Table className="w-max min-w-full md:w-full md:table-fixed">
-          <TableHeader>
+          <TableHeader className="sticky top-0 z-[1] bg-card">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    style={
-                      header.column.id === SELECT_COLUMN_ID
-                        ? { width: 40 }
-                        : undefined
-                    }
-                  >
-                    {header.isPlaceholder ? null : (
-                      <DataTableColumnHeader header={header} />
-                    )}
-                  </TableHead>
-                ))}
+              <TableRow key={headerGroup.id} className="hover:bg-transparent">
+                {headerGroup.headers.map((header) => {
+                  const meta = header.column.columnDef.meta as
+                    { className?: string } | undefined;
+                  return (
+                    <TableHead
+                      key={header.id}
+                      className={meta?.className}
+                      style={
+                        header.column.id === SELECT_COLUMN_ID
+                          ? { width: 40 }
+                          : undefined
+                      }
+                    >
+                      {header.isPlaceholder ? null : (
+                        <DataTableColumnHeader header={header} />
+                      )}
+                    </TableHead>
+                  );
+                })}
               </TableRow>
             ))}
           </TableHeader>
@@ -227,30 +237,35 @@ export function DataTable<TData>({
                         onRowClick ? () => onRowClick(row.original) : undefined
                       }
                     >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell
-                          key={cell.id}
-                          onClick={
-                            cell.column.id === SELECT_COLUMN_ID
-                              ? (e) => e.stopPropagation()
-                              : undefined
-                          }
-                        >
-                          {cell.column.id === SELECT_COLUMN_ID ? (
-                            flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext(),
-                            )
-                          ) : (
-                            <div className="max-w-64 min-w-0 md:max-w-none">
-                              {flexRender(
+                      {row.getVisibleCells().map((cell) => {
+                        const meta = cell.column.columnDef.meta as
+                          { className?: string } | undefined;
+                        return (
+                          <TableCell
+                            key={cell.id}
+                            className={meta?.className}
+                            onClick={
+                              cell.column.id === SELECT_COLUMN_ID
+                                ? (e) => e.stopPropagation()
+                                : undefined
+                            }
+                          >
+                            {cell.column.id === SELECT_COLUMN_ID ? (
+                              flexRender(
                                 cell.column.columnDef.cell,
                                 cell.getContext(),
-                              )}
-                            </div>
-                          )}
-                        </TableCell>
-                      ))}
+                              )
+                            ) : (
+                              <div className="min-w-0 max-w-full">
+                                {flexRender(
+                                  cell.column.columnDef.cell,
+                                  cell.getContext(),
+                                )}
+                              </div>
+                            )}
+                          </TableCell>
+                        );
+                      })}
                     </TableRow>
                   ))}
             </TableBody>

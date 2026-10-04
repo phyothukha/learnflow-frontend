@@ -87,6 +87,7 @@ export const columns: ColumnDef<Enrollment>[] = [
   {
     id: "actions",
     enableSorting: false,
+    header: "Actions",
     cell: ({ row }) => <DataTableRowActions row={row} />,
   },
 ];

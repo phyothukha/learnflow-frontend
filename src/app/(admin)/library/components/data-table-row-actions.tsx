@@ -1,7 +1,7 @@
 "use client";
 
 import type { Row } from "@tanstack/react-table";
-import { MoreHorizontal, Settings2, Trash2 } from "lucide-react";
+import { MoreVertical, Settings2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -53,7 +53,7 @@ export function DocumentActions({ document, className }: DocumentActionsProps) {
             className={cn("size-7 text-muted-foreground", className)}
             onClick={(e) => e.preventDefault()}
           >
-            <MoreHorizontal className="size-4" />
+            <MoreVertical className="size-4" />
             <span className="sr-only">Open menu</span>
           </Button>
         </DropdownMenuTrigger>
@@ -88,7 +88,7 @@ export function DocumentActions({ document, className }: DocumentActionsProps) {
             }}
           >
             <Settings2 />
-            Settings
+            Document settings
           </DropdownMenuItem>
           <DropdownMenuItem
             variant="destructive"
@@ -102,7 +102,7 @@ export function DocumentActions({ document, className }: DocumentActionsProps) {
             }
           >
             <Trash2 />
-            Delete
+            Delete document
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

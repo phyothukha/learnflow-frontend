@@ -97,7 +97,6 @@ export function MembersTable({ team, canUpdate }: MembersTableProps) {
           setLimit(value);
           setPage(0);
         }}
-        showCheckbox={false}
         emptyIcon={UsersRound}
         emptyTitle={hasQuery ? "No matching members" : "No learners yet"}
         emptyDescription={

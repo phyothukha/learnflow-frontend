@@ -111,14 +111,14 @@ export function createMemberColumns({
           <div onClick={(event) => event.stopPropagation()}>
             <Button
               variant="ghost"
-              size="icon"
-              className="size-8"
+              size="sm"
               aria-label={`Remove ${member.Name}`}
               onClick={() =>
                 onRemove(member.TeamId, member.LearnerId, member.Name)
               }
             >
-              <UserMinus className="size-4" />
+              <UserMinus />
+              Remove member
             </Button>
           </div>
         );

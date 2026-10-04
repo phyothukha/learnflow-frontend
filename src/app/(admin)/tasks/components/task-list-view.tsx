@@ -3,7 +3,7 @@
 import { useState, type CSSProperties } from "react";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import dayjs from "dayjs";
-import { ListTodo, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { ListTodo, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { DataTable } from "@/components/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -70,7 +70,7 @@ function TaskRowActions({ task }: { task: Task }) {
             size="icon"
             className="size-7 text-muted-foreground"
           >
-            <MoreHorizontal className="size-4" />
+            <MoreVertical className="size-4" />
             <span className="sr-only">Open menu</span>
           </Button>
         </DropdownMenuTrigger>
@@ -93,14 +93,14 @@ function TaskRowActions({ task }: { task: Task }) {
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => openEdit(task)}>
             <Pencil />
-            Edit
+            Edit task
           </DropdownMenuItem>
           <DropdownMenuItem
             variant="destructive"
             onClick={() => openDelete(task)}
           >
             <Trash2 />
-            Delete
+            Delete task
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

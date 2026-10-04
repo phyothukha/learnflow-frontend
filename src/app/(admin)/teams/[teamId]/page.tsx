@@ -110,7 +110,7 @@ export default function TeamDetailPage({ params }: TeamDetailPageProps) {
               }
             >
               <Trash2 />
-              Delete
+              Delete team
             </Button>
           )}
         </div>

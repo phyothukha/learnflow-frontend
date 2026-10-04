@@ -2,11 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { FolderPlus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import type { TopicFolderTreeNode } from "@/store/server/topic-folders/interface";
 import { CreateDocumentMode } from "@/lib/document-create-modes";
 import { CreateDocumentDialog } from "../../components/create-document-dialog";
 import { flattenFolders } from "@/utils/folder";
+import { Button } from "@/components/ui/button";
 
 interface TopicPrimaryButtonsProps {
   topicId: string;
@@ -25,12 +25,8 @@ export function TopicPrimaryButtons({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={() => onCreateFolder(currentFolderId)}
-      >
-        <FolderPlus className="size-4" />
+      <Button onClick={() => onCreateFolder(currentFolderId)}>
+        <FolderPlus />
         New folder
       </Button>
       <CreateDocumentDialog

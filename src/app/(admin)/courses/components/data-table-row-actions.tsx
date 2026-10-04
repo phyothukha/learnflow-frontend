@@ -1,7 +1,7 @@
 "use client";
 
 import type { Row } from "@tanstack/react-table";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -41,7 +41,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
             size="icon"
             className="size-8 data-[state=open]:bg-muted"
           >
-            <MoreHorizontal className="size-4" />
+            <MoreVertical className="size-4" />
             <span className="sr-only">Open menu</span>
           </Button>
         </DropdownMenuTrigger>
@@ -54,7 +54,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               }}
             >
               <Pencil />
-              Edit
+              Edit course
             </DropdownMenuItem>
           )}
           {canDelete && (
@@ -72,7 +72,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               }
             >
               <Trash2 />
-              Delete
+              Delete course
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>

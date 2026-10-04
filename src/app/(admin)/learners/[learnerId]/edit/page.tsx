@@ -49,8 +49,8 @@ export default function EditLearnerPage({ params }: EditLearnerPageProps) {
     learner.Status === LearnerStatus.Invited ? learner.Email : learner.Name;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-start gap-3">
+    <div className="flex h-full min-h-0 flex-col gap-6 overflow-hidden">
+      <div className="flex shrink-0 items-start gap-3">
         <Button
           variant="subtle"
           size="icon"
@@ -69,7 +69,7 @@ export default function EditLearnerPage({ params }: EditLearnerPageProps) {
         </div>
       </div>
 
-      <div className="library-card mx-auto w-full max-w-xl p-5 sm:p-6">
+      <div className="min-h-0 flex-1">
         <EditLearnerForm learner={learner} />
       </div>
     </div>

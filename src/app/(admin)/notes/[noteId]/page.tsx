@@ -12,7 +12,7 @@ import {
   Copy,
   Eye,
   Lock,
-  MoreHorizontal,
+  MoreVertical,
   PenLine,
   Save,
   Trash2,
@@ -237,7 +237,7 @@ export default function NoteDetailPage({ params }: NoteDetailPageProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="size-8">
-                  <MoreHorizontal className="size-4" />
+                  <MoreVertical className="size-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -255,7 +255,7 @@ export default function NoteDetailPage({ params }: NoteDetailPageProps) {
                     ) : (
                       <Copy className="size-4" />
                     )}
-                    Copy content
+                    Copy note
                   </DropdownMenuItem>
                 )}
                 {canDelete && isOwner && (

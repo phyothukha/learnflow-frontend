@@ -3,7 +3,7 @@
 import {
   ArrowUpRight,
   Download,
-  MoreHorizontal,
+  MoreVertical,
   PenLine,
   Settings2,
   Trash2,
@@ -86,7 +86,7 @@ export function DocumentInfoPanel({
               type="button"
               className="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
             >
-              <MoreHorizontal className="size-4" />
+              <MoreVertical className="size-4" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44">
@@ -106,11 +106,11 @@ export function DocumentInfoPanel({
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onSettings}>
               <Settings2 />
-              Settings
+              Document settings
             </DropdownMenuItem>
             <DropdownMenuItem variant="destructive" onClick={onDelete}>
               <Trash2 />
-              Delete
+              Delete document
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

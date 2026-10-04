@@ -33,7 +33,10 @@ import { useRolesStore } from "@/store/client/mock/roles-store";
 import { useTeamsStore } from "@/store/client/teams-store";
 import { taskPercent } from "@/utils/learner";
 import { getInitials } from "@/utils/string";
-import { portalCodesFrom } from "../components/portal-access-fields";
+import {
+  portalAccessLabel,
+  portalCodesFrom,
+} from "../components/portal-access-fields";
 import { EnrollDialog } from "../components/enroll-dialog";
 import LearnersProvider, {
   LearnersDialogType,
@@ -200,7 +203,7 @@ function LearnerDetailContent({ learnerId }: { learnerId: string }) {
             <Button variant="outline" asChild>
               <Link href={`/learners/${learner.Id}/edit`}>
                 <Pencil />
-                Edit
+                Edit learner
               </Link>
             </Button>
             <Button
@@ -216,7 +219,7 @@ function LearnerDetailContent({ learnerId }: { learnerId: string }) {
               }}
             >
               {isDisabled ? <CircleCheck /> : <Ban />}
-              {isDisabled ? "Enable" : "Disable"}
+              {isDisabled ? "Enable learner" : "Disable learner"}
             </Button>
           </div>
         )}
@@ -332,9 +335,10 @@ function LearnerDetailContent({ learnerId }: { learnerId: string }) {
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-sm font-semibold">Portal access</h2>
               <Badge variant="outline">
-                {learner.CustomPermissions
-                  ? "Custom"
-                  : `From ${roleName ?? "role"}`}
+                {portalAccessLabel(portalCodesFrom(permissions), {
+                  isCustom: learner.CustomPermissions !== null,
+                  roleName: roleName ?? "role",
+                })}
               </Badge>
             </div>
             <PermissionSummary

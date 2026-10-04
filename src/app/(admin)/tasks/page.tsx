@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
-import { Button } from "@/components/ui/button";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import { TaskView } from "@/lib/task-meta";
@@ -21,6 +20,7 @@ import {
   type TaskStatusFilter,
 } from "./components/tasks-toolbar";
 import TasksProvider, { useTasks } from "./context/tasks-context";
+import { Button } from "@/components/ui/button";
 
 export default function TasksPage() {
   const router = useRouter();
@@ -96,13 +96,9 @@ function TasksContent() {
         actions={
           <>
             <TaskViewTabs view={view} onViewChange={setView} />
-            <Button
-              onClick={() => openCreate()}
-              aria-label="New task"
-              className="size-8 has-[>svg]:px-0 sm:h-10 sm:w-auto sm:has-[>svg]:px-4"
-            >
-              <Plus className="size-3.5 sm:size-4" />
-              <span className="hidden sm:inline">New task</span>
+            <Button onClick={() => openCreate()} aria-label="New task">
+              <Plus />
+              New task
             </Button>
           </>
         }

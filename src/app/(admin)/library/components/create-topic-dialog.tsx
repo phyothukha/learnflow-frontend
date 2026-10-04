@@ -90,7 +90,7 @@ export function CreateTopicDialog() {
     >
       <DialogTrigger asChild>
         <Button>
-          <Plus className="size-4" />
+          <Plus />
           New topic
         </Button>
       </DialogTrigger>

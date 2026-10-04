@@ -9,7 +9,6 @@ import {
 import dayjs from "dayjs";
 import { LayoutGrid } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import {
   DASHBOARD_PERIOD_DAYS,
   DashboardPeriod,
@@ -50,6 +49,7 @@ import {
   AssistantCard,
   CompletionGaugeCard,
 } from "./components/completion-gauge-card";
+import { Button } from "@/components/ui/button";
 
 const DEFAULT_PERIOD = DashboardPeriod.Last30;
 
@@ -301,9 +301,7 @@ export default function DashboardPage() {
           <p className="text-sm text-muted-foreground">
             All widgets are hidden.
           </p>
-          <Button size="sm" onClick={showAllWidgets}>
-            Show all widgets
-          </Button>
+          <Button onClick={showAllWidgets}>Show all widgets</Button>
         </div>
       )}
     </div>

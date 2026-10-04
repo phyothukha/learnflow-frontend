@@ -118,6 +118,7 @@ export const columns: ColumnDef<Learner>[] = [
   {
     id: "actions",
     enableSorting: false,
+    header: "Actions",
     cell: ({ row }) => <DataTableRowActions learner={row.original} />,
   },
 ];

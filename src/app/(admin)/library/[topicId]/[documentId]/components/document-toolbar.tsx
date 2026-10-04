@@ -9,7 +9,7 @@ import {
   ExternalLink,
   Maximize2,
   Minimize2,
-  MoreHorizontal,
+  MoreVertical,
   PanelLeft,
   PenLine,
   Settings2,
@@ -150,7 +150,7 @@ export function DocumentToolbar({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="secondary" size="icon" className="size-7">
-              <MoreHorizontal className="size-4" />
+              <MoreVertical className="size-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44">
@@ -170,7 +170,7 @@ export function DocumentToolbar({
             )}
             <DropdownMenuItem onClick={onSettings}>
               <Settings2 />
-              Settings
+              Document settings
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

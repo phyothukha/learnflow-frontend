@@ -175,8 +175,8 @@ export function DashboardHeader({
         </DropdownMenu>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="soft" size="sm" className="h-9">
-              <LayoutGrid className="size-4" />
+            <Button>
+              <LayoutGrid />
               Widgets
               {hidden.size > 0 && (
                 <span className="rounded-sm bg-foreground/10 px-1 text-xs tabular-nums">
@@ -208,13 +208,8 @@ export function DashboardHeader({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button
-          variant="secondary"
-          size="sm"
-          className="h-9"
-          onClick={onExport}
-        >
-          <Download className="size-4" />
+        <Button onClick={onExport}>
+          <Download />
           Export
         </Button>
       </div>

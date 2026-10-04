@@ -85,7 +85,8 @@ export function CreateTeamDialog() {
     >
       <DialogTrigger asChild>
         <Button>
-          <Plus /> New team
+          <Plus />
+          New team
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-md">

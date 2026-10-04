@@ -43,6 +43,7 @@ export const columns: ColumnDef<Course>[] = [
   {
     id: "actions",
     enableSorting: false,
+    header: "Actions",
     cell: ({ row }) => <DataTableRowActions row={row} />,
   },
 ];

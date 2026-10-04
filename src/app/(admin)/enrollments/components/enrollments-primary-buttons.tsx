@@ -1,13 +1,13 @@
 "use client";
 
 import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import {
   EnrollmentsDialogType,
   useEnrollments,
 } from "../context/enrollments-context";
+import { Button } from "@/components/ui/button";
 
 export function EnrollmentsPrimaryButtons() {
   const { setOpen } = useEnrollments();

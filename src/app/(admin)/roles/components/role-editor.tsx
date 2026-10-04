@@ -64,7 +64,7 @@ export function RoleEditor({ role, onEdit, onDeleted }: RoleEditorProps) {
           {canUpdate && !role.IsLocked && (
             <Button size="sm" variant="outline" onClick={onEdit}>
               <Pencil />
-              Edit
+              Edit role
             </Button>
           )}
           {canDelete && !role.IsSystem && (
@@ -91,7 +91,7 @@ export function RoleEditor({ role, onEdit, onDeleted }: RoleEditorProps) {
               }}
             >
               <Trash2 />
-              Delete
+              Delete role
             </Button>
           )}
         </div>

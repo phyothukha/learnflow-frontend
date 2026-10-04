@@ -6,7 +6,7 @@ import {
   BookPlus,
   CircleCheck,
   Eye,
-  MoreHorizontal,
+  MoreVertical,
   Pencil,
   Trash2,
 } from "lucide-react";
@@ -51,7 +51,7 @@ export function DataTableRowActions({ learner }: { learner: Learner }) {
             size="icon"
             className="size-8 data-[state=open]:bg-muted"
           >
-            <MoreHorizontal className="size-4" />
+            <MoreVertical className="size-4" />
             <span className="sr-only">Open menu</span>
           </Button>
         </DropdownMenuTrigger>
@@ -59,14 +59,14 @@ export function DataTableRowActions({ learner }: { learner: Learner }) {
           <DropdownMenuItem asChild>
             <Link href={`/learners/${learner.Id}`}>
               <Eye />
-              View details
+              View learner
             </Link>
           </DropdownMenuItem>
           {canUpdate && (
             <DropdownMenuItem asChild>
               <Link href={`/learners/${learner.Id}/edit`}>
                 <Pencil />
-                Edit
+                Edit learner
               </Link>
             </DropdownMenuItem>
           )}
@@ -76,7 +76,7 @@ export function DataTableRowActions({ learner }: { learner: Learner }) {
               onClick={() => openDialog(LearnersDialogType.Enroll, learner.Id)}
             >
               <BookPlus />
-              Enroll in course
+              Enroll learner
             </DropdownMenuItem>
           )}
           {canUpdate && (
@@ -92,7 +92,7 @@ export function DataTableRowActions({ learner }: { learner: Learner }) {
               }}
             >
               {isDisabled ? <CircleCheck /> : <Ban />}
-              {isDisabled ? "Enable account" : "Disable account"}
+              {isDisabled ? "Enable learner" : "Disable learner"}
             </DropdownMenuItem>
           )}
           {canDelete && (
@@ -110,7 +110,7 @@ export function DataTableRowActions({ learner }: { learner: Learner }) {
                 }
               >
                 <Trash2 />
-                Delete
+                Delete learner
               </DropdownMenuItem>
             </>
           )}

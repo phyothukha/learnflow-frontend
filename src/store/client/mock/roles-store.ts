@@ -115,6 +115,7 @@ export interface CreateRoleInput {
   Name: string;
   Description: string;
   CopyFromRoleId?: string;
+  Permissions?: PermissionCode[];
 }
 
 interface RolesState {
@@ -129,7 +130,7 @@ interface RolesState {
 
 export const useRolesStore = create<RolesState>()((set, get) => ({
   roles: SEED_ROLES,
-  createRole: ({ Name, Description, CopyFromRoleId }) => {
+  createRole: ({ Name, Description, CopyFromRoleId, Permissions }) => {
     const source = get().roles.find((role) => role.Id === CopyFromRoleId);
     const role: Role = {
       Id: crypto.randomUUID(),
@@ -137,7 +138,11 @@ export const useRolesStore = create<RolesState>()((set, get) => ({
       Description,
       IsSystem: false,
       IsLocked: false,
-      Permissions: source ? [...source.Permissions] : [],
+      Permissions: Permissions
+        ? [...Permissions]
+        : source
+          ? [...source.Permissions]
+          : [],
     };
     set((state) => ({ roles: [...state.roles, role] }));
     return role;

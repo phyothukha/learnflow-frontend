@@ -12,7 +12,14 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import type { NavLinkItem } from "@/assets/nav-links";
+import type { LucideIcon } from "lucide-react";
+
+export interface NavMainItem {
+  href: string;
+  label: string;
+  title?: string;
+  icon: LucideIcon;
+}
 
 interface IndicatorPosition {
   top: number;
@@ -25,8 +32,25 @@ interface PendingNav {
 }
 
 export interface NavMainProps {
-  items: NavLinkItem[];
+  items: NavMainItem[];
   title?: string;
+}
+
+/** Nested routes that should keep a parent sidebar item active. */
+function resolveActiveHref(pathname: string, items: NavMainItem[]) {
+  if (
+    pathname === "/account/user-invitation" ||
+    pathname.startsWith("/account/user-management/")
+  ) {
+    const management = items.find(
+      (item) => item.href === "/account/user-management",
+    )?.href;
+    if (management) return management;
+  }
+
+  return items
+    .filter((item) => pathname.startsWith(item.href))
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href;
 }
 
 export function NavMain({ items, title }: NavMainProps) {
@@ -38,7 +62,7 @@ export function NavMain({ items, title }: NavMainProps) {
 
   const [pending, setPending] = useState<PendingNav | null>(null);
 
-  const routeHref = items.find((item) => pathname.startsWith(item.href))?.href;
+  const routeHref = resolveActiveHref(pathname, items);
   const activeHref =
     pending && pending.from === pathname ? pending.href : routeHref;
 
@@ -46,8 +70,6 @@ export function NavMain({ items, title }: NavMainProps) {
     const menu = menuRef.current;
     if (!menu) return;
 
-    // offsetTop/offsetHeight ignore the sidebar's width transition, so the
-    // indicator stays pinned to its row while expanding or collapsing.
     const measure = () => {
       const item = activeHref
         ? menu.querySelector<HTMLElement>(`[data-nav-item="${activeHref}"]`)
@@ -102,7 +124,7 @@ export function NavMain({ items, title }: NavMainProps) {
               >
                 <item.icon />
                 <span className="shrink-0 font-poppins transition-opacity duration-200 ease-linear group-data-[collapsible=icon]:opacity-0">
-                  {item.title}
+                  {item.label}
                 </span>
               </Link>
             </SidebarMenuButton>

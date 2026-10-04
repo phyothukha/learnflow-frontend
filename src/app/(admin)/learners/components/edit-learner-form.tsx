@@ -23,7 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { PermissionCode } from "@/lib/permissions";
 import {
   useLearnersStore,
   type Learner,
@@ -34,8 +33,10 @@ import {
 } from "@/store/client/mock/roles-store";
 import {
   mergePortalCustom,
+  PortalAccessAllSwitch,
   PortalAccessFields,
   portalCodesFrom,
+  portalSelectionMatchesRole,
 } from "./portal-access-fields";
 
 const editSchema = z.object({
@@ -65,10 +66,7 @@ export function EditLearnerForm({ learner }: { learner: Learner }) {
     },
   });
 
-  const [customize, setCustomize] = useState(
-    learner.CustomPermissions !== null,
-  );
-  const [custom, setCustom] = useState<Set<PermissionCode>>(
+  const [selected, setSelected] = useState(
     () =>
       new Set(
         portalCodesFrom(
@@ -87,8 +85,7 @@ export function EditLearnerForm({ learner }: { learner: Learner }) {
       Email: learner.Email,
       RoleId: learner.RoleId,
     });
-    setCustomize(learner.CustomPermissions !== null);
-    setCustom(
+    setSelected(
       new Set(
         portalCodesFrom(
           learner.CustomPermissions ??
@@ -99,13 +96,6 @@ export function EditLearnerForm({ learner }: { learner: Learner }) {
       ),
     );
   }, [learner, form]);
-
-  function onCustomizeChange(enabled: boolean) {
-    setCustomize(enabled);
-    if (enabled) {
-      setCustom(new Set(portalCodesFrom(selectedRole?.Permissions)));
-    }
-  }
 
   function onSubmit(values: EditFormValues) {
     const duplicate = learners.some(
@@ -119,13 +109,14 @@ export function EditLearnerForm({ learner }: { learner: Learner }) {
     }
 
     const rolePermissions = selectedRole?.Permissions ?? [];
+    const matchesRole = portalSelectionMatchesRole(selected, rolePermissions);
     updateLearner(learner.Id, {
       Name: values.Name,
       Email: values.Email,
       RoleId: values.RoleId,
-      CustomPermissions: customize
-        ? mergePortalCustom(rolePermissions, [...custom])
-        : null,
+      CustomPermissions: matchesRole
+        ? null
+        : mergePortalCustom(rolePermissions, [...selected]),
     });
     toast.success("Learner updated.");
     router.push(`/learners/${learner.Id}`);
@@ -135,72 +126,90 @@ export function EditLearnerForm({ learner }: { learner: Learner }) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="mx-auto flex w-full max-w-xl flex-col gap-5"
+        className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-xl border bg-card shadow-sm"
       >
-        <FormField
-          control={form.control}
-          name="Name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Full name</FormLabel>
-              <FormControl>
-                <Input placeholder="Aye Chan" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="Email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input
-                  type="email"
-                  placeholder="aye.chan@example.com"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="RoleId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Role</FormLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
-                <FormControl>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a role" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {roles.map((role) => (
-                    <SelectItem key={role.Id} value={role.Id}>
-                      {role.Name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <PortalAccessFields
-          customize={customize}
-          onCustomizeChange={onCustomizeChange}
-          custom={custom}
-          onCustomChange={setCustom}
-          roleName={selectedRole?.Name}
-          rolePermissions={selectedRole?.Permissions ?? []}
-          idPrefix="edit-learner"
-        />
-        <div className="flex flex-wrap justify-end gap-2">
+        <div className="shrink-0 space-y-4 border-b p-4 sm:p-5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="text-sm font-medium">Learner details</p>
+              <p className="text-xs text-muted-foreground">
+                Update profile details and portal tab access.
+              </p>
+            </div>
+            <PortalAccessAllSwitch
+              selected={selected}
+              onChange={setSelected}
+              idPrefix="edit-learner"
+            />
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-5">
+            <FormField
+              control={form.control}
+              name="Name"
+              render={({ field }) => (
+                <FormItem className="sm:col-span-2">
+                  <FormLabel>Full name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Aye Chan" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="Email"
+              render={({ field }) => (
+                <FormItem className="sm:col-span-3">
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="aye.chan@example.com"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="RoleId"
+              render={({ field }) => (
+                <FormItem className="sm:col-span-5">
+                  <FormLabel>Role</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a role" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {roles.map((role) => (
+                        <SelectItem key={role.Id} value={role.Id}>
+                          {role.Name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
+          <PortalAccessFields
+            selected={selected}
+            onChange={setSelected}
+            idPrefix="edit-learner"
+            showHeader={false}
+          />
+        </div>
+
+        <div className="flex shrink-0 flex-wrap justify-end gap-2 border-t p-4 sm:px-5">
           <Button
             type="button"
             variant="secondary"

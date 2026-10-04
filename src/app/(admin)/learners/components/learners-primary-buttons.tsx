@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { UserPlus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
+import { Button } from "@/components/ui/button";
 
 export function LearnersPrimaryButtons() {
   const { hasPermission } = usePermission();

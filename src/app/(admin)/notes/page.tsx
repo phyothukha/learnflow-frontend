@@ -68,18 +68,12 @@ function NotesPageInner() {
       {canCreate && (
         <div className="mt-2 flex flex-wrap justify-center gap-2">
           {team && joinedIds.has(team.Id) ? (
-            <Button
-              size="sm"
-              onClick={() => create(NoteVisibility.Team, team.Id)}
-            >
+            <Button onClick={() => create(NoteVisibility.Team, team.Id)}>
               <UsersRound /> New team note
             </Button>
           ) : (
             <>
-              <Button
-                size="sm"
-                onClick={() => create(NoteVisibility.Private, null)}
-              >
+              <Button onClick={() => create(NoteVisibility.Private, null)}>
                 <Lock /> Private note
               </Button>
               {joinedIds.size > 0 && (

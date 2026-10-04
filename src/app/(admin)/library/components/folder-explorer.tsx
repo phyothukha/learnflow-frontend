@@ -7,7 +7,7 @@ import {
   ChevronRight,
   Folder,
   FolderPlus,
-  MoreHorizontal,
+  MoreVertical,
   Pencil,
   Plus,
   Trash2,
@@ -287,7 +287,7 @@ export function FolderCard({
                 className="-mt-1 -mr-1 size-7 text-muted-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
                 onClick={(e) => e.stopPropagation()}
               >
-                <MoreHorizontal className="size-4" />
+                <MoreVertical className="size-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -301,7 +301,7 @@ export function FolderCard({
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onRename}>
                 <Pencil />
-                Rename
+                Rename folder
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -324,7 +324,7 @@ export function FolderCard({
                 }}
               >
                 <Trash2 />
-                Delete
+                Delete folder
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

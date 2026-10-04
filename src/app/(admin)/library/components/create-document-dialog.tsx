@@ -208,8 +208,8 @@ export function CreateDocumentDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button size="sm">
-          <FilePlus2 className="size-4" />
+        <Button>
+          <FilePlus2 />
           New document
         </Button>
       </DialogTrigger>

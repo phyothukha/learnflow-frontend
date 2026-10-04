@@ -15,6 +15,8 @@ export interface DataTableToolbarProps {
   filters?: ReactNode;
   /** Shows a reset button; pass only while a filter is active. */
   onResetFilters?: () => void;
+  /** Primary actions after search (e.g. New Role). */
+  actions?: ReactNode;
 }
 
 export function DataTableToolbar({
@@ -25,19 +27,24 @@ export function DataTableToolbar({
   searchPlaceholder = "Search…",
   filters,
   onResetFilters,
+  actions,
 }: DataTableToolbarProps) {
+  const showRight = !!(filters || onSearchChange || actions);
+
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-3 sm:px-4 sm:py-4">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-b px-3 py-3 sm:px-4 sm:py-3.5">
       <div className="flex min-w-0 items-center gap-2">
-        {title ? <p className="truncate font-semibold">{title}</p> : null}
+        {title ? (
+          <p className="truncate text-sm font-semibold">{title}</p>
+        ) : null}
         {selectedCount > 0 && (
           <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
             {selectedCount} selected
           </span>
         )}
       </div>
-      {(filters || onSearchChange) && (
-        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+      {showRight ? (
+        <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
           {filters}
           {onResetFilters && (
             <Button
@@ -58,8 +65,9 @@ export function DataTableToolbar({
               className="sm:w-64"
             />
           )}
+          {actions}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

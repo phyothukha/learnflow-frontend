@@ -94,6 +94,7 @@ export const columns: ColumnDef<StudyDocument>[] = [
   {
     id: "actions",
     enableSorting: false,
+    header: "Actions",
     cell: ({ row }) => <DataTableRowActions row={row} />,
   },
 ];

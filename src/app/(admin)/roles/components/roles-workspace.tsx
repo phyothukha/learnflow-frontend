@@ -33,7 +33,7 @@ export function RolesWorkspace() {
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold">Roles ({roles.length})</h2>
           {canCreate && (
-            <Button size="sm" onClick={() => setDialog("create")}>
+            <Button onClick={() => setDialog("create")}>
               <Plus />
               New role
             </Button>
