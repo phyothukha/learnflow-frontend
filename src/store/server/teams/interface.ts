@@ -17,6 +17,8 @@ export interface Team {
   Id: string;
   Name: string;
   Description: string | null;
+  /** Image URL / data URL shown on team cards (null = name initial). */
+  Logo: string | null;
   Color: string;
   Members: TeamMember[];
   CreatedAt: string;

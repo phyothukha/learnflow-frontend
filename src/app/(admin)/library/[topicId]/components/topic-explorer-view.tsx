@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { LayoutGrid, List, Search, X } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { LayoutGrid, List } from "lucide-react";
+import { SearchInput } from "@/components/search-input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AnimatedTabs, AnimatedTabsVariant } from "@/components/animated-tabs";
 import { DocumentKindIcon } from "@/components/document-kind-icon";
@@ -16,7 +16,9 @@ import type { TopicFolderTreeNode } from "@/store/server/topic-folders/interface
 import { DocumentsTable } from "../../components/documents-table";
 import {
   FolderBreadcrumb,
+  FolderCard,
   FolderSidebar,
+  NewFolderCard,
 } from "../../components/folder-explorer";
 import { DocumentCard } from "./document-card";
 import { FilesEmptyState } from "./files-empty-state";
@@ -38,36 +40,45 @@ enum LayoutMode {
   List = "list",
 }
 
-interface TopicFilesViewProps {
+interface TopicExplorerViewProps {
   documents: StudyDocument[];
   tree: TopicFolderTreeNode[];
   path: TopicFolderTreeNode[];
+  folders: TopicFolderTreeNode[];
   countByFolder: Map<string, number>;
   isLoading: boolean;
   onNavigate: (folderId: string | null) => void;
   onCreateFolder: (parentFolderId: string | null) => void;
+  onRenameFolder: (folder: TopicFolderTreeNode) => void;
 }
 
-export function TopicFilesView({
+export function TopicExplorerView({
   documents,
   tree,
   path,
+  folders,
   countByFolder,
   isLoading,
   onNavigate,
   onCreateFolder,
-}: TopicFilesViewProps) {
+  onRenameFolder,
+}: TopicExplorerViewProps) {
   const [search, setSearch] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [activeKind, setActiveKind] = useState<DocumentKind | null>(null);
   const [layout, setLayout] = useState<LayoutMode>(LayoutMode.Grid);
 
-  const currentFolderId = path[path.length - 1]?.Id ?? null;
+  const currentFolder = path[path.length - 1] ?? null;
+  const currentFolderId = currentFolder?.Id ?? null;
   const query = search.trim().toLowerCase();
   const isSearching = query.length > 0;
   const usedTags = Array.from(
     new Set(documents.flatMap((doc) => doc.Tags)),
   ).sort();
+
+  const visibleFolders = isSearching
+    ? folders.filter((folder) => folder.Name.toLowerCase().includes(query))
+    : folders;
 
   const scopedFiles = documents.filter(
     (doc) =>
@@ -90,6 +101,9 @@ export function TopicFilesView({
     onNavigate(folderId);
   };
 
+  const isEmpty =
+    !isLoading && visibleFolders.length === 0 && files.length === 0;
+
   return (
     <div className="grid items-start gap-5 lg:grid-cols-[250px_minmax(0,1fr)]">
       <FolderSidebar
@@ -102,32 +116,66 @@ export function TopicFilesView({
         className="lg:sticky lg:top-18"
       />
       <div className="min-w-0 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/30 px-3 py-2">
-          <FolderBreadcrumb path={path} onNavigate={navigate} />
-          <div className="relative">
-            <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search files…"
-              className="h-8 w-64 bg-background pr-8 pl-8"
-            />
-            {isSearching && (
-              <button
-                type="button"
-                onClick={() => setSearch("")}
-                className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                <X className="size-3.5" />
-              </button>
-            )}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0 flex-1 rounded-xl border bg-muted/30 px-3 py-2">
+            <FolderBreadcrumb path={path} onNavigate={navigate} />
           </div>
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            placeholder="Search folders and files…"
+            className="sm:w-64"
+          />
         </div>
+
+        {!isSearching && !isLoading ? (
+          <div className="library-grid">
+            {visibleFolders.map((node) => (
+              <FolderCard
+                key={node.Id}
+                node={node}
+                fileCount={countByFolder.get(node.Id) ?? 0}
+                onOpen={() => navigate(node.Id)}
+                onAddSubfolder={() => onCreateFolder(node.Id)}
+                onRename={() => onRenameFolder(node)}
+                onDeleted={() => {
+                  if (path.some((p) => p.Id === node.Id))
+                    onNavigate(currentFolder?.ParentFolderId ?? null);
+                }}
+              />
+            ))}
+            <NewFolderCard onClick={() => onCreateFolder(currentFolderId)} />
+          </div>
+        ) : null}
+
+        {isSearching && visibleFolders.length > 0 ? (
+          <div className="space-y-2">
+            <h2 className="text-sm font-semibold text-muted-foreground">
+              Folders
+            </h2>
+            <div className="library-grid">
+              {visibleFolders.map((node) => (
+                <FolderCard
+                  key={node.Id}
+                  node={node}
+                  fileCount={countByFolder.get(node.Id) ?? 0}
+                  onOpen={() => navigate(node.Id)}
+                  onAddSubfolder={() => onCreateFolder(node.Id)}
+                  onRename={() => onRenameFolder(node)}
+                  onDeleted={() => {
+                    if (path.some((p) => p.Id === node.Id))
+                      onNavigate(currentFolder?.ParentFolderId ?? null);
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         <section className="library-card overflow-hidden">
           <div className="flex flex-wrap items-center justify-between gap-2 px-5 pt-5">
             <h2 className="flex items-center gap-2 text-sm font-semibold">
-              {isSearching ? `Results for “${search.trim()}”` : "Files"}
+              {isSearching ? `Files matching “${search.trim()}”` : "Files"}
               {!isLoading && (
                 <span className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">
                   {files.length}
@@ -192,11 +240,17 @@ export function TopicFilesView({
                   <Skeleton key={i} className="h-56 rounded-xl" />
                 ))}
               </div>
-            ) : files.length === 0 ? (
+            ) : isEmpty ? (
               <FilesEmptyState
                 searching={isSearching}
                 filtered={isSearching || !!activeKind || !!activeTag}
               />
+            ) : files.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                {isSearching
+                  ? "No files match this search."
+                  : "No files in this folder yet."}
+              </p>
             ) : layout === LayoutMode.Grid ? (
               <div className="grid gap-5 md:grid-cols-2">
                 {files.map((doc) => (

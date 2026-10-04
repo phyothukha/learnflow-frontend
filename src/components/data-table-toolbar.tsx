@@ -1,9 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Search, X } from "lucide-react";
+import { X } from "lucide-react";
+import { SearchInput } from "@/components/search-input";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 
 export interface DataTableToolbarProps {
   title?: string;
@@ -51,15 +51,12 @@ export function DataTableToolbar({
             </Button>
           )}
           {onSearchChange && (
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder={searchPlaceholder}
-                value={search ?? ""}
-                onChange={(e) => onSearchChange(e.target.value)}
-                className="h-9 rounded-full pl-9"
-              />
-            </div>
+            <SearchInput
+              value={search ?? ""}
+              onChange={onSearchChange}
+              placeholder={searchPlaceholder}
+              className="sm:w-64"
+            />
           )}
         </div>
       )}

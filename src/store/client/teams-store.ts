@@ -65,6 +65,7 @@ export function createTeamsSeed(): TeamsData {
         Id: "team-jlpt",
         Name: "JLPT Study Circle",
         Description: "Shared prep for N2 / N3 — grammar, kanji and mocks.",
+        Logo: null,
         Color: TEAM_COLORS[0],
         Members: [
           member(
@@ -99,6 +100,7 @@ export function createTeamsSeed(): TeamsData {
         Id: "team-fe",
         Name: "ITPEC FE Crew",
         Description: "Fundamentals exam practice and past papers.",
+        Logo: null,
         Color: TEAM_COLORS[1],
         Members: [
           member(
@@ -125,6 +127,7 @@ export function createTeamsSeed(): TeamsData {
         Id: "team-react",
         Name: "React Builders",
         Description: "Portfolio projects and weekly code review.",
+        Logo: null,
         Color: TEAM_COLORS[4],
         Members: [
           member(
@@ -251,7 +254,7 @@ export const useTeamsStore = create<TeamsState>()(
     }),
     {
       name: "learnflow-teams",
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => localStorage),
       skipHydration: true,
       partialize: ({ teams }): TeamsData => ({ teams }),
@@ -260,6 +263,14 @@ export const useTeamsStore = create<TeamsState>()(
         return {
           teams: (data.teams ?? []).map((team) => ({
             ...team,
+            Logo:
+              team.Logo &&
+              (team.Logo.startsWith("data:image/") ||
+                team.Logo.startsWith("http://") ||
+                team.Logo.startsWith("https://") ||
+                team.Logo.startsWith("/"))
+                ? team.Logo
+                : null,
             Members: (team.Members ?? []).map((item) => ({
               ...item,
               CanAccessNotes:

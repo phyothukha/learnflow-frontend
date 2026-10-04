@@ -3,7 +3,6 @@
 import { use, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { AnimatedTabs } from "@/components/animated-tabs";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import { useWorkspaceStore } from "@/store/client/use-store";
@@ -18,14 +17,10 @@ import {
   type FolderDialogState,
 } from "../components/folder-explorer";
 import DocumentsProvider from "../context/documents-context";
-import { TopicFilesView } from "./components/topic-files-view";
-import { TopicFoldersView } from "./components/topic-folders-view";
+import { TopicExplorerView } from "./components/topic-explorer-view";
 import { TopicHeader } from "./components/topic-header";
 import { TopicNotFound } from "./components/topic-not-found";
-import {
-  TopicPrimaryButtons,
-  TopicTab,
-} from "./components/topic-primary-buttons";
+import { TopicPrimaryButtons } from "./components/topic-primary-buttons";
 
 interface TopicDocumentsPageParams {
   topicId: string;
@@ -33,7 +28,6 @@ interface TopicDocumentsPageParams {
 
 interface TopicDocumentsPageSearchParams {
   folder?: string;
-  tab?: string;
 }
 
 interface TopicDocumentsPageProps {
@@ -41,25 +35,17 @@ interface TopicDocumentsPageProps {
   searchParams: Promise<TopicDocumentsPageSearchParams>;
 }
 
-interface BuildHrefOptions {
-  folderId?: string | null;
-  tab?: TopicTab;
-}
-
 export default function TopicDocumentsPage({
   params,
   searchParams,
 }: TopicDocumentsPageProps) {
   const { topicId } = use(params);
-  const { folder: folderParam, tab: tabParam } = use(searchParams);
+  const { folder: folderParam } = use(searchParams);
   const router = useRouter();
   const { status } = useSession();
   const { hasPermission } = usePermission();
   const canView = hasPermission(PERMISSIONS.DOCUMENTS_VIEW);
   const { setActiveTopic } = useWorkspaceStore();
-
-  const activeTab: TopicTab =
-    tabParam === TopicTab.Files ? TopicTab.Files : TopicTab.Folders;
 
   const [folderDialog, setFolderDialog] = useState<FolderDialogState | null>(
     null,
@@ -104,33 +90,26 @@ export default function TopicDocumentsPage({
   const topic = topicsData?.Items.find((t) => t.Id === topicId);
   if (!topicsLoading && !topic) return <TopicNotFound />;
 
-  const buildHref = (next: BuildHrefOptions) => {
+  const buildHref = (folderId?: string | null) => {
     const params = new URLSearchParams();
-    const folderId =
-      next.folderId !== undefined ? next.folderId : (folderParam ?? null);
-    const tab = next.tab ?? activeTab;
-    if (folderId) params.set("folder", folderId);
-    if (tab === TopicTab.Files) params.set("tab", TopicTab.Files);
+    const nextFolder =
+      folderId !== undefined ? folderId : (folderParam ?? null);
+    if (nextFolder) params.set("folder", nextFolder);
     const qs = params.toString();
     return `/library/${topicId}${qs ? `?${qs}` : ""}`;
   };
 
   const navigateFolder = (folderId: string | null) =>
-    router.push(buildHref({ folderId }));
+    router.push(buildHref(folderId));
 
   const openCreateFolder = (parentFolderId: string | null) =>
     setFolderDialog({ type: FolderDialogType.Create, parentFolderId });
-
-  const filesInCurrent = allDocuments.filter(
-    (doc) => (doc.FolderId ?? null) === (currentFolder?.Id ?? null),
-  ).length;
 
   return (
     <DocumentsProvider>
       <div className="space-y-6">
         <TopicHeader topic={topic}>
           <TopicPrimaryButtons
-            activeTab={activeTab}
             topicId={topicId}
             currentFolderId={currentFolder?.Id ?? null}
             tree={tree}
@@ -138,42 +117,19 @@ export default function TopicDocumentsPage({
           />
         </TopicHeader>
 
-        <AnimatedTabs
-          value={activeTab}
-          onValueChange={(tab) => router.push(buildHref({ tab }))}
-          tabs={[
-            {
-              value: TopicTab.Folders,
-              label: "Folders",
-              count: childFolders.length,
-            },
-            { value: TopicTab.Files, label: "Files", count: filesInCurrent },
-          ]}
+        <TopicExplorerView
+          documents={allDocuments}
+          tree={tree}
+          path={path}
+          folders={childFolders}
+          countByFolder={countByFolder}
+          isLoading={foldersLoading || documentsLoading}
+          onNavigate={navigateFolder}
+          onCreateFolder={openCreateFolder}
+          onRenameFolder={(folder) =>
+            setFolderDialog({ type: FolderDialogType.Rename, folder })
+          }
         />
-
-        {activeTab === TopicTab.Folders ? (
-          <TopicFoldersView
-            path={path}
-            folders={childFolders}
-            countByFolder={countByFolder}
-            isLoading={foldersLoading}
-            onNavigate={navigateFolder}
-            onCreateFolder={openCreateFolder}
-            onRenameFolder={(folder) =>
-              setFolderDialog({ type: FolderDialogType.Rename, folder })
-            }
-          />
-        ) : (
-          <TopicFilesView
-            documents={allDocuments}
-            tree={tree}
-            path={path}
-            countByFolder={countByFolder}
-            isLoading={documentsLoading}
-            onNavigate={navigateFolder}
-            onCreateFolder={openCreateFolder}
-          />
-        )}
 
         {folderDialog && (
           <FolderNameDialog

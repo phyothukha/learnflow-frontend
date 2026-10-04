@@ -294,10 +294,10 @@ export function MarkdownSplitEditor({
             </div>
             <div
               ref={previewRef}
-              className="min-h-0 flex-1 overflow-y-auto px-5 py-4"
+              className="min-h-0 flex-1 overflow-y-auto px-3 py-2 sm:px-4 sm:py-3"
             >
               {value.trim() ? (
-                <MarkdownPreview content={value} />
+                <MarkdownPreview content={value} className="mx-0 max-w-none" />
               ) : (
                 <p className="text-sm text-muted-foreground">
                   Nothing to preview yet.

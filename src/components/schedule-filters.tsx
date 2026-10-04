@@ -1,10 +1,10 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 import { AnimatedTabs, type AnimatedTab } from "@/components/animated-tabs";
+import { SearchInput } from "@/components/search-input";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
@@ -47,15 +47,12 @@ export function ScheduleFilters<S extends string, C extends string>({
   onShowAllCategories,
 }: ScheduleFiltersProps<S, C>) {
   const searchField = (
-    <div className="relative min-w-0 flex-1 md:w-56 md:flex-none">
-      <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-      <Input
-        value={search}
-        onChange={(e) => onSearchChange(e.target.value)}
-        placeholder={searchPlaceholder}
-        className="h-8 pl-8 md:h-9"
-      />
-    </div>
+    <SearchInput
+      value={search}
+      onChange={onSearchChange}
+      placeholder={searchPlaceholder}
+      className="min-w-0 flex-1 sm:w-56 md:flex-none"
+    />
   );
   const chips = (
     <CategoryChips

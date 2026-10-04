@@ -1,31 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { ArrowUpRight, NotebookPen, Plus, UsersRound } from "lucide-react";
-import { toast } from "sonner";
+import { UsersRound } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { SearchInput } from "@/components/search-input";
 import { usePermission } from "@/hooks/use-permission";
 import { useWorkspaceNotesHydration } from "@/hooks/use-workspace-notes-hydration";
-import { TEAM_COLORS } from "@/lib/team-meta";
 import { PERMISSIONS } from "@/lib/permissions";
-import { cn } from "@/lib/utils";
+import { useNotesStore } from "@/store/client/notes-store";
 import { useTeamsStore } from "@/store/client/teams-store";
+import { NoteVisibility } from "@/store/server/notes/interface";
+import { CreateTeamDialog } from "./components/create-team-dialog";
+import { TeamCard } from "./components/team-card";
 
 export default function TeamsPage() {
   const router = useRouter();
@@ -35,6 +23,27 @@ export default function TeamsPage() {
   const canCreate = hasPermission(PERMISSIONS.TEAMS_CREATE);
   const ready = useWorkspaceNotesHydration();
   const teams = useTeamsStore((state) => state.teams);
+  const notes = useNotesStore((state) => state.notes);
+  const [search, setSearch] = useState("");
+
+  const notesByTeam = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const note of notes) {
+      if (note.Visibility !== NoteVisibility.Team || !note.TeamId) continue;
+      map.set(note.TeamId, (map.get(note.TeamId) ?? 0) + 1);
+    }
+    return map;
+  }, [notes]);
+
+  const query = search.trim().toLowerCase();
+  const visibleTeams = useMemo(() => {
+    if (!query) return teams;
+    return teams.filter(
+      (team) =>
+        team.Name.toLowerCase().includes(query) ||
+        team.Description?.toLowerCase().includes(query),
+    );
+  }, [teams, query]);
 
   useEffect(() => {
     if (status === "authenticated" && !canView) router.replace("/forbidden");
@@ -55,6 +64,14 @@ export default function TeamsPage() {
         actions={canCreate ? <CreateTeamDialog /> : undefined}
       />
 
+      {teams.length > 0 ? (
+        <SearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder="Search teams by name or description…"
+        />
+      ) : null}
+
       {teams.length === 0 ? (
         <div className="library-card flex flex-col items-center gap-2 px-4 py-14 text-center">
           <div className="flex size-12 items-center justify-center rounded-2xl bg-muted">
@@ -65,150 +82,21 @@ export default function TeamsPage() {
             Create a team to start adding learners by email.
           </p>
         </div>
+      ) : visibleTeams.length === 0 ? (
+        <p className="py-10 text-center text-sm text-muted-foreground">
+          No teams match “{search.trim()}”.
+        </p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {teams.map((team) => {
-            const notesAccessCount = team.Members.filter(
-              (m) => m.CanAccessNotes,
-            ).length;
-            return (
-              <Link
-                key={team.Id}
-                href={`/teams/${team.Id}`}
-                className={cn(
-                  "group relative overflow-hidden rounded-2xl border bg-card p-5 shadow-xs transition-all",
-                  "hover:border-primary/30 hover:shadow-md",
-                )}
-              >
-                <div
-                  className="absolute inset-x-0 top-0 h-1"
-                  style={{ backgroundColor: team.Color }}
-                />
-                <div className="flex items-start gap-3">
-                  <span
-                    className="flex size-11 shrink-0 items-center justify-center rounded-xl text-sm font-semibold text-white shadow-sm"
-                    style={{ backgroundColor: team.Color }}
-                  >
-                    {team.Name.slice(0, 1).toUpperCase()}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="truncate font-semibold tracking-tight">
-                        {team.Name}
-                      </p>
-                      <ArrowUpRight className="size-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-                    </div>
-                    <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                      {team.Description || "No description"}
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground tabular-nums">
-                  <span className="inline-flex items-center gap-1.5">
-                    <UsersRound className="size-3.5" />
-                    {team.Members.length}{" "}
-                    {team.Members.length === 1 ? "learner" : "learners"}
-                  </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <NotebookPen className="size-3.5" />
-                    {notesAccessCount} notes access
-                  </span>
-                </div>
-              </Link>
-            );
-          })}
+          {visibleTeams.map((team) => (
+            <TeamCard
+              key={team.Id}
+              team={team}
+              notesCount={notesByTeam.get(team.Id) ?? 0}
+            />
+          ))}
         </div>
       )}
     </div>
-  );
-}
-
-function CreateTeamDialog() {
-  const createTeam = useTeamsStore((state) => state.createTeam);
-  const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [color, setColor] = useState<string>(TEAM_COLORS[0]);
-
-  const submit = () => {
-    if (!name.trim()) {
-      toast.error("Team name is required");
-      return;
-    }
-    const id = createTeam({
-      Name: name.trim(),
-      Description: description.trim() || null,
-      Color: color,
-    });
-    toast.success("Team created.");
-    setOpen(false);
-    setName("");
-    setDescription("");
-    router.push(`/teams/${id}`);
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus /> New team
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Create a team</DialogTitle>
-          <DialogDescription>
-            Learners share notes inside the team. You manage membership only.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="team-name">Name</Label>
-            <Input
-              id="team-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. JLPT Study Circle"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="team-desc">Description</Label>
-            <Textarea
-              id="team-desc"
-              rows={2}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Optional"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Color</Label>
-            <div className="flex flex-wrap gap-2">
-              {TEAM_COLORS.map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  aria-label={`Color ${value}`}
-                  aria-pressed={color === value}
-                  onClick={() => setColor(value)}
-                  className={cn(
-                    "size-7 rounded-full ring-offset-2 ring-offset-background",
-                    color === value && "ring-2 ring-primary",
-                  )}
-                  style={{ backgroundColor: value }}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
-          </Button>
-          <Button onClick={submit}>Create</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   );
 }

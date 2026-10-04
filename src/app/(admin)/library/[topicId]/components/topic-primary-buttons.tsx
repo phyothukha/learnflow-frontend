@@ -8,13 +8,7 @@ import { CreateDocumentMode } from "@/lib/document-create-modes";
 import { CreateDocumentDialog } from "../../components/create-document-dialog";
 import { flattenFolders } from "@/utils/folder";
 
-export enum TopicTab {
-  Folders = "folders",
-  Files = "files",
-}
-
 interface TopicPrimaryButtonsProps {
-  activeTab: TopicTab;
   topicId: string;
   currentFolderId: string | null;
   tree: TopicFolderTreeNode[];
@@ -22,7 +16,6 @@ interface TopicPrimaryButtonsProps {
 }
 
 export function TopicPrimaryButtons({
-  activeTab,
   topicId,
   currentFolderId,
   tree,
@@ -30,8 +23,8 @@ export function TopicPrimaryButtons({
 }: TopicPrimaryButtonsProps) {
   const router = useRouter();
 
-  if (activeTab === TopicTab.Folders) {
-    return (
+  return (
+    <div className="flex flex-wrap items-center gap-2">
       <Button
         variant="secondary"
         size="sm"
@@ -40,22 +33,19 @@ export function TopicPrimaryButtons({
         <FolderPlus className="size-4" />
         New folder
       </Button>
-    );
-  }
-
-  return (
-    <CreateDocumentDialog
-      topicId={topicId}
-      defaultFolderId={currentFolderId}
-      folderOptions={flattenFolders(tree).map(({ node, depth }) => ({
-        id: node.Id,
-        label: `${"— ".repeat(depth)}${node.Name}`,
-      }))}
-      onCreated={(doc, mode) =>
-        router.push(
-          `/library/${topicId}/${doc.Id}${mode === CreateDocumentMode.Write ? "?edit=1" : ""}`,
-        )
-      }
-    />
+      <CreateDocumentDialog
+        topicId={topicId}
+        defaultFolderId={currentFolderId}
+        folderOptions={flattenFolders(tree).map(({ node, depth }) => ({
+          id: node.Id,
+          label: `${"— ".repeat(depth)}${node.Name}`,
+        }))}
+        onCreated={(doc, mode) =>
+          router.push(
+            `/library/${topicId}/${doc.Id}${mode === CreateDocumentMode.Write ? "?edit=1" : ""}`,
+          )
+        }
+      />
+    </div>
   );
 }

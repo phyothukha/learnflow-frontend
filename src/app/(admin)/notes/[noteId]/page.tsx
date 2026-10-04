@@ -376,8 +376,11 @@ export default function NoteDetailPage({ params }: NoteDetailPageProps) {
                 )}
               </div>
             ) : view === ViewMode.Preview ? (
-              <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6">
-                <MarkdownPreview content={content} />
+              <div className="min-h-0 flex-1 overflow-y-auto px-3 py-2 sm:px-4 sm:py-3">
+                <MarkdownPreview
+                  content={content}
+                  className="mx-0 max-w-none"
+                />
               </div>
             ) : (
               <div className="min-h-0 flex-1 overflow-y-auto py-3">

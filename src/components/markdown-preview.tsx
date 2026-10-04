@@ -62,13 +62,14 @@ function CodeBlock({ children }: CodeBlockProps) {
 
 export interface MarkdownPreviewProps {
   content: string;
+  className?: string;
 }
 
-export function MarkdownPreview({ content }: MarkdownPreviewProps) {
+export function MarkdownPreview({ content, className }: MarkdownPreviewProps) {
   return (
     <MarkdownRenderer
       content={content}
-      className="markdown-prose"
+      className={className ? `markdown-prose ${className}` : "markdown-prose"}
       rehypePlugins={[rehypeHeadingIds]}
       components={{ pre: CodeBlock }}
     />
