@@ -237,7 +237,7 @@ export function EnrollmentsDialogs() {
                 />
               </div>
               <DialogFooter>
-                <Button type="button" variant="secondary" onClick={closeDialog}>
+                <Button type="button" variant="ghost" onClick={closeDialog}>
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isPending}>

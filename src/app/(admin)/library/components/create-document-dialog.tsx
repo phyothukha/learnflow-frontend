@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { isAxiosError } from "axios";
-import { FilePlus2, Loader2, Upload, X } from "lucide-react";
+import { FilePlus2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { FileDropzone } from "@/components/ui/file-dropzone";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -23,7 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DocumentKindIcon } from "@/components/document-kind-icon";
 import { TagInput } from "@/components/tag-input";
 import {
   CREATE_DOCUMENT_MODES,
@@ -33,11 +33,9 @@ import { cn } from "@/lib/utils";
 import { formatSize } from "@/utils/format";
 import {
   ACCEPT_ATTRIBUTE,
-  getDocumentKind,
   getExtension,
   isSupportedExtension,
   isTextExtension,
-  getKindMeta,
   MAX_TEXT_BYTES,
   MAX_UPLOAD_BYTES,
   stripExtension,
@@ -83,9 +81,7 @@ export function CreateDocumentDialog({
   const [tags, setTags] = useState<string[]>([]);
   const [url, setUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [dragging, setDragging] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const reset = () => {
     setMode(CreateDocumentMode.Write);
@@ -203,8 +199,6 @@ export function CreateDocumentDialog({
     }
   };
 
-  const fileKind = file ? getDocumentKind(getExtension(file.name)) : null;
-
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
@@ -244,71 +238,14 @@ export function CreateDocumentDialog({
 
         <div className="space-y-4">
           {mode === CreateDocumentMode.Upload && (
-            <div className="space-y-2">
-              {file && fileKind ? (
-                <div className="flex items-center gap-3 rounded-lg border p-3">
-                  <div
-                    className={cn(
-                      "shrink-0 rounded-md p-2",
-                      getKindMeta(fileKind).className,
-                    )}
-                  >
-                    <DocumentKindIcon kind={fileKind} size={20} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{file.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {getKindMeta(fileKind).label} · {formatSize(file.size)}
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-7 shrink-0"
-                    onClick={() => setFile(null)}
-                  >
-                    <X className="size-4" />
-                  </Button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setDragging(true);
-                  }}
-                  onDragLeave={() => setDragging(false)}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    setDragging(false);
-                    pickFile(e.dataTransfer.files?.[0]);
-                  }}
-                  className={cn(
-                    "flex w-full flex-col items-center gap-2 rounded-lg border-2 border-dashed px-4 py-8 text-center transition-colors hover:bg-accent/50",
-                    dragging && "border-primary bg-accent",
-                  )}
-                >
-                  <Upload className="size-6 text-muted-foreground" />
-                  <span className="text-sm font-medium">
-                    Drop a file here or click to browse
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {SUPPORTED_EXTENSIONS.map((e) => `.${e}`).join("  ")}
-                  </span>
-                </button>
-              )}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept={ACCEPT_ATTRIBUTE}
-                className="hidden"
-                onChange={(e) => {
-                  pickFile(e.target.files?.[0]);
-                  e.target.value = "";
-                }}
-              />
-            </div>
+            <FileDropzone
+              accept={ACCEPT_ATTRIBUTE}
+              description={`Maximum file size ${formatSize(MAX_UPLOAD_BYTES)}. ${SUPPORTED_EXTENSIONS.map((e) => `.${e}`).join(", ")}`}
+              files={file ? [file] : []}
+              onFiles={(picked) => pickFile(picked[0])}
+              onRemove={() => setFile(null)}
+              disabled={submitting}
+            />
           )}
 
           <div className="space-y-2">
@@ -364,7 +301,7 @@ export function CreateDocumentDialog({
 
         <DialogFooter>
           <Button
-            variant="secondary"
+            variant="ghost"
             onClick={() => handleOpenChange(false)}
             disabled={submitting}
           >

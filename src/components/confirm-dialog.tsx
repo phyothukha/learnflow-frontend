@@ -54,7 +54,7 @@ export function ConfirmDialog({
           </div>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel variant="secondary" disabled={pending}>
+          <AlertDialogCancel variant="ghost" disabled={pending}>
             {options?.cancelText ?? "Cancel"}
           </AlertDialogCancel>
           <Button

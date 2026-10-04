@@ -448,7 +448,7 @@ export function FolderNameDialog({
           autoFocus
         />
         <DialogFooter>
-          <Button variant="secondary" onClick={onClose} disabled={pending}>
+          <Button variant="ghost" onClick={onClose} disabled={pending}>
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={pending}>

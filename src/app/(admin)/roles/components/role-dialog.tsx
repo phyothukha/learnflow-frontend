@@ -182,7 +182,7 @@ export function RoleDialog({
               />
             )}
             <DialogFooter>
-              <Button type="button" variant="secondary" onClick={onClose}>
+              <Button type="button" variant="ghost" onClick={onClose}>
                 Cancel
               </Button>
               <Button type="submit">{isEdit ? "Save" : "Create role"}</Button>

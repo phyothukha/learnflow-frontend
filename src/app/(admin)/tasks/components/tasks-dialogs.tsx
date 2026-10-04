@@ -389,7 +389,7 @@ export function TasksDialogs() {
               />
 
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={closeDialog}>
+                <Button type="button" variant="ghost" onClick={closeDialog}>
                   Cancel
                 </Button>
                 <Button type="submit">

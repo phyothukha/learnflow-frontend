@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ImagePlus, Plus, X } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { TeamLogo } from "@/components/team-logo";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { FileDropzone } from "@/components/ui/file-dropzone";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,18 +28,18 @@ const DEFAULT_TEAM_COLOR = TEAM_COLORS[0];
 export function CreateTeamDialog() {
   const createTeam = useTeamsStore((state) => state.createTeam);
   const router = useRouter();
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [logo, setLogo] = useState<string | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
 
   function reset() {
     setName("");
     setDescription("");
     setLogo(null);
-    if (fileRef.current) fileRef.current.value = "";
+    setLogoFile(null);
   }
 
   function onPickFile(file: File | undefined) {
@@ -53,7 +54,10 @@ export function CreateTeamDialog() {
     }
     const reader = new FileReader();
     reader.onload = () => {
-      if (typeof reader.result === "string") setLogo(reader.result);
+      if (typeof reader.result === "string") {
+        setLogo(reader.result);
+        setLogoFile(file);
+      }
     };
     reader.readAsDataURL(file);
   }
@@ -117,41 +121,16 @@ export function CreateTeamDialog() {
 
           <div className="space-y-2">
             <Label>Logo</Label>
-            <div className="flex flex-wrap items-center gap-2">
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/png,image/jpeg,image/webp,image/gif"
-                className="hidden"
-                onChange={(e) => onPickFile(e.target.files?.[0])}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => fileRef.current?.click()}
-              >
-                <ImagePlus />
-                Upload image
-              </Button>
-              {logo ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setLogo(null);
-                    if (fileRef.current) fileRef.current.value = "";
-                  }}
-                >
-                  <X />
-                  Clear
-                </Button>
-              ) : null}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Optional. PNG, JPG, or WebP up to 200KB.
-            </p>
+            <FileDropzone
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              description="Optional. PNG, JPG, or WebP up to 200KB."
+              files={logoFile ? [logoFile] : []}
+              onFiles={(picked) => onPickFile(picked[0])}
+              onRemove={() => {
+                setLogo(null);
+                setLogoFile(null);
+              }}
+            />
           </div>
 
           <div className="space-y-2">
@@ -175,7 +154,7 @@ export function CreateTeamDialog() {
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
+          <Button variant="ghost" onClick={() => setOpen(false)}>
             Cancel
           </Button>
           <Button onClick={submit}>Create</Button>

@@ -118,7 +118,7 @@ export function EnrollDialog() {
               )}
             />
             <DialogFooter>
-              <Button type="button" variant="secondary" onClick={closeDialog}>
+              <Button type="button" variant="ghost" onClick={closeDialog}>
                 Cancel
               </Button>
               <Button
