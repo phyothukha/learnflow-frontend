@@ -155,7 +155,7 @@ export function TasksDialogs() {
         open={open === TasksDialogType.Create || isEdit}
         onOpenChange={(isOpen) => !isOpen && closeDialog()}
       >
-        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-xl">
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>{isEdit ? "Edit task" : "New task"}</DialogTitle>
             <DialogDescription>

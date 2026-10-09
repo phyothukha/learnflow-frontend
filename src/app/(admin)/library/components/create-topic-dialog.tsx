@@ -98,7 +98,7 @@ export function CreateTopicDialog() {
           New topic
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-md">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>New topic</DialogTitle>
           <DialogDescription>

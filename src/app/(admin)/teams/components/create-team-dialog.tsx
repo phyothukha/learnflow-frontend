@@ -93,7 +93,7 @@ export function CreateTeamDialog() {
           New team
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-md">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Create a team</DialogTitle>
           <DialogDescription>

@@ -78,7 +78,7 @@ export function DocumentDetailDialog({
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Document details</DialogTitle>
         </DialogHeader>

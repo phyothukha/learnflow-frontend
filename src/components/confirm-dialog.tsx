@@ -30,7 +30,7 @@ export function ConfirmDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={(next) => !next && onCancel()}>
-      <AlertDialogContent className="sm:max-w-md">
+      <AlertDialogContent className="sm:max-w-xl">
         <AlertDialogHeader className="sm:flex sm:items-start sm:gap-4">
           {Icon && (
             <div

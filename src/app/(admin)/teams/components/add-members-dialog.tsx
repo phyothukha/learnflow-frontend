@@ -156,7 +156,7 @@ export function AddMembersDialog({ team }: { team: Team }) {
           Add learners
         </Button>
       </DialogTrigger>
-      <DialogContent className="gap-0 overflow-visible p-0 sm:max-w-[520px]">
+      <DialogContent className="gap-0 overflow-visible p-0 sm:max-w-2xl">
         <DialogHeader className="space-y-0 px-6 pt-6 pb-2">
           <DialogTitle className="text-xl">Add Learners</DialogTitle>
         </DialogHeader>
