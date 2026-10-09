@@ -1,10 +1,5 @@
 import type { Course } from "@/store/server/courses/interface";
 
-export interface ListResponse<T> {
-  "@odata.count": number;
-  value: T[];
-}
-
 export enum EnrollmentStatus {
   Pending = "Pending",
   Active = "Active",

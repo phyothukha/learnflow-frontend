@@ -1,7 +1,7 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
+import dayjs from "dayjs";
 import { UserMinus } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -63,7 +63,7 @@ export function createMemberColumns({
       header: "Joined",
       cell: ({ row }) => (
         <span className="text-sm text-muted-foreground">
-          {format(new Date(row.original.JoinedAt), "dd MMM yyyy")}
+          {dayjs(row.original.JoinedAt).format("DD MMM YYYY")}
         </span>
       ),
     },

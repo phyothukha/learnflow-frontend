@@ -1,14 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useMemo, useState } from "react";
 import { UsersRound } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { SearchInput } from "@/components/search-input";
 import { usePermission } from "@/hooks/use-permission";
 import { useWorkspaceNotesHydration } from "@/hooks/use-workspace-notes-hydration";
 import { PERMISSIONS } from "@/lib/permissions";
+import { useRequirePermission } from "@/hooks/use-require-permission";
 import { useNotesStore } from "@/store/client/notes-store";
 import { useTeamsStore } from "@/store/client/teams-store";
 import { NoteVisibility } from "@/store/server/notes/interface";
@@ -16,10 +15,8 @@ import { CreateTeamDialog } from "./components/create-team-dialog";
 import { TeamCard } from "./components/team-card";
 
 export default function TeamsPage() {
-  const router = useRouter();
-  const { status } = useSession();
   const { hasPermission } = usePermission();
-  const canView = hasPermission(PERMISSIONS.TEAMS_VIEW);
+  const canView = useRequirePermission(PERMISSIONS.TEAMS_VIEW);
   const canCreate = hasPermission(PERMISSIONS.TEAMS_CREATE);
   const ready = useWorkspaceNotesHydration();
   const teams = useTeamsStore((state) => state.teams);
@@ -45,11 +42,7 @@ export default function TeamsPage() {
     );
   }, [teams, query]);
 
-  useEffect(() => {
-    if (status === "authenticated" && !canView) router.replace("/forbidden");
-  }, [status, canView, router]);
-
-  if (status !== "authenticated" || !canView || !ready) return null;
+  if (!canView || !ready) return null;
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-6">

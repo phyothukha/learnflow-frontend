@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
+import dayjs from "dayjs";
 import { UserPlus, Users } from "lucide-react";
 import { DataTable } from "@/components/data-table";
 import {
@@ -133,7 +133,7 @@ export function UsersTable() {
         header: "Joined",
         cell: ({ row }) => (
           <span className="text-muted-foreground tabular-nums">
-            {format(new Date(row.original.JoinedAt), "MMM d, yyyy")}
+            {dayjs(row.original.JoinedAt).format("MMM D, YYYY")}
           </span>
         ),
       },

@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  type QueryClient,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { clientAxios } from "@/lib/axios";
 import type {
   Course,
@@ -28,12 +32,18 @@ async function deleteCourse(id: string): Promise<void> {
   await clientAxios.delete(`/courses/${id}`);
 }
 
+function invalidateCourses(queryClient: QueryClient) {
+  return Promise.all([
+    queryClient.invalidateQueries({ queryKey: ["course-list"] }),
+    queryClient.invalidateQueries({ queryKey: ["course-detail"] }),
+  ]);
+}
+
 export function useCreateCourse() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createCourse,
-    onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: ["course-list"] }),
+    onSettled: () => invalidateCourses(queryClient),
   });
 }
 
@@ -41,8 +51,7 @@ export function useUpdateCourse() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateCourse,
-    onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: ["course-list"] }),
+    onSettled: () => invalidateCourses(queryClient),
   });
 }
 
@@ -50,7 +59,6 @@ export function useDeleteCourse() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteCourse,
-    onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: ["course-list"] }),
+    onSettled: () => invalidateCourses(queryClient),
   });
 }

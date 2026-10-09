@@ -11,13 +11,13 @@ import {
   type BarShapeProps,
 } from "recharts";
 import { CalendarDays } from "lucide-react";
-import { chartTooltipStyle } from "@/utils/dashboard";
+import { chartTooltipStyle } from "../utils/dashboard";
 import {
   DashboardCard,
   DashboardCardScroll,
   DashboardCardValue,
 } from "./dashboard-card";
-import type { DayActivePoint } from "@/utils/dashboard";
+import type { DayActivePoint } from "../utils/dashboard";
 
 export interface MostActiveDayCardProps {
   totalLabel: string;

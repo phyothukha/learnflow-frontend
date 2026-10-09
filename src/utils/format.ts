@@ -1,4 +1,7 @@
 import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(relativeTime);
 
 /** e.g. "08:00 AM - 08:30 AM" */
 export function formatTimeRange(start: string, end: string) {
@@ -13,4 +16,9 @@ export function formatSize(bytes: number) {
 
 export function formatHours(minutes: number) {
   return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+}
+
+/** e.g. "3 days ago" */
+export function formatRelative(date: string) {
+  return dayjs(date).fromNow();
 }

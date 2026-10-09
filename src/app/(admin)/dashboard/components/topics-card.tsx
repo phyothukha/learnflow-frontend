@@ -24,7 +24,7 @@ import {
   sumMinutes,
   type TopicDocument,
   type TopicDonutSlice,
-} from "@/utils/dashboard";
+} from "../utils/dashboard";
 import { WidgetHeader } from "./widget-header";
 
 export interface TopicsCardProps {

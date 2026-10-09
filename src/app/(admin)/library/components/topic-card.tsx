@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { format } from "date-fns";
+import dayjs from "dayjs";
 import { CalendarDays, FileText, Trash2 } from "lucide-react";
 import { TeamLogo } from "@/components/team-logo";
 import { Button } from "@/components/ui/button";
@@ -68,7 +68,7 @@ export function TopicCard({
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1.5">
           <CalendarDays className="size-3.5" />
-          {format(new Date(topic.UpdatedAt), "MMM d, yyyy")}
+          {dayjs(topic.UpdatedAt).format("MMM D, YYYY")}
         </span>
         <span className="inline-flex items-center gap-1 tabular-nums">
           <FileText className="size-3.5" />

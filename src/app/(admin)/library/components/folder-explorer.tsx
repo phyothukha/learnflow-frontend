@@ -1,7 +1,6 @@
 "use client";
 
 import { Fragment, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   ChevronDown,
   ChevronRight,
@@ -260,7 +259,6 @@ export function FolderCard({
   onRename,
   onDeleted,
 }: FolderCardProps) {
-  const queryClient = useQueryClient();
   const deleteFolder = useDeleteFolder();
   const { confirmDelete, dialogProps } = useConfirmDialog();
   const subfolderCount = node.Children.length;
@@ -315,9 +313,6 @@ export function FolderCard({
                     errorMessage: "Failed to delete folder",
                     onConfirm: async () => {
                       await deleteFolder.mutateAsync(node.Id);
-                      queryClient.invalidateQueries({
-                        queryKey: ["document-list"],
-                      });
                       onDeleted();
                     },
                   });

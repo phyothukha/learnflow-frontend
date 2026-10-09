@@ -37,7 +37,6 @@ export interface AnimatedTabsProps<T extends string> {
   className?: string;
   tabClassName?: string;
   indicatorClassName?: string;
-  /** Rendered after the tabs, e.g. a status chip. */
   children?: ReactNode;
 }
 

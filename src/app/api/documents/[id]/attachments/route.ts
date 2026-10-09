@@ -1,20 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import { serverAxios } from "@/lib/axios";
-import { isAxiosError } from "axios";
-
-interface RouteParams {
-  id: string;
-}
+import { authHeaders, backendError, unauthorized } from "@/lib/api-route";
 
 interface Params {
-  params: Promise<RouteParams>;
+  params: Promise<{ id: string }>;
 }
 
 export async function POST(request: NextRequest, { params }: Params) {
   const session = await auth();
-  if (!session)
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  if (!session) return unauthorized();
 
   const { id } = await params;
   const incomingForm = await request.formData();
@@ -30,19 +25,11 @@ export async function POST(request: NextRequest, { params }: Params) {
     const { data } = await serverAxios.post(
       `/v1/Documents/${id}/attachments`,
       outgoingForm,
-      {
-        headers: {
-          Authorization: `Bearer ${session.user.accessToken}`,
-          "Content-Type": undefined,
-        },
-      },
+      // Let axios set the multipart boundary instead of the default JSON header.
+      { headers: { ...authHeaders(session), "Content-Type": undefined } },
     );
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
-    const status = isAxiosError(error) ? (error.response?.status ?? 500) : 500;
-    return NextResponse.json(
-      { message: "Failed to upload attachment" },
-      { status },
-    );
+    return backendError(error, "Failed to upload attachment");
   }
 }

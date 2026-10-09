@@ -2,7 +2,7 @@
 
 import { Layers } from "lucide-react";
 import { DashboardCard, DashboardCardValue } from "./dashboard-card";
-import type { TopicSegment } from "@/utils/dashboard";
+import type { TopicSegment } from "../utils/dashboard";
 
 export interface TopicsBreakdownCardProps {
   segments: TopicSegment[];

@@ -17,7 +17,7 @@ import {
   buildTopicSeries,
   buildWeeklyFocusData,
   chartTooltipStyle,
-} from "@/utils/dashboard";
+} from "../utils/dashboard";
 import { WidgetHeader } from "./widget-header";
 
 export interface WeeklyFocusCardProps {

@@ -1,13 +1,11 @@
 "use client";
 
-import { use, useEffect } from "react";
+import { use } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
+import { useRequirePermission } from "@/hooks/use-require-permission";
 import {
   LearnerStatus,
   useLearnersStore,
@@ -20,19 +18,12 @@ interface EditLearnerPageProps {
 
 export default function EditLearnerPage({ params }: EditLearnerPageProps) {
   const { learnerId } = use(params);
-  const router = useRouter();
-  const { status } = useSession();
-  const { hasPermission } = usePermission();
-  const canUpdate = hasPermission(PERMISSIONS.LEARNERS_UPDATE);
+  const canUpdate = useRequirePermission(PERMISSIONS.LEARNERS_UPDATE);
   const learner = useLearnersStore((state) =>
     state.learners.find((item) => item.Id === learnerId),
   );
 
-  useEffect(() => {
-    if (status === "authenticated" && !canUpdate) router.replace("/forbidden");
-  }, [status, canUpdate, router]);
-
-  if (status !== "authenticated" || !canUpdate) return null;
+  if (!canUpdate) return null;
 
   if (!learner) {
     return (

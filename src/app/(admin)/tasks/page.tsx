@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useState } from "react";
 import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
-import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
+import { useRequirePermission } from "@/hooks/use-require-permission";
 import { TaskView } from "@/lib/task-meta";
 import type { TaskCategory } from "@/store/server/tasks/interface";
 import { TaskCalendarView } from "./components/task-calendar-view";
@@ -23,17 +21,9 @@ import TasksProvider, { useTasks } from "./context/tasks-context";
 import { Button } from "@/components/ui/button";
 
 export default function TasksPage() {
-  const router = useRouter();
-  const { status: sessionStatus } = useSession();
-  const { hasPermission } = usePermission();
-  const canView = hasPermission(PERMISSIONS.SCHEDULE_VIEW);
+  const canView = useRequirePermission(PERMISSIONS.SCHEDULE_VIEW);
 
-  useEffect(() => {
-    if (sessionStatus === "authenticated" && !canView)
-      router.replace("/forbidden");
-  }, [sessionStatus, canView, router]);
-
-  if (sessionStatus !== "authenticated" || !canView) return null;
+  if (!canView) return null;
 
   return (
     <TasksProvider>

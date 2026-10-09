@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  type QueryClient,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { clientAxios } from "@/lib/axios";
 import type {
   CreateTopicPayload,
@@ -28,12 +32,18 @@ async function deleteTopic(id: string): Promise<void> {
   await clientAxios.delete(`/topics/${id}`);
 }
 
+function invalidateTopics(queryClient: QueryClient) {
+  return Promise.all([
+    queryClient.invalidateQueries({ queryKey: ["topic-list"] }),
+    queryClient.invalidateQueries({ queryKey: ["topic-detail"] }),
+  ]);
+}
+
 export function useCreateTopic() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createTopic,
-    onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: ["topic-list"] }),
+    onSettled: () => invalidateTopics(queryClient),
   });
 }
 
@@ -41,8 +51,7 @@ export function useUpdateTopic() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateTopic,
-    onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: ["topic-list"] }),
+    onSettled: () => invalidateTopics(queryClient),
   });
 }
 
@@ -50,7 +59,6 @@ export function useDeleteTopic() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteTopic,
-    onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: ["topic-list"] }),
+    onSettled: () => invalidateTopics(queryClient),
   });
 }

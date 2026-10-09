@@ -1,10 +1,10 @@
 "use client";
 
-import { use, useEffect, useMemo } from "react";
+import { use, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { format, formatDistanceToNow } from "date-fns";
+import dayjs from "dayjs";
+import { formatRelative } from "@/utils/format";
 import {
   ArrowLeft,
   Ban,
@@ -25,6 +25,7 @@ import { ENROLLMENT_STATUS_VARIANT } from "@/lib/enrollment-status";
 import { LEARNER_PORTAL_PERMISSION_GROUPS } from "@/lib/permission-groups";
 import { LEARNER_STATUS_VARIANT } from "@/lib/learner-status";
 import { PERMISSIONS } from "@/lib/permissions";
+import { useRequirePermission } from "@/hooks/use-require-permission";
 import {
   LearnerStatus,
   useLearnersStore,
@@ -192,7 +193,7 @@ function LearnerDetailContent({ learnerId }: { learnerId: string }) {
                 </Badge>
                 <Badge variant="outline">{roleName ?? "No role"}</Badge>
                 <span className="text-xs text-muted-foreground">
-                  Joined {format(new Date(learner.JoinedAt), "dd MMM yyyy")}
+                  Joined {dayjs(learner.JoinedAt).format("DD MMM YYYY")}
                 </span>
               </div>
             </div>
@@ -263,7 +264,7 @@ function LearnerDetailContent({ learnerId }: { learnerId: string }) {
                         </p>
                         <p className="text-xs text-muted-foreground">
                           Enrolled{" "}
-                          {format(new Date(item.EnrolledAt), "dd MMM yyyy")}
+                          {dayjs(item.EnrolledAt).format("DD MMM YYYY")}
                         </p>
                       </div>
                       <div className="flex shrink-0 items-center gap-1">
@@ -326,7 +327,7 @@ function LearnerDetailContent({ learnerId }: { learnerId: string }) {
             </div>
             <p className="text-xs text-muted-foreground">
               {learner.LastLoginAt
-                ? `Last active ${formatDistanceToNow(new Date(learner.LastLoginAt), { addSuffix: true })}`
+                ? `Last active ${formatRelative(learner.LastLoginAt)}`
                 : "Has not signed in yet"}
             </p>
           </section>
@@ -364,16 +365,9 @@ function LearnerDetailContent({ learnerId }: { learnerId: string }) {
 
 export default function LearnerDetailPage({ params }: LearnerDetailPageProps) {
   const { learnerId } = use(params);
-  const router = useRouter();
-  const { status } = useSession();
-  const { hasPermission } = usePermission();
-  const canView = hasPermission(PERMISSIONS.LEARNERS_VIEW);
+  const canView = useRequirePermission(PERMISSIONS.LEARNERS_VIEW);
 
-  useEffect(() => {
-    if (status === "authenticated" && !canView) router.replace("/forbidden");
-  }, [status, canView, router]);
-
-  if (status !== "authenticated" || !canView) return null;
+  if (!canView) return null;
 
   return (
     <LearnersProvider>

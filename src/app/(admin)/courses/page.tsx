@@ -1,28 +1,17 @@
 "use client";
 
 import { PageHeader } from "@/components/page-header";
-import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
+import { useRequirePermission } from "@/hooks/use-require-permission";
 import { CoursesDialogs } from "./components/courses-dialogs";
 import { CoursesPrimaryButtons } from "./components/courses-primary-buttons";
 import { CoursesTable } from "./components/courses-table";
 import CoursesProvider from "./context/courses-context";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { useSession } from "next-auth/react";
 
 export default function CoursesPage() {
-  const router = useRouter();
-  const { status } = useSession();
-  const { hasPermission } = usePermission();
+  const canView = useRequirePermission(PERMISSIONS.COURSES_VIEW);
 
-  const canView = hasPermission(PERMISSIONS.COURSES_VIEW);
-
-  useEffect(() => {
-    if (status === "authenticated" && !canView) router.replace("/forbidden");
-  }, [status, canView, router]);
-
-  if (status !== "authenticated" || !canView) return null;
+  if (!canView) return null;
 
   return (
     <CoursesProvider>

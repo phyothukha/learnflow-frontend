@@ -29,7 +29,7 @@ import {
   DASHBOARD_WIDGET_LABELS,
   DashboardPeriod,
   type DashboardWidget,
-} from "@/lib/dashboard";
+} from "../utils/constants";
 import { cn } from "@/lib/utils";
 
 export interface DashboardRange {

@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useMemo, useState } from "react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { Library } from "lucide-react";
@@ -11,8 +9,8 @@ dayjs.extend(relativeTime);
 import { PageHeader } from "@/components/page-header";
 import { SearchInput } from "@/components/search-input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
+import { useRequirePermission } from "@/hooks/use-require-permission";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { AnimatedTabs, type AnimatedTab } from "@/components/animated-tabs";
@@ -46,10 +44,7 @@ function sortTopics(topics: Topic[], mode: SortMode) {
 }
 
 export default function LibraryPage() {
-  const router = useRouter();
-  const { status } = useSession();
-  const { hasPermission } = usePermission();
-  const canView = hasPermission(PERMISSIONS.DOCUMENTS_VIEW);
+  const canView = useRequirePermission(PERMISSIONS.DOCUMENTS_VIEW);
 
   const { activeTopicId, setActiveTopic } = useWorkspaceStore();
   const logos = useTopicMetaStore((state) => state.logos);
@@ -70,11 +65,7 @@ export default function LibraryPage() {
     return counts;
   }, [documentsData?.Items]);
 
-  useEffect(() => {
-    if (status === "authenticated" && !canView) router.replace("/forbidden");
-  }, [status, canView, router]);
-
-  if (status !== "authenticated" || !canView) return null;
+  if (!canView) return null;
 
   const topics = topicsData?.Items ?? [];
   const query = search.trim().toLowerCase();

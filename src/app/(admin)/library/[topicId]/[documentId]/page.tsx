@@ -3,20 +3,19 @@
 import { use, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
-import { usePermission } from "@/hooks/use-permission";
 import {
   DocumentKind,
   getDocumentKind,
   getExtensionLabel,
 } from "@/lib/document-types";
 import { PERMISSIONS } from "@/lib/permissions";
+import { useRequirePermission } from "@/hooks/use-require-permission";
 import { cn } from "@/lib/utils";
 import { FALLBACK_TOPIC_COLOR } from "@/utils/colors";
 import { downloadFromUrl, downloadText } from "@/utils/file";
@@ -59,9 +58,7 @@ export default function DocumentViewerPage({
   const { topicId, documentId } = use(params);
   const { edit } = use(searchParams);
   const router = useRouter();
-  const { status } = useSession();
-  const { hasPermission } = usePermission();
-  const canView = hasPermission(PERMISSIONS.DOCUMENTS_VIEW);
+  const canView = useRequirePermission(PERMISSIONS.DOCUMENTS_VIEW);
 
   const [view, setView] = useState<ViewMode>(ViewMode.Preview);
   const [editing, setEditing] = useState(edit === "1");
@@ -85,10 +82,6 @@ export default function DocumentViewerPage({
   const topic = topicsData?.Items.find((t) => t.Id === topicId);
 
   useEffect(() => {
-    if (status === "authenticated" && !canView) router.replace("/forbidden");
-  }, [status, canView, router]);
-
-  useEffect(() => {
     if (!fullscreen) return;
     const previousOverflow = window.document.body.style.overflow;
     window.document.body.style.overflow = "hidden";
@@ -110,7 +103,7 @@ export default function DocumentViewerPage({
     return () => window.removeEventListener("beforeunload", warn);
   }, []);
 
-  if (status !== "authenticated" || !canView) return null;
+  if (!canView) return null;
 
   if (isLoading) {
     return (

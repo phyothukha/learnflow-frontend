@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
-import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
+import { useRequirePermission } from "@/hooks/use-require-permission";
 import { useRolesStore } from "@/store/client/mock/roles-store";
 import { RolePermissionForm } from "../components/role-permission-form";
 
@@ -13,12 +12,7 @@ export default function NewRolePage() {
   const router = useRouter();
   const createRole = useRolesStore((state) => state.createRole);
   const roles = useRolesStore((state) => state.roles);
-  const { hasPermission } = usePermission();
-  const canCreate = hasPermission(PERMISSIONS.ROLES_CREATE);
-
-  useEffect(() => {
-    if (!canCreate) router.replace("/forbidden");
-  }, [canCreate, router]);
+  const canCreate = useRequirePermission(PERMISSIONS.ROLES_CREATE);
 
   if (!canCreate) return null;
 

@@ -1,48 +1,26 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { serverAxios } from "@/lib/axios";
-import { isAxiosError } from "axios";
+import type { NextRequest } from "next/server";
+import { pagingParams, proxyToBackend } from "@/lib/api-route";
 
 export async function GET(request: NextRequest) {
-  const session = await auth();
-  if (!session)
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  const includeArchived =
+    request.nextUrl.searchParams.get("includeArchived") === "true";
 
-  const searchParams = request.nextUrl.searchParams;
-  const page = Number(searchParams.get("page") ?? 0);
-  const limit = Number(searchParams.get("limit") ?? 100);
-  const includeArchived = searchParams.get("includeArchived") === "true";
-
-  const params = new URLSearchParams();
-  params.set("page", String(page + 1));
-  params.set("pageSize", String(limit));
+  const params = pagingParams(request, 100);
   if (!includeArchived) params.set("isArchived", "false");
 
-  try {
-    const { data } = await serverAxios.get(`/v1/Topics?${params}`, {
-      headers: { Authorization: `Bearer ${session.user.accessToken}` },
-    });
-    return NextResponse.json(data);
-  } catch (error) {
-    const status = isAxiosError(error) ? (error.response?.status ?? 500) : 500;
-    return NextResponse.json({ message: "Failed to fetch topics" }, { status });
-  }
+  return proxyToBackend({
+    method: "get",
+    path: `/v1/Topics?${params}`,
+    errorMessage: "Failed to fetch topics",
+  });
 }
 
 export async function POST(request: NextRequest) {
-  const session = await auth();
-  if (!session)
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-
-  const body = await request.json();
-
-  try {
-    const { data } = await serverAxios.post("/v1/Topics", body, {
-      headers: { Authorization: `Bearer ${session.user.accessToken}` },
-    });
-    return NextResponse.json(data, { status: 201 });
-  } catch (error) {
-    const status = isAxiosError(error) ? (error.response?.status ?? 500) : 500;
-    return NextResponse.json({ message: "Failed to create topic" }, { status });
-  }
+  return proxyToBackend({
+    method: "post",
+    path: "/v1/Topics",
+    request,
+    status: 201,
+    errorMessage: "Failed to create topic",
+  });
 }

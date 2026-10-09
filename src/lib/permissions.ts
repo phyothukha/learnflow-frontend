@@ -1,72 +1,77 @@
 export const PERMISSIONS = {
   // Dashboard
-  DASHBOARD_VIEW: "dashboard_view",
+  DASHBOARD_VIEW: "DASHBOARD_VIEW",
 
   // Courses
-  COURSES_VIEW: "courses_view",
-  COURSES_CREATE: "courses_create",
-  COURSES_UPDATE: "courses_update",
-  COURSES_DELETE: "courses_delete",
+  COURSES_VIEW: "COURSES_VIEW",
+  COURSES_CREATE: "COURSES_CREATE",
+  COURSES_UPDATE: "COURSES_UPDATE",
+  COURSES_DELETE: "COURSES_DELETE",
 
   // Lessons
-  LESSONS_VIEW: "lessons_view",
-  LESSONS_CREATE: "lessons_create",
-  LESSONS_UPDATE: "lessons_update",
-  LESSONS_DELETE: "lessons_delete",
+  LESSONS_VIEW: "LESSONS_VIEW",
+  LESSONS_CREATE: "LESSONS_CREATE",
+  LESSONS_UPDATE: "LESSONS_UPDATE",
+  LESSONS_DELETE: "LESSONS_DELETE",
 
   // Enrollments
-  ENROLLMENTS_VIEW: "enrollments_view",
-  ENROLLMENTS_CREATE: "enrollments_create",
-  ENROLLMENTS_UPDATE: "enrollments_update",
-  ENROLLMENTS_DELETE: "enrollments_delete",
+  ENROLLMENTS_VIEW: "ENROLLMENTS_VIEW",
+  ENROLLMENTS_CREATE: "ENROLLMENTS_CREATE",
+  ENROLLMENTS_UPDATE: "ENROLLMENTS_UPDATE",
+  ENROLLMENTS_DELETE: "ENROLLMENTS_DELETE",
 
   // Field-level visibility
-  ENROLLMENT_INFO_EMAIL_VIEW: "enrollment_info_email_view",
+  ENROLLMENT_INFO_EMAIL_VIEW: "ENROLLMENT_INFO_EMAIL_VIEW",
 
   // Topics
-  TOPICS_VIEW: "topics_view",
-  TOPICS_CREATE: "topics_create",
-  TOPICS_UPDATE: "topics_update",
-  TOPICS_DELETE: "topics_delete",
+  TOPICS_VIEW: "TOPICS_VIEW",
+  TOPICS_CREATE: "TOPICS_CREATE",
+  TOPICS_UPDATE: "TOPICS_UPDATE",
+  TOPICS_DELETE: "TOPICS_DELETE",
 
   // Documents
-  DOCUMENTS_VIEW: "documents_view",
-  DOCUMENTS_CREATE: "documents_create",
-  DOCUMENTS_UPDATE: "documents_update",
-  DOCUMENTS_DELETE: "documents_delete",
+  DOCUMENTS_VIEW: "DOCUMENTS_VIEW",
+  DOCUMENTS_CREATE: "DOCUMENTS_CREATE",
+  DOCUMENTS_UPDATE: "DOCUMENTS_UPDATE",
+  DOCUMENTS_DELETE: "DOCUMENTS_DELETE",
 
   // Notes
-  NOTES_VIEW: "notes_view",
-  NOTES_CREATE: "notes_create",
-  NOTES_UPDATE: "notes_update",
-  NOTES_DELETE: "notes_delete",
+  NOTES_VIEW: "NOTES_VIEW",
+  NOTES_CREATE: "NOTES_CREATE",
+  NOTES_UPDATE: "NOTES_UPDATE",
+  NOTES_DELETE: "NOTES_DELETE",
 
   // Teams
-  TEAMS_VIEW: "teams_view",
-  TEAMS_CREATE: "teams_create",
-  TEAMS_UPDATE: "teams_update",
-  TEAMS_DELETE: "teams_delete",
+  TEAMS_VIEW: "TEAMS_VIEW",
+  TEAMS_CREATE: "TEAMS_CREATE",
+  TEAMS_UPDATE: "TEAMS_UPDATE",
+  TEAMS_DELETE: "TEAMS_DELETE",
 
   // Schedule (study blocks)
-  SCHEDULE_VIEW: "schedule_view",
-  SCHEDULE_CREATE: "schedule_create",
-  SCHEDULE_UPDATE: "schedule_update",
-  SCHEDULE_DELETE: "schedule_delete",
+  SCHEDULE_VIEW: "SCHEDULE_VIEW",
+  SCHEDULE_CREATE: "SCHEDULE_CREATE",
+  SCHEDULE_UPDATE: "SCHEDULE_UPDATE",
+  SCHEDULE_DELETE: "SCHEDULE_DELETE",
 
   // Analytics
-  ANALYTICS_VIEW: "analytics_view",
+  ANALYTICS_VIEW: "ANALYTICS_VIEW",
 
   // Learners
-  LEARNERS_VIEW: "learners_view",
-  LEARNERS_CREATE: "learners_create",
-  LEARNERS_UPDATE: "learners_update",
-  LEARNERS_DELETE: "learners_delete",
+  LEARNERS_VIEW: "LEARNERS_VIEW",
+  LEARNERS_CREATE: "LEARNERS_CREATE",
+  LEARNERS_UPDATE: "LEARNERS_UPDATE",
+  LEARNERS_DELETE: "LEARNERS_DELETE",
 
   // Roles & permissions
-  ROLES_VIEW: "roles_view",
-  ROLES_CREATE: "roles_create",
-  ROLES_UPDATE: "roles_update",
-  ROLES_DELETE: "roles_delete",
+  ROLES_VIEW: "ROLES_VIEW",
+  ROLES_CREATE: "ROLES_CREATE",
+  ROLES_UPDATE: "ROLES_UPDATE",
+  ROLES_DELETE: "ROLES_DELETE",
 } as const;
 
 export type PermissionCode = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
+
+/** Backend sends lowercase codes (e.g. `courses_view`); the app compares uppercase. */
+export function normalizePermissions(codes: string[] = []) {
+  return codes.map((code) => code.toUpperCase());
+}

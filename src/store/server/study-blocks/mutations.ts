@@ -2,10 +2,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { clientAxios } from "@/lib/axios";
 import type {
   CreateStudyBlockPayload,
-  ListResponse,
   StudyBlock,
   UpdateStudyBlockPayload,
 } from "./interface";
+import type { ListResponse } from "@/store/server/shared/list-response";
 
 async function createStudyBlock(
   payload: CreateStudyBlockPayload,

@@ -1,54 +1,25 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { serverAxios } from "@/lib/axios";
-import { isAxiosError } from "axios";
+import type { NextRequest } from "next/server";
+import { pagingParams, proxyToBackend } from "@/lib/api-route";
 
 export async function GET(request: NextRequest) {
-  const session = await auth();
-  if (!session)
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  const topicId = request.nextUrl.searchParams.get("topicId");
 
-  const searchParams = request.nextUrl.searchParams;
-  const page = Number(searchParams.get("page") ?? 0);
-  const limit = Number(searchParams.get("limit") ?? 100);
-  const topicId = searchParams.get("topicId");
-
-  const params = new URLSearchParams();
-  params.set("page", String(page + 1));
-  params.set("pageSize", String(limit));
+  const params = pagingParams(request, 100);
   if (topicId) params.set("topicId", topicId);
 
-  try {
-    const { data } = await serverAxios.get(`/v1/TopicFolders?${params}`, {
-      headers: { Authorization: `Bearer ${session.user.accessToken}` },
-    });
-    return NextResponse.json(data);
-  } catch (error) {
-    const status = isAxiosError(error) ? (error.response?.status ?? 500) : 500;
-    return NextResponse.json(
-      { message: "Failed to fetch folders" },
-      { status },
-    );
-  }
+  return proxyToBackend({
+    method: "get",
+    path: `/v1/TopicFolders?${params}`,
+    errorMessage: "Failed to fetch folders",
+  });
 }
 
 export async function POST(request: NextRequest) {
-  const session = await auth();
-  if (!session)
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-
-  const body = await request.json();
-
-  try {
-    const { data } = await serverAxios.post("/v1/TopicFolders", body, {
-      headers: { Authorization: `Bearer ${session.user.accessToken}` },
-    });
-    return NextResponse.json(data, { status: 201 });
-  } catch (error) {
-    const status = isAxiosError(error) ? (error.response?.status ?? 500) : 500;
-    return NextResponse.json(
-      { message: "Failed to create folder" },
-      { status },
-    );
-  }
+  return proxyToBackend({
+    method: "post",
+    path: "/v1/TopicFolders",
+    request,
+    status: 201,
+    errorMessage: "Failed to create folder",
+  });
 }

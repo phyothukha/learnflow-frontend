@@ -1,24 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { PageHeader } from "@/components/page-header";
-import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
+import { useRequirePermission } from "@/hooks/use-require-permission";
 import { InviteLearnerForm } from "../components/invite-learner-form";
 
 export default function InviteLearnerPage() {
-  const router = useRouter();
-  const { status } = useSession();
-  const { hasPermission } = usePermission();
-  const canCreate = hasPermission(PERMISSIONS.LEARNERS_CREATE);
+  const canCreate = useRequirePermission(PERMISSIONS.LEARNERS_CREATE);
 
-  useEffect(() => {
-    if (status === "authenticated" && !canCreate) router.replace("/forbidden");
-  }, [status, canCreate, router]);
-
-  if (status !== "authenticated" || !canCreate) return null;
+  if (!canCreate) return null;
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-6 overflow-hidden">

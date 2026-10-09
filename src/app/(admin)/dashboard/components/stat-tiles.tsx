@@ -1,6 +1,6 @@
 "use client";
 
-import type { KpiTile } from "@/utils/dashboard";
+import type { KpiTile } from "../utils/dashboard";
 import {
   ChangePill,
   DashboardCard,

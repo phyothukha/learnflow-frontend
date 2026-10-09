@@ -18,7 +18,7 @@ import {
 } from "@/store/server/study-blocks/interface";
 import type { Topic } from "@/store/server/topics/interface";
 import type { Note } from "@/store/server/notes/interface";
-import { HEATMAP_STEPS } from "@/lib/dashboard";
+import { HEATMAP_STEPS } from "./constants";
 import { DEFAULT_TOPIC_COLOR, FALLBACK_TOPIC_COLOR } from "@/utils/colors";
 import { toCsv } from "@/utils/csv";
 import { formatHours } from "@/utils/format";

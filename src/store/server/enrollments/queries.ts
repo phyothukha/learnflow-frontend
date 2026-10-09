@@ -1,10 +1,7 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { clientAxios } from "@/lib/axios";
-import type {
-  Enrollment,
-  EnrollmentListParams,
-  ListResponse,
-} from "./interface";
+import type { Enrollment, EnrollmentListParams } from "./interface";
+import type { ListResponse } from "@/store/server/shared/list-response";
 
 async function fetchEnrollments(
   params: EnrollmentListParams,

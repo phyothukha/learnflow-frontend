@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { format } from "date-fns";
+import dayjs from "dayjs";
 import {
   AlertTriangle,
   CalendarDays,
@@ -61,7 +61,7 @@ export function TeamCard({ team, notesCount = 0 }: TeamCardProps) {
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
           <CalendarDays className="size-3.5" />
-          {format(new Date(team.CreatedAt), "MMM d, yyyy")}
+          {dayjs(team.CreatedAt).format("MMM D, YYYY")}
         </span>
       </div>
 

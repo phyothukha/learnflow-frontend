@@ -1,77 +1,35 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { serverAxios } from "@/lib/axios";
-import { isAxiosError } from "axios";
-
-interface RouteParams {
-  id: string;
-}
+import type { NextRequest } from "next/server";
+import { proxyToBackend } from "@/lib/api-route";
 
 interface Params {
-  params: Promise<RouteParams>;
+  params: Promise<{ id: string }>;
 }
 
 export async function GET(_request: NextRequest, { params }: Params) {
-  const session = await auth();
-  if (!session)
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-
   const { id } = await params;
-
-  try {
-    const { data } = await serverAxios.get(
-      `/v1/Enrollments(${id})?$expand=Course`,
-      { headers: { Authorization: `Bearer ${session.user.accessToken}` } },
-    );
-    return NextResponse.json(data);
-  } catch (error) {
-    const status = isAxiosError(error) ? (error.response?.status ?? 500) : 500;
-    return NextResponse.json(
-      { message: "Failed to fetch enrollment" },
-      { status },
-    );
-  }
+  return proxyToBackend({
+    method: "get",
+    path: `/v1/Enrollments(${id})?$expand=Course`,
+    errorMessage: "Failed to fetch enrollment",
+  });
 }
 
 export async function PATCH(request: NextRequest, { params }: Params) {
-  const session = await auth();
-  if (!session)
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-
   const { id } = await params;
-  const body = await request.json();
-
-  try {
-    const { data } = await serverAxios.patch(`/v1/Enrollments(${id})`, body, {
-      headers: { Authorization: `Bearer ${session.user.accessToken}` },
-    });
-    return NextResponse.json(data);
-  } catch (error) {
-    const status = isAxiosError(error) ? (error.response?.status ?? 500) : 500;
-    return NextResponse.json(
-      { message: "Failed to update enrollment" },
-      { status },
-    );
-  }
+  return proxyToBackend({
+    method: "patch",
+    path: `/v1/Enrollments(${id})`,
+    request,
+    errorMessage: "Failed to update enrollment",
+  });
 }
 
 export async function DELETE(_request: NextRequest, { params }: Params) {
-  const session = await auth();
-  if (!session)
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-
   const { id } = await params;
-
-  try {
-    await serverAxios.delete(`/v1/Enrollments(${id})`, {
-      headers: { Authorization: `Bearer ${session.user.accessToken}` },
-    });
-    return new NextResponse(null, { status: 204 });
-  } catch (error) {
-    const status = isAxiosError(error) ? (error.response?.status ?? 500) : 500;
-    return NextResponse.json(
-      { message: "Failed to delete enrollment" },
-      { status },
-    );
-  }
+  return proxyToBackend({
+    method: "delete",
+    path: `/v1/Enrollments(${id})`,
+    status: 204,
+    errorMessage: "Failed to delete enrollment",
+  });
 }

@@ -1,4 +1,5 @@
 import type { NextAuthConfig } from "next-auth";
+import { normalizePermissions } from "@/lib/permissions";
 
 export const authConfig = {
   pages: {
@@ -24,7 +25,8 @@ export const authConfig = {
       session.user.id = token.id;
       session.user.roles = token.roles;
       session.user.role = token.roles[0] ?? "";
-      session.user.permissions = token.permissions;
+      // Normalized here (not at login) so sessions issued before the change still match.
+      session.user.permissions = normalizePermissions(token.permissions);
       session.user.isAdmin = token.roles.includes("admin");
       session.user.accessToken = token.accessToken;
       return session;

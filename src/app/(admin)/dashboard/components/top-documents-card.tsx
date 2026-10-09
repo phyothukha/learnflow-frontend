@@ -7,7 +7,7 @@ import { DocumentKindIcon } from "@/components/document-kind-icon";
 import { getDocumentKind, getKindMeta } from "@/lib/document-types";
 import { DOCUMENT_STATUS_SCORE } from "@/lib/document-status";
 import { cn } from "@/lib/utils";
-import { topDocuments } from "@/utils/dashboard";
+import { topDocuments } from "../utils/dashboard";
 import type { StudyDocument } from "@/store/server/documents/interface";
 import { DocumentStatusPill } from "@/app/(admin)/library/components/document-status-pill";
 

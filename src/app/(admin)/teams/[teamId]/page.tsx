@@ -1,9 +1,8 @@
 "use client";
 
-import { use, useEffect } from "react";
+import { use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { ArrowLeft, NotebookPen, Trash2, UsersRound } from "lucide-react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { TeamLogo } from "@/components/team-logo";
@@ -12,6 +11,7 @@ import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { usePermission } from "@/hooks/use-permission";
 import { useWorkspaceNotesHydration } from "@/hooks/use-workspace-notes-hydration";
 import { PERMISSIONS } from "@/lib/permissions";
+import { useRequirePermission } from "@/hooks/use-require-permission";
 import { useTeamsStore } from "@/store/client/teams-store";
 import { AddMembersDialog } from "../components/add-members-dialog";
 import { MembersTable } from "../components/members-table";
@@ -23,9 +23,8 @@ interface TeamDetailPageProps {
 export default function TeamDetailPage({ params }: TeamDetailPageProps) {
   const { teamId } = use(params);
   const router = useRouter();
-  const { status } = useSession();
   const { hasPermission } = usePermission();
-  const canView = hasPermission(PERMISSIONS.TEAMS_VIEW);
+  const canView = useRequirePermission(PERMISSIONS.TEAMS_VIEW);
   const canUpdate = hasPermission(PERMISSIONS.TEAMS_UPDATE);
   const canDelete = hasPermission(PERMISSIONS.TEAMS_DELETE);
   const ready = useWorkspaceNotesHydration();
@@ -35,11 +34,7 @@ export default function TeamDetailPage({ params }: TeamDetailPageProps) {
   const deleteTeam = useTeamsStore((state) => state.deleteTeam);
   const { confirmDelete, dialogProps } = useConfirmDialog();
 
-  useEffect(() => {
-    if (status === "authenticated" && !canView) router.replace("/forbidden");
-  }, [status, canView, router]);
-
-  if (status !== "authenticated" || !canView || !ready) return null;
+  if (!canView || !ready) return null;
 
   if (!team) {
     return (

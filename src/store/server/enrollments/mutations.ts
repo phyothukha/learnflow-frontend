@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  type QueryClient,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { clientAxios } from "@/lib/axios";
 import type {
   Enrollment,
@@ -33,12 +37,18 @@ async function deleteEnrollment(id: string): Promise<void> {
   await clientAxios.delete(`/enrollments/${id}`);
 }
 
+function invalidateEnrollments(queryClient: QueryClient) {
+  return Promise.all([
+    queryClient.invalidateQueries({ queryKey: ["enrollment-list"] }),
+    queryClient.invalidateQueries({ queryKey: ["enrollment-detail"] }),
+  ]);
+}
+
 export function useCreateEnrollment() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createEnrollment,
-    onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: ["enrollment-list"] }),
+    onSettled: () => invalidateEnrollments(queryClient),
   });
 }
 
@@ -46,8 +56,7 @@ export function useUpdateEnrollment() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateEnrollment,
-    onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: ["enrollment-list"] }),
+    onSettled: () => invalidateEnrollments(queryClient),
   });
 }
 
@@ -55,7 +64,6 @@ export function useDeleteEnrollment() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteEnrollment,
-    onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: ["enrollment-list"] }),
+    onSettled: () => invalidateEnrollments(queryClient),
   });
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
+import dayjs from "dayjs";
 import { Badge } from "@/components/ui/badge";
 import { ENROLLMENT_STATUS_VARIANT } from "@/lib/enrollment-status";
 import type { Enrollment } from "@/store/server/enrollments/interface";
@@ -82,7 +82,7 @@ export const columns: ColumnDef<Enrollment>[] = [
   {
     accessorKey: "CreatedAt",
     header: "Enrolled",
-    cell: ({ row }) => format(new Date(row.original.CreatedAt), "dd MMM yyyy"),
+    cell: ({ row }) => dayjs(row.original.CreatedAt).format("DD MMM YYYY"),
   },
   {
     id: "actions",

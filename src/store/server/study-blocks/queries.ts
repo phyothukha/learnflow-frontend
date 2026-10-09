@@ -1,10 +1,7 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { clientAxios } from "@/lib/axios";
-import type {
-  ListResponse,
-  StudyBlock,
-  StudyBlockListParams,
-} from "./interface";
+import type { StudyBlock, StudyBlockListParams } from "./interface";
+import type { ListResponse } from "@/store/server/shared/list-response";
 
 async function fetchStudyBlocks(
   params: StudyBlockListParams,

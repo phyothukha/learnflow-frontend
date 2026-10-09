@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  type QueryClient,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { clientAxios } from "@/lib/axios";
 import type { CreateNotePayload, Note, UpdateNotePayload } from "./interface";
 
@@ -21,11 +25,18 @@ async function deleteNote(id: string): Promise<void> {
   await clientAxios.delete(`/notes/${id}`);
 }
 
+function invalidateNotes(queryClient: QueryClient) {
+  return Promise.all([
+    queryClient.invalidateQueries({ queryKey: ["note-list"] }),
+    queryClient.invalidateQueries({ queryKey: ["note-detail"] }),
+  ]);
+}
+
 export function useCreateNote() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createNote,
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ["note-list"] }),
+    onSettled: () => invalidateNotes(queryClient),
   });
 }
 
@@ -33,7 +44,7 @@ export function useUpdateNote() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateNote,
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ["note-list"] }),
+    onSettled: () => invalidateNotes(queryClient),
   });
 }
 
@@ -41,6 +52,6 @@ export function useDeleteNote() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteNote,
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ["note-list"] }),
+    onSettled: () => invalidateNotes(queryClient),
   });
 }

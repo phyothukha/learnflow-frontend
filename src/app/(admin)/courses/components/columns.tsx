@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
+import dayjs from "dayjs";
 import { Badge } from "@/components/ui/badge";
 import type { Course } from "@/store/server/courses/interface";
 import { DataTableRowActions } from "./data-table-row-actions";
@@ -38,7 +38,7 @@ export const columns: ColumnDef<Course>[] = [
   {
     accessorKey: "CreatedAt",
     header: "Created",
-    cell: ({ row }) => format(new Date(row.original.CreatedAt), "dd MMM yyyy"),
+    cell: ({ row }) => dayjs(row.original.CreatedAt).format("DD MMM YYYY"),
   },
   {
     id: "actions",

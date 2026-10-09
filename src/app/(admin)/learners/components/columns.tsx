@@ -1,7 +1,8 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { format, formatDistanceToNow } from "date-fns";
+import dayjs from "dayjs";
+import { formatRelative } from "@/utils/format";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { LEARNER_STATUS_VARIANT } from "@/lib/learner-status";
@@ -102,14 +103,9 @@ export const columns: ColumnDef<Learner>[] = [
     cell: ({ row }) =>
       row.original.LastLoginAt ? (
         <span
-          title={format(
-            new Date(row.original.LastLoginAt),
-            "dd MMM yyyy HH:mm",
-          )}
+          title={dayjs(row.original.LastLoginAt).format("DD MMM YYYY HH:mm")}
         >
-          {formatDistanceToNow(new Date(row.original.LastLoginAt), {
-            addSuffix: true,
-          })}
+          {formatRelative(row.original.LastLoginAt)}
         </span>
       ) : (
         <span className="text-muted-foreground">Never</span>

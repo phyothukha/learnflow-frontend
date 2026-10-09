@@ -12,14 +12,14 @@ import {
 } from "recharts";
 import { Timer } from "lucide-react";
 import { formatHours } from "@/utils/format";
-import { chartTooltipStyle } from "@/utils/dashboard";
+import { chartTooltipStyle } from "../utils/dashboard";
 import {
   ChangePill,
   DashboardCard,
   DashboardCardScroll,
   DashboardCardValue,
 } from "./dashboard-card";
-import type { FocusPoint } from "@/utils/dashboard";
+import type { FocusPoint } from "../utils/dashboard";
 
 export interface TotalFocusCardProps {
   totalMinutes: number;

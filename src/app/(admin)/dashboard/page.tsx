@@ -13,7 +13,7 @@ import {
   DASHBOARD_PERIOD_DAYS,
   DashboardPeriod,
   DashboardWidget,
-} from "@/lib/dashboard";
+} from "./utils/constants";
 import { useWorkspaceStore } from "@/store/client/use-store";
 import { useFetchTopics } from "@/store/server/topics/queries";
 import { useFetchDocuments } from "@/store/server/documents/queries";
@@ -34,7 +34,7 @@ import {
   formatDashboardRange,
   percentChange,
   sumMinutes,
-} from "@/utils/dashboard";
+} from "./utils/dashboard";
 import { downloadText } from "@/utils/file";
 import {
   DashboardHeader,

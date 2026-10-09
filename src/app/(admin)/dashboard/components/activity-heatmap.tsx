@@ -8,8 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFetchStudyBlocks } from "@/store/server/study-blocks/queries";
 import { StudyBlockStatus } from "@/store/server/study-blocks/interface";
 import { cn } from "@/lib/utils";
-import { HEATMAP_STEPS, HEATMAP_WEEKS } from "@/lib/dashboard";
-import { blockMinutes, heatmapCellStyle } from "@/utils/dashboard";
+import { HEATMAP_STEPS, HEATMAP_WEEKS } from "../utils/constants";
+import { blockMinutes, heatmapCellStyle } from "../utils/dashboard";
 
 interface DayActivity {
   minutes: number;

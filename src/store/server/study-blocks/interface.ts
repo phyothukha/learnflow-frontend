@@ -1,10 +1,5 @@
 import type { Topic } from "@/store/server/topics/interface";
 
-export interface ListResponse<T> {
-  "@odata.count": number;
-  value: T[];
-}
-
 export enum StudyBlockStatus {
   Upcoming = "Upcoming",
   Active = "Active",

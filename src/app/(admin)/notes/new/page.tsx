@@ -3,7 +3,6 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { ArrowLeft, Lock, UsersRound } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -17,10 +16,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MarkdownSplitEditor } from "@/components/markdown-split-editor";
-import { usePermission } from "@/hooks/use-permission";
 import { useWorkspaceNotesHydration } from "@/hooks/use-workspace-notes-hydration";
 import { NOTE_VISIBILITY } from "@/lib/team-meta";
 import { PERMISSIONS } from "@/lib/permissions";
+import { useRequirePermission } from "@/hooks/use-require-permission";
 import { useNotesStore } from "@/store/client/notes-store";
 import {
   CURRENT_USER_ID,
@@ -34,9 +33,7 @@ const PRIVATE = "private";
 function NewNotePageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { status } = useSession();
-  const { hasPermission } = usePermission();
-  const canCreate = hasPermission(PERMISSIONS.NOTES_CREATE);
+  const canCreate = useRequirePermission(PERMISSIONS.NOTES_CREATE);
   const ready = useWorkspaceNotesHydration();
   const createNote = useNotesStore((state) => state.createNote);
   const teams = useTeamsStore((state) => state.teams);
@@ -52,10 +49,6 @@ function NewNotePageInner() {
   const [content, setContent] = useState("");
 
   useEffect(() => {
-    if (status === "authenticated" && !canCreate) router.replace("/forbidden");
-  }, [status, canCreate, router]);
-
-  useEffect(() => {
     if (!ready) return;
     if (
       initialTeam &&
@@ -64,7 +57,7 @@ function NewNotePageInner() {
       setScope(initialTeam);
   }, [ready, initialTeam, teams]);
 
-  if (status !== "authenticated" || !canCreate || !ready) return null;
+  if (!canCreate || !ready) return null;
 
   const handleCreate = () => {
     if (!title.trim()) {

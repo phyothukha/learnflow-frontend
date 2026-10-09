@@ -1,14 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { serverAxios } from "@/lib/axios";
+import type { NextRequest } from "next/server";
+import { proxyToBackend } from "@/lib/api-route";
 import { buildQuery } from "@/utils/query";
-import { isAxiosError } from "axios";
 
 export async function GET(request: NextRequest) {
-  const session = await auth();
-  if (!session)
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-
   const searchParams = request.nextUrl.searchParams;
   const page = Number(searchParams.get("page") ?? 0);
   const limit = Number(searchParams.get("limit") ?? 100);
@@ -31,37 +25,19 @@ export async function GET(request: NextRequest) {
     filter: filters.length ? filters.join(" and ") : undefined,
   });
 
-  try {
-    const { data } = await serverAxios.get(`/v1/StudyBlocks?${query}`, {
-      headers: { Authorization: `Bearer ${session.user.accessToken}` },
-    });
-    return NextResponse.json(data);
-  } catch (error) {
-    const status = isAxiosError(error) ? (error.response?.status ?? 500) : 500;
-    return NextResponse.json(
-      { message: "Failed to fetch study blocks" },
-      { status },
-    );
-  }
+  return proxyToBackend({
+    method: "get",
+    path: `/v1/StudyBlocks?${query}`,
+    errorMessage: "Failed to fetch study blocks",
+  });
 }
 
 export async function POST(request: NextRequest) {
-  const session = await auth();
-  if (!session)
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-
-  const body = await request.json();
-
-  try {
-    const { data } = await serverAxios.post("/v1/StudyBlocks", body, {
-      headers: { Authorization: `Bearer ${session.user.accessToken}` },
-    });
-    return NextResponse.json(data, { status: 201 });
-  } catch (error) {
-    const status = isAxiosError(error) ? (error.response?.status ?? 500) : 500;
-    return NextResponse.json(
-      { message: "Failed to create study block" },
-      { status },
-    );
-  }
+  return proxyToBackend({
+    method: "post",
+    path: "/v1/StudyBlocks",
+    request,
+    status: 201,
+    errorMessage: "Failed to create study block",
+  });
 }

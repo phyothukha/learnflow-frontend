@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 function isImageLogo(logo: string | null | undefined) {
   if (!logo) return false;
@@ -30,10 +31,10 @@ export function TeamLogo({
 }: TeamLogoProps) {
   if (isImageLogo(logo)) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element -- local/data URL logos
-      <img
+      <Image
         src={logo!}
         alt=""
+        fill
         className={cn("size-8 shrink-0 rounded-lg object-cover", className)}
       />
     );
