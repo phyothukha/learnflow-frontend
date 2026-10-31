@@ -27,20 +27,18 @@ export const HEATMAP_STEPS = [0.18, 0.4, 0.65, 0.9];
 
 export enum DashboardWidget {
   Stats = "stats",
-  TotalFocus = "total-focus",
+  TaskOutcomes = "task-outcomes",
   MostActiveDay = "most-active-day",
-  Topics = "topics",
-  TopDocuments = "top-documents",
-  Completion = "completion",
-  QuickNotes = "quick-notes",
+  MissedOutcomes = "missed-outcomes",
+  MissedEvents = "missed-events",
+  GoalTemplates = "goal-templates",
 }
 
 export const DASHBOARD_WIDGET_LABELS = new Map<DashboardWidget, string>([
   [DashboardWidget.Stats, "Summary tiles"],
-  [DashboardWidget.TotalFocus, "Total focus"],
+  [DashboardWidget.TaskOutcomes, "Completed vs missed tasks"],
   [DashboardWidget.MostActiveDay, "Most active day"],
-  [DashboardWidget.Topics, "Topics"],
-  [DashboardWidget.TopDocuments, "Top documents"],
-  [DashboardWidget.Completion, "Study completion"],
-  [DashboardWidget.QuickNotes, "Quick notes"],
+  [DashboardWidget.MissedOutcomes, "Missed-task outcomes"],
+  [DashboardWidget.MissedEvents, "Recent missed-task events"],
+  [DashboardWidget.GoalTemplates, "Top goal templates"],
 ]);

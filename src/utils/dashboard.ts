@@ -1,12 +1,4 @@
 import dayjs from "dayjs";
-import {
-  CheckCircle2,
-  FileText,
-  Flame,
-  MousePointerClick,
-  Timer,
-  type LucideIcon,
-} from "lucide-react";
 import { DOCUMENT_STATUS_SCORE } from "@/lib/document-status";
 import {
   DocumentStatus,
@@ -21,7 +13,6 @@ import type { Note } from "@/store/server/notes/interface";
 import { HEATMAP_STEPS } from "./constants";
 import { DEFAULT_TOPIC_COLOR, FALLBACK_TOPIC_COLOR } from "@/utils/colors";
 import { toCsv } from "@/utils/csv";
-import { formatHours } from "@/utils/format";
 
 export const NO_TOPIC_LABEL = "No topic";
 
@@ -286,20 +277,177 @@ export function dashboardGridTemplate(weights: number[]) {
   return weights.map((weight) => `minmax(0,${weight}fr)`).join(" ");
 }
 
+export interface TaskOutcomePoint {
+  label: string;
+  completed: number;
+  missed: number;
+}
+
+export function buildTaskOutcomeSeries(
+  blocks: StudyBlock[],
+  rangeStart: dayjs.Dayjs,
+  days = 30,
+): TaskOutcomePoint[] {
+  const byDay = Map.groupBy(blocks, (b) => dayjs(b.StartAt).format(DAY_KEY));
+  return Array.from({ length: days }, (_, i) => {
+    const day = rangeStart.add(i, "day");
+    const dayBlocks = byDay.get(day.format(DAY_KEY)) ?? [];
+    return {
+      label: day.format("MMM D"),
+      completed: countByStatus(dayBlocks, StudyBlockStatus.Done),
+      missed: countByStatus(dayBlocks, StudyBlockStatus.Missed),
+    };
+  });
+}
+
+export function countByStatus(blocks: StudyBlock[], status: StudyBlockStatus) {
+  return blocks.filter((b) => b.Status === status).length;
+}
+
+export interface TaskCounts {
+  completed: number;
+  missed: number;
+}
+
+export function taskCounts(blocks: StudyBlock[]): TaskCounts {
+  return {
+    completed: countByStatus(blocks, StudyBlockStatus.Done),
+    missed: countByStatus(blocks, StudyBlockStatus.Missed),
+  };
+}
+
+export function seriesCounts(series: TaskOutcomePoint[]): TaskCounts {
+  return series.reduce(
+    (sum, point) => ({
+      completed: sum.completed + point.completed,
+      missed: sum.missed + point.missed,
+    }),
+    { completed: 0, missed: 0 },
+  );
+}
+
+/** Completed share of decided tasks (done + missed); null when nothing was decided. */
+export function completionRate({ completed, missed }: TaskCounts) {
+  const decided = completed + missed;
+  return decided === 0 ? null : (completed / decided) * 100;
+}
+
+export interface WeekdayCountPoint {
+  /** Full weekday name; unique, so it can be the chart category. */
+  name: string;
+  count: number;
+}
+
+const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
+const WEEKDAY_NAMES = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+/** Completed tasks per weekday, Monday first. */
+export function buildWeekdayCompleted(
+  doneBlocks: StudyBlock[],
+): WeekdayCountPoint[] {
+  const byWeekday = Map.groupBy(doneBlocks, (b): number =>
+    dayjs(b.StartAt).day(),
+  );
+  return WEEK_ORDER.map((weekday) => ({
+    name: WEEKDAY_NAMES[weekday],
+    count: byWeekday.get(weekday)?.length ?? 0,
+  }));
+}
+
+export function formatTimeAgo(iso: string) {
+  const minutes = Math.max(0, dayjs().diff(dayjs(iso), "minute"));
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} h ago`;
+  return `${Math.floor(hours / 24)} d ago`;
+}
+
+export interface KpiTile {
+  title: string;
+  value: string;
+  change: number | null;
+  /** `%` is relative change, `pt` is a difference between two percentages. */
+  unit: "%" | "pt";
+  /** Whether an increase is good news (false for missed tasks). */
+  positiveIsGood: boolean;
+}
+
+export interface KpiTilesInput {
+  activeMembers: number;
+  prevActiveMembers: number;
+  activeGoals: number;
+  completionRate: number | null;
+  prevCompletionRate: number | null;
+  missedTasks: number;
+  prevMissedTasks: number;
+}
+
+export function buildKpiTiles({
+  activeMembers,
+  prevActiveMembers,
+  activeGoals,
+  completionRate,
+  prevCompletionRate,
+  missedTasks,
+  prevMissedTasks,
+}: KpiTilesInput): KpiTile[] {
+  return [
+    {
+      title: "Active members",
+      value: activeMembers.toLocaleString(),
+      change: percentChange(activeMembers, prevActiveMembers),
+      unit: "%",
+      positiveIsGood: true,
+    },
+    {
+      title: "Active goals",
+      value: activeGoals.toLocaleString(),
+      change: null,
+      unit: "%",
+      positiveIsGood: true,
+    },
+    {
+      title: "Task completion",
+      value: completionRate === null ? "—" : `${Math.round(completionRate)}%`,
+      change:
+        completionRate === null || prevCompletionRate === null
+          ? null
+          : completionRate - prevCompletionRate,
+      unit: "pt",
+      positiveIsGood: true,
+    },
+    {
+      title: "Missed tasks",
+      value: missedTasks.toLocaleString(),
+      change: percentChange(missedTasks, prevMissedTasks),
+      unit: "%",
+      positiveIsGood: false,
+    },
+  ];
+}
+
 export interface DashboardCsvInput {
   rangeLabel: string;
   tiles: KpiTile[];
-  focusSeries: FocusPoint[];
-  weekdayData: DayActivePoint[];
-  documents: StudyDocument[];
+  outcomeSeries: TaskOutcomePoint[];
+  weekdayData: WeekdayCountPoint[];
+  outcomes: { label: string; count: number }[];
 }
 
 export function buildDashboardCsv({
   rangeLabel,
   tiles,
-  focusSeries,
+  outcomeSeries,
   weekdayData,
-  documents,
+  outcomes,
 }: DashboardCsvInput) {
   return toCsv([
     ["LearnFlow dashboard", rangeLabel],
@@ -308,83 +456,20 @@ export function buildDashboardCsv({
     ...tiles.map((tile) => [
       tile.title,
       tile.value,
-      tile.change === null ? "" : `${tile.change.toFixed(1)}%`,
+      tile.change === null ? "" : `${tile.change.toFixed(1)} ${tile.unit}`,
     ]),
     [],
-    ["Date", "Focus minutes", "Previous period minutes"],
-    ...focusSeries.map((point) => [point.label, point.current, point.previous]),
-    [],
-    ["Weekday", "Focus minutes"],
-    ...weekdayData.map((point) => [point.day, point.minutes]),
-    [],
-    ["Top document", "Time spent (min)", "Status"],
-    ...topDocuments(documents).map((doc) => [
-      doc.Title,
-      doc.TimeSpentMinutes,
-      doc.Status,
+    ["Date", "Completed tasks", "Missed tasks"],
+    ...outcomeSeries.map((point) => [
+      point.label,
+      point.completed,
+      point.missed,
     ]),
+    [],
+    ["Weekday", "Completed tasks"],
+    ...weekdayData.map((point) => [point.name, point.count]),
+    [],
+    ["Missed-task outcome", "Count"],
+    ...outcomes.map((item) => [item.label, item.count]),
   ]);
-}
-
-export interface KpiTile {
-  title: string;
-  value: string;
-  change: number | null;
-  icon: LucideIcon;
-}
-
-export interface KpiTilesInput {
-  focusMinutes: number;
-  prevFocusMinutes: number;
-  documentCount: number;
-  sessions: number;
-  prevSessions: number;
-  adherence: number | null;
-  prevAdherence: number | null;
-  streak: number;
-}
-
-export function buildKpiTiles({
-  focusMinutes,
-  prevFocusMinutes,
-  documentCount,
-  sessions,
-  prevSessions,
-  adherence,
-  prevAdherence,
-  streak,
-}: KpiTilesInput): KpiTile[] {
-  return [
-    {
-      title: "Focus time",
-      value: formatHours(focusMinutes),
-      change: percentChange(focusMinutes, prevFocusMinutes),
-      icon: Timer,
-    },
-    {
-      title: "Documents",
-      value: documentCount.toLocaleString(),
-      change: null,
-      icon: FileText,
-    },
-    {
-      title: "Study sessions",
-      value: sessions.toLocaleString(),
-      change: percentChange(sessions, prevSessions),
-      icon: MousePointerClick,
-    },
-    adherence === null
-      ? {
-          title: "Streak",
-          value: `${streak} day${streak === 1 ? "" : "s"}`,
-          change: null,
-          icon: Flame,
-        }
-      : {
-          title: "Adherence",
-          value: `${adherence}%`,
-          change: percentChange(adherence, prevAdherence ?? 0),
-          icon: CheckCircle2,
-        },
-  ];
 }

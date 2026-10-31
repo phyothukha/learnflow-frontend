@@ -10,67 +10,73 @@ import {
   YAxis,
   type BarShapeProps,
 } from "recharts";
-import { CalendarDays } from "lucide-react";
-import { chartTooltipStyle } from "@/utils/dashboard";
-import {
-  DashboardCard,
-  DashboardCardScroll,
-  DashboardCardValue,
-} from "./dashboard-card";
-import type { DayActivePoint } from "@/utils/dashboard";
+import { chartTooltipStyle, type WeekdayCountPoint } from "@/utils/dashboard";
+import { DashboardCardScroll, SectionCard } from "./dashboard-card";
 
 export interface MostActiveDayCardProps {
-  totalLabel: string;
-  data: DayActivePoint[];
+  data: WeekdayCountPoint[];
+  /** True when `data` is placeholder data rather than real tasks. */
+  isSample?: boolean;
   className?: string;
 }
 
 export function MostActiveDayCard({
-  totalLabel,
   data,
+  isSample = false,
   className,
 }: MostActiveDayCardProps) {
-  const max = Math.max(...data.map((d) => d.minutes), 1);
+  const peak = data.reduce(
+    (best, point) => (point.count > best.count ? point : best),
+    { name: "", count: 0 },
+  );
 
   return (
-    <DashboardCard
-      title="Most Active Day"
-      icon={CalendarDays}
+    <SectionCard
+      title="Most active day"
+      meta={isSample ? "Sample data" : undefined}
       className={className}
     >
-      <DashboardCardValue>{totalLabel}</DashboardCardValue>
-      <DashboardCardScroll minWidth={300} className="mt-4 h-60 flex-1">
-        <ResponsiveContainer width="100%" height="100%">
+      <p className="mt-4 text-3xl font-semibold tracking-tight">
+        {peak.count > 0 ? peak.name : "—"}
+      </p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        {peak.count > 0
+          ? `${peak.count.toLocaleString()} tasks completed on ${peak.name}s`
+          : "No completed tasks in this period"}
+      </p>
+      <DashboardCardScroll minWidth={260} className="mt-4 h-48 flex-1">
+        <ResponsiveContainer width="100%" height="100%" minHeight={192}>
           <BarChart
             data={data}
-            margin={{ top: 8, right: 4, left: -20, bottom: 0 }}
+            margin={{ top: 8, right: 4, left: 4, bottom: 0 }}
           >
             <XAxis
-              dataKey="day"
+              dataKey="name"
               tickLine={false}
               axisLine={false}
-              tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+              tickFormatter={(name: string) => name[0]}
+              tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
             />
             <YAxis hide />
             <Tooltip
               cursor={{ fill: "var(--muted)", opacity: 0.5 }}
               contentStyle={chartTooltipStyle}
-              formatter={(value) => [`${value} min`, "Focus"]}
+              formatter={(value) => [value, "Completed"]}
             />
             <Bar
-              dataKey="minutes"
+              dataKey="count"
               radius={[6, 6, 6, 6]}
-              maxBarSize={28}
+              maxBarSize={32}
               shape={(props: BarShapeProps) => {
-                const entry = props.payload as DayActivePoint;
-                const isPeak = entry.minutes === max && entry.minutes > 0;
+                const entry = props.payload as WeekdayCountPoint;
+                const isPeak = peak.count > 0 && entry.name === peak.name;
                 return (
                   <Rectangle
                     {...props}
                     fill={
                       isPeak
                         ? "var(--primary)"
-                        : "color-mix(in srgb, var(--primary) 18%, transparent)"
+                        : "color-mix(in srgb, var(--primary) 22%, transparent)"
                     }
                   />
                 );
@@ -79,6 +85,6 @@ export function MostActiveDayCard({
           </BarChart>
         </ResponsiveContainer>
       </DashboardCardScroll>
-    </DashboardCard>
+    </SectionCard>
   );
 }

@@ -15,25 +15,22 @@ import {
   DashboardWidget,
 } from "@/utils/constants";
 import { useWorkspaceStore } from "@/store/client/use-store";
-import { useFetchTopics } from "@/store/server/topics/queries";
-import { useFetchDocuments } from "@/store/server/documents/queries";
-import { useFetchNotes } from "@/store/server/notes/queries";
 import { useFetchStudyBlocks } from "@/store/server/study-blocks/queries";
-import { DocumentStatus } from "@/store/server/documents/interface";
 import { StudyBlockStatus } from "@/store/server/study-blocks/interface";
 import {
+  MemberStatus,
+  useMembersStore,
+} from "@/store/client/mock/members-store";
+import {
   buildDashboardCsv,
-  buildFocusSeries,
   buildKpiTiles,
-  buildNotePreview,
-  buildTopicSegments,
-  buildWeekdayData,
-  calcStreak,
+  buildTaskOutcomeSeries,
+  buildWeekdayCompleted,
+  completionRate,
   dashboardGridTemplate,
-  donePercent,
   formatDashboardRange,
-  percentChange,
-  sumMinutes,
+  seriesCounts,
+  taskCounts,
 } from "@/utils/dashboard";
 import { downloadText } from "@/utils/file";
 import {
@@ -41,14 +38,19 @@ import {
   type DashboardRange,
 } from "./components/dashboard-header";
 import { StatTiles } from "./components/stat-tiles";
-import { TotalFocusCard } from "./components/total-focus-card";
+import { CompletedMissedCard } from "./components/completed-missed-card";
 import { MostActiveDayCard } from "./components/most-active-day-card";
-import { TopicsBreakdownCard } from "./components/topics-breakdown-card";
-import { TopDocumentsCard } from "./components/top-documents-card";
+import { MissedOutcomesCard } from "./components/missed-outcomes-card";
+import { MissedEventsCard } from "./components/missed-events-card";
+import { GoalTemplatesCard } from "./components/goal-templates-card";
 import {
-  AssistantCard,
-  CompletionGaugeCard,
-} from "./components/completion-gauge-card";
+  MISSED_OUTCOME_META,
+  createFakeGoalTemplates,
+  createFakeMissedEvents,
+  createFakeOutcomeCounts,
+  createFakeTaskOutcomeSeries,
+  createFakeWeekdayCompleted,
+} from "./data/fake-activity";
 import { Button } from "@/components/ui/button";
 
 const DEFAULT_PERIOD = DashboardPeriod.Last30;
@@ -100,8 +102,8 @@ function DashboardRow({ items }: DashboardRowProps) {
 }
 
 export default function DashboardPage() {
-  const { activeTopicId, hiddenWidgets, toggleWidget, showAllWidgets } =
-    useWorkspaceStore();
+  const { hiddenWidgets, toggleWidget, showAllWidgets } = useWorkspaceStore();
+  const members = useMembersStore((state) => state.members);
   const hydrated = useSyncExternalStore(
     subscribeNoop,
     () => true,
@@ -109,6 +111,9 @@ export default function DashboardPage() {
   );
   const [period, setPeriod] = useState(DEFAULT_PERIOD);
   const [range, setRange] = useState(() => presetRange(DEFAULT_PERIOD));
+  const [outcomeCounts] = useState(createFakeOutcomeCounts);
+  const [missedEvents] = useState(createFakeMissedEvents);
+  const [goalTemplates] = useState(createFakeGoalTemplates);
 
   const days = range.to.diff(range.from, "day") + 1;
   const prevStart = range.from.subtract(days, "day");
@@ -124,60 +129,51 @@ export default function DashboardPage() {
     to: prevEnd.toISOString(),
     limit: 500,
   });
-  const { data: topicsData } = useFetchTopics({ limit: 100 });
-  const { data: documentsData } = useFetchDocuments({ limit: 100 });
-  const { data: notesData } = useFetchNotes({
-    limit: 4,
-    topicId: activeTopicId ?? undefined,
-  });
 
-  const topics = topicsData?.Items ?? [];
-  const documents = documentsData?.Items ?? [];
-  const notes = notesData?.Items ?? [];
   const blocks = periodBlocks?.value ?? [];
   const previous = prevBlocks?.value ?? [];
-  const activeTopic = topics.find((t) => t.Id === activeTopicId) ?? null;
+
+  const activeMembers = members.filter(
+    (member) => member.Status === MemberStatus.Active,
+  );
+  const activeMembersAtStart = activeMembers.filter((member) =>
+    dayjs(member.JoinedAt).isBefore(range.from),
+  );
+  const activeGoals = activeMembers.reduce(
+    (sum, member) => sum + member.ActiveGoals,
+    0,
+  );
 
   const done = blocks.filter((b) => b.Status === StudyBlockStatus.Done);
-  const prevDone = previous.filter((b) => b.Status === StudyBlockStatus.Done);
-  const focusMinutes = sumMinutes(done);
-  const prevFocusMinutes = sumMinutes(prevDone);
 
-  const completedDocs = documents.filter(
-    (d) => d.Status === DocumentStatus.Completed,
-  ).length;
-  const completionRate = documents.length
-    ? Math.round((completedDocs / documents.length) * 100)
-    : null;
-
-  const adherence = donePercent(
-    blocks.filter((b) => dayjs(b.StartAt).isBefore(dayjs())),
+  // No decided tasks yet (empty API): show a sample so charts and tiles keep their shape.
+  const isSample = !blocks.some(
+    (b) =>
+      b.Status === StudyBlockStatus.Done ||
+      b.Status === StudyBlockStatus.Missed,
   );
-  const streak = calcStreak(done, days);
+  const outcomeSeries = isSample
+    ? createFakeTaskOutcomeSeries(range.from, days)
+    : buildTaskOutcomeSeries(blocks, range.from, days);
+  const weekdayData = isSample
+    ? createFakeWeekdayCompleted()
+    : buildWeekdayCompleted(done);
+  const counts = isSample ? seriesCounts(outcomeSeries) : taskCounts(blocks);
+  const prevCounts = isSample
+    ? seriesCounts(createFakeTaskOutcomeSeries(prevStart, days, 1))
+    : taskCounts(previous);
 
   const kpiTiles = buildKpiTiles({
-    focusMinutes,
-    prevFocusMinutes,
-    documentCount: documents.length,
-    sessions: done.length,
-    prevSessions: prevDone.length,
-    adherence,
-    prevAdherence: donePercent(previous),
-    streak,
+    activeMembers: activeMembers.length,
+    prevActiveMembers: activeMembersAtStart.length,
+    activeGoals,
+    completionRate: completionRate(counts),
+    prevCompletionRate: completionRate(prevCounts),
+    missedTasks: counts.missed,
+    prevMissedTasks: prevCounts.missed,
   });
 
   const rangeLabel = formatDashboardRange(range.from, range.to);
-  const focusSeries = buildFocusSeries(
-    done,
-    prevDone,
-    range.from,
-    prevStart,
-    days,
-  );
-  const weekdayData = buildWeekdayData(done);
-  const mostActiveMinutes = Math.max(...weekdayData.map((d) => d.minutes), 0);
-  const topicSegments = buildTopicSegments(documents, topics);
-  const notePreview = buildNotePreview(notes[0]);
 
   const hidden = new Set(hydrated ? hiddenWidgets : []);
   const isVisible = (widget: DashboardWidget) => !hidden.has(widget);
@@ -200,9 +196,12 @@ export default function DashboardPage() {
       buildDashboardCsv({
         rangeLabel,
         tiles: kpiTiles,
-        focusSeries,
+        outcomeSeries,
         weekdayData,
-        documents,
+        outcomes: outcomeCounts.map((item) => ({
+          label: MISSED_OUTCOME_META.get(item.Outcome)?.label ?? item.Outcome,
+          count: item.Count,
+        })),
       }),
       `learnflow-dashboard-${range.from.format("YYYY-MM-DD")}-${range.to.format("YYYY-MM-DD")}.csv`,
       "text/csv;charset=utf-8",
@@ -229,31 +228,18 @@ export default function DashboardPage() {
       <DashboardRow
         items={[
           {
-            key: DashboardWidget.TotalFocus,
+            key: DashboardWidget.TaskOutcomes,
             weight: 8,
-            visible: isVisible(DashboardWidget.TotalFocus),
+            visible: isVisible(DashboardWidget.TaskOutcomes),
             node: (
-              <TotalFocusCard
-                totalMinutes={focusMinutes}
-                change={percentChange(focusMinutes, prevFocusMinutes)}
-                data={focusSeries}
-              />
+              <CompletedMissedCard data={outcomeSeries} isSample={isSample} />
             ),
           },
           {
             key: DashboardWidget.MostActiveDay,
             weight: 4,
             visible: isVisible(DashboardWidget.MostActiveDay),
-            node: (
-              <MostActiveDayCard
-                totalLabel={
-                  mostActiveMinutes > 0
-                    ? mostActiveMinutes.toLocaleString()
-                    : "0"
-                }
-                data={weekdayData}
-              />
-            ),
+            node: <MostActiveDayCard data={weekdayData} isSample={isSample} />,
           },
         ]}
       />
@@ -261,36 +247,22 @@ export default function DashboardPage() {
       <DashboardRow
         items={[
           {
-            key: DashboardWidget.Topics,
-            weight: 3,
-            visible: isVisible(DashboardWidget.Topics),
-            node: <TopicsBreakdownCard segments={topicSegments} />,
-          },
-          {
-            key: DashboardWidget.TopDocuments,
-            weight: 5,
-            visible: isVisible(DashboardWidget.TopDocuments),
-            node: <TopDocumentsCard documents={documents} />,
-          },
-          {
-            key: "side",
+            key: DashboardWidget.MissedOutcomes,
             weight: 4,
-            visible:
-              isVisible(DashboardWidget.Completion) ||
-              isVisible(DashboardWidget.QuickNotes),
-            node: (
-              <div className="grid min-w-0 gap-4">
-                {isVisible(DashboardWidget.Completion) && (
-                  <CompletionGaugeCard rate={completionRate ?? adherence} />
-                )}
-                {isVisible(DashboardWidget.QuickNotes) && (
-                  <AssistantCard
-                    topicTitle={activeTopic?.Title ?? null}
-                    notePreview={notePreview}
-                  />
-                )}
-              </div>
-            ),
+            visible: isVisible(DashboardWidget.MissedOutcomes),
+            node: <MissedOutcomesCard outcomes={outcomeCounts} />,
+          },
+          {
+            key: DashboardWidget.MissedEvents,
+            weight: 4,
+            visible: isVisible(DashboardWidget.MissedEvents),
+            node: <MissedEventsCard events={missedEvents} />,
+          },
+          {
+            key: DashboardWidget.GoalTemplates,
+            weight: 4,
+            visible: isVisible(DashboardWidget.GoalTemplates),
+            node: <GoalTemplatesCard templates={goalTemplates} />,
           },
         ]}
       />

@@ -142,7 +142,7 @@ export function DashboardHeader({
       <div className="min-w-0 space-y-1">
         <h1 className="text-xl font-semibold tracking-tight">Dashboard</h1>
         <p className="text-sm text-muted-foreground">
-          Your focus time, study sessions and document progress at a glance
+          Goal activity, missed-task decisions and member progress at a glance
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-2">

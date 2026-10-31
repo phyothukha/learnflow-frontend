@@ -1,5 +1,10 @@
 import type { ReactNode } from "react";
-import { ArrowDownRight, ArrowUpRight, type LucideIcon } from "lucide-react";
+import {
+  ArrowDownRight,
+  ArrowRight,
+  ArrowUpRight,
+  type LucideIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface DashboardCardScrollProps {
@@ -78,26 +83,86 @@ export function DashboardCardValue({
 
 export interface ChangePillProps {
   change: number;
+  /** `pt` shows a percentage-point difference instead of a relative percent. */
+  unit?: "%" | "pt";
+  /** Whether an increase is good news; false turns increases red. */
+  positiveIsGood?: boolean;
 }
 
-export function ChangePill({ change }: ChangePillProps) {
-  const positive = change >= 0;
+export function ChangePill({
+  change,
+  unit = "%",
+  positiveIsGood = true,
+}: ChangePillProps) {
+  const up = change >= 0;
+  const good = up === positiveIsGood;
   return (
     <span
       className={cn(
         "inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-medium",
-        positive
+        good
           ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
           : "bg-rose-500/15 text-rose-600 dark:text-rose-400",
       )}
     >
-      {positive ? (
+      {up ? (
         <ArrowUpRight className="size-3" />
       ) : (
         <ArrowDownRight className="size-3" />
       )}
-      {positive ? "+" : ""}
-      {change.toFixed(1)}%
+      {up ? "+" : ""}
+      {change.toFixed(1)}
+      {unit === "pt" ? " pt" : "%"}
     </span>
+  );
+}
+
+export interface SectionCardProps {
+  title: string;
+  /** Muted text on the right of the title. */
+  meta?: string;
+  /** Replaces `meta`, e.g. a CardLinkAction. */
+  action?: ReactNode;
+  className?: string;
+  children: ReactNode;
+}
+
+/** Card with a prominent title, used for charts and lists. */
+export function SectionCard({
+  title,
+  meta,
+  action,
+  className,
+  children,
+}: SectionCardProps) {
+  return (
+    <section className={cn("dashboard-card", className)}>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-base font-semibold">{title}</h2>
+        {action ??
+          (meta && (
+            <span className="text-sm text-muted-foreground">{meta}</span>
+          ))}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+export interface CardLinkActionProps {
+  label: string;
+  onClick: () => void;
+}
+
+export function CardLinkAction({ label, onClick }: CardLinkActionProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+    >
+      {label}
+      <ArrowRight className="size-3.5" />
+    </button>
   );
 }
