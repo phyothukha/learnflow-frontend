@@ -34,10 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAdminUsersStore } from "@/store/client/mock/admin-users-store";
-import {
-  LEARNER_ROLE_ID,
-  useRolesStore,
-} from "@/store/client/mock/roles-store";
+import { MEMBER_ROLE_ID, useRolesStore } from "@/store/client/mock/roles-store";
 
 const editSchema = z.object({
   Name: z.string().trim().min(1, "Name is required"),
@@ -59,7 +56,7 @@ export default function EditUserPage({ params }: EditUserPageProps) {
   const user = users.find((item) => item.Id === userId);
   const roles = useRolesStore((state) => state.roles);
   const staffRoles = useMemo(
-    () => roles.filter((role) => role.Id !== LEARNER_ROLE_ID),
+    () => roles.filter((role) => role.Id !== MEMBER_ROLE_ID),
     [roles],
   );
   const [submitting, setSubmitting] = useState(false);
@@ -88,9 +85,9 @@ export default function EditUserPage({ params }: EditUserPageProps) {
   if (!user) return null;
 
   function onSubmit(values: EditFormValues) {
-    if (values.RoleId === LEARNER_ROLE_ID) {
+    if (values.RoleId === MEMBER_ROLE_ID) {
       form.setError("RoleId", {
-        message: "Choose an admin role — learners are managed under Learners.",
+        message: "Choose an admin role — members are managed under Members.",
       });
       return;
     }

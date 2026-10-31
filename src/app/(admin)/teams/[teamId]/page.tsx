@@ -77,7 +77,7 @@ export default function TeamDetailPage({ params }: TeamDetailPageProps) {
               <span className="inline-flex items-center gap-1.5">
                 <UsersRound className="size-3.5" />
                 {team.Members.length}{" "}
-                {team.Members.length === 1 ? "learner" : "learners"}
+                {team.Members.length === 1 ? "member" : "members"}
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <NotebookPen className="size-3.5" />

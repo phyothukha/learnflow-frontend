@@ -73,7 +73,7 @@ export function TeamCard({ team, notesCount = 0 }: TeamCardProps) {
           )}
         >
           <UsersRound className="size-3" />
-          {memberCount} {memberCount === 1 ? "learner" : "learners"}
+          {memberCount} {memberCount === 1 ? "member" : "members"}
         </span>
         <span
           className={cn(
@@ -101,7 +101,7 @@ export function TeamCard({ team, notesCount = 0 }: TeamCardProps) {
         <div className="flex shrink-0 items-center -space-x-2">
           {visibleMembers.map((member) => (
             <Avatar
-              key={member.LearnerId}
+              key={member.MemberId}
               className="size-7 ring-2 ring-card"
               title={member.Name}
             >

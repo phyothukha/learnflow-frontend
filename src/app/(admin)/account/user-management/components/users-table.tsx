@@ -21,10 +21,7 @@ import {
   useAdminUsersStore,
   type AdminUser,
 } from "@/store/client/mock/admin-users-store";
-import {
-  LEARNER_ROLE_ID,
-  useRolesStore,
-} from "@/store/client/mock/roles-store";
+import { MEMBER_ROLE_ID, useRolesStore } from "@/store/client/mock/roles-store";
 import { UserRowActions } from "./user-row-actions";
 import { Button } from "@/components/ui/button";
 
@@ -50,7 +47,7 @@ export function UsersTable() {
   const users = useAdminUsersStore((state) => state.users);
   const roles = useRolesStore((state) => state.roles);
   const staffRoles = useMemo(
-    () => roles.filter((role) => role.Id !== LEARNER_ROLE_ID),
+    () => roles.filter((role) => role.Id !== MEMBER_ROLE_ID),
     [roles],
   );
 

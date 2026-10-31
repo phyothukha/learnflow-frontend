@@ -30,22 +30,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  LearnerStatus,
+  MemberStatus,
   MOCK_COURSES,
-  useLearnersStore,
-} from "@/store/client/mock/learners-store";
-import { LearnersDialogType, useLearners } from "../context/learners-context";
+  useMembersStore,
+} from "@/store/client/mock/members-store";
+import { MembersDialogType, useMembers } from "../context/members-context";
 
 const enrollSchema = z.object({
   CourseId: z.string().min(1, "Course is required"),
 });
 
 export function EnrollDialog() {
-  const { open, currentId, closeDialog } = useLearners();
-  const learner = useLearnersStore((state) =>
-    state.learners.find((item) => item.Id === currentId),
+  const { open, currentId, closeDialog } = useMembers();
+  const member = useMembersStore((state) =>
+    state.members.find((item) => item.Id === currentId),
   );
-  const enroll = useLearnersStore((state) => state.enroll);
+  const enroll = useMembersStore((state) => state.enroll);
 
   const form = useForm<z.infer<typeof enrollSchema>>({
     resolver: zodResolver(enrollSchema),
@@ -53,31 +53,31 @@ export function EnrollDialog() {
   });
 
   useEffect(() => {
-    if (open === LearnersDialogType.Enroll) form.reset({ CourseId: "" });
+    if (open === MembersDialogType.Enroll) form.reset({ CourseId: "" });
   }, [open, form]);
 
   const available = MOCK_COURSES.filter(
-    (course) => !learner?.Enrollments.some((e) => e.CourseId === course.Id),
+    (course) => !member?.Enrollments.some((e) => e.CourseId === course.Id),
   );
 
   function onSubmit({ CourseId }: z.infer<typeof enrollSchema>) {
-    if (!learner) return;
-    enroll(learner.Id, CourseId);
-    toast.success(`${learner.Name} enrolled.`);
+    if (!member) return;
+    enroll(member.Id, CourseId);
+    toast.success(`${member.Name} enrolled.`);
     closeDialog();
   }
 
   return (
     <Dialog
-      open={open === LearnersDialogType.Enroll}
+      open={open === MembersDialogType.Enroll}
       onOpenChange={(isOpen) => !isOpen && closeDialog()}
     >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Enroll in a course</DialogTitle>
           <DialogDescription>
-            {learner
-              ? `Choose a course for ${learner.Name}.`
+            {member
+              ? `Choose a course for ${member.Name}.`
               : "Choose a course."}
           </DialogDescription>
         </DialogHeader>
@@ -125,7 +125,7 @@ export function EnrollDialog() {
                 type="submit"
                 disabled={
                   available.length === 0 ||
-                  learner?.Status === LearnerStatus.Disabled
+                  member?.Status === MemberStatus.Disabled
                 }
               >
                 Enroll

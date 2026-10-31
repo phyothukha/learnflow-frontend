@@ -8,20 +8,20 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
-  getEffectiveLearnerPermissions,
-  getLearnerPortalTabs,
-  LEARNER_PORTAL_TABS,
-} from "@/lib/learner-access";
-import type { Learner } from "@/store/client/mock/learners-store";
+  getEffectiveMemberPermissions,
+  getMemberPortalTabs,
+  MEMBER_PORTAL_TABS,
+} from "@/lib/member-access";
+import type { Member } from "@/store/client/mock/members-store";
 import { useRolesStore } from "@/store/client/mock/roles-store";
 
 const VISIBLE = 2;
 
-export function PortalAccessCell({ learner }: { learner: Learner }) {
+export function PortalAccessCell({ member }: { member: Member }) {
   const roles = useRolesStore((state) => state.roles);
-  const permissions = getEffectiveLearnerPermissions(learner, roles);
-  const granted = new Set(getLearnerPortalTabs(permissions));
-  const tabs = LEARNER_PORTAL_TABS.filter((tab) => granted.has(tab.key));
+  const permissions = getEffectiveMemberPermissions(member, roles);
+  const granted = new Set(getMemberPortalTabs(permissions));
+  const tabs = MEMBER_PORTAL_TABS.filter((tab) => granted.has(tab.key));
 
   if (tabs.length === 0) {
     return <span className="text-muted-foreground">—</span>;

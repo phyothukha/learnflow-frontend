@@ -1,9 +1,9 @@
 import { create } from "zustand";
 import type { PermissionCode } from "@/lib/permissions";
 import { EnrollmentStatus } from "@/store/server/enrollments/interface";
-import { LEARNER_ROLE_ID } from "./roles-store";
+import { MEMBER_ROLE_ID } from "./roles-store";
 
-export enum LearnerStatus {
+export enum MemberStatus {
   Invited = "Invited",
   Active = "Active",
   Disabled = "Disabled",
@@ -14,7 +14,7 @@ export interface MockCourse {
   Title: string;
 }
 
-export interface LearnerEnrollment {
+export interface MemberEnrollment {
   Id: string;
   CourseId: string;
   CourseTitle: string;
@@ -23,21 +23,21 @@ export interface LearnerEnrollment {
   EnrolledAt: string;
 }
 
-export interface Learner {
+export interface Member {
   Id: string;
   Name: string;
   Email: string;
   RoleId: string;
-  /** null = follows the role; otherwise this learner has their own list. */
+  /** null = follows the role; otherwise this member has their own list. */
   CustomPermissions: PermissionCode[] | null;
-  Status: LearnerStatus;
+  Status: MemberStatus;
   JoinedAt: string;
   LastLoginAt: string | null;
   ActiveGoals: number;
   TasksDone: number;
   TasksTotal: number;
   StreakDays: number;
-  Enrollments: LearnerEnrollment[];
+  Enrollments: MemberEnrollment[];
 }
 
 export const MOCK_COURSES: MockCourse[] = [
@@ -58,7 +58,7 @@ function enrollment(
   status: EnrollmentStatus,
   progress: number,
   enrolledAt: string,
-): LearnerEnrollment {
+): MemberEnrollment {
   return {
     Id: id,
     CourseId: courseId,
@@ -69,16 +69,16 @@ function enrollment(
   };
 }
 
-function learner(
+function member(
   id: string,
   name: string,
-  status: LearnerStatus,
+  status: MemberStatus,
   joinedAt: string,
   lastLoginAt: string | null,
   stats: [goals: number, done: number, total: number, streak: number],
-  enrollments: LearnerEnrollment[] = [],
-  roleId = LEARNER_ROLE_ID,
-): Learner {
+  enrollments: MemberEnrollment[] = [],
+  roleId = MEMBER_ROLE_ID,
+): Member {
   return {
     Id: id,
     Name: name,
@@ -97,10 +97,10 @@ function learner(
 }
 
 const E = EnrollmentStatus;
-const S = LearnerStatus;
+const S = MemberStatus;
 
-const SEED_LEARNERS: Learner[] = [
-  learner(
+const SEED_MEMBERS: Member[] = [
+  member(
     "l-01",
     "Aye Chan",
     S.Active,
@@ -112,7 +112,7 @@ const SEED_LEARNERS: Learner[] = [
       enrollment("e-02", "course-fe", E.Active, 35, "2026-06-10T08:00:00Z"),
     ],
   ),
-  learner(
+  member(
     "l-02",
     "Min Thu",
     S.Active,
@@ -121,7 +121,7 @@ const SEED_LEARNERS: Learner[] = [
     [1, 41, 50, 21],
     [enrollment("e-03", "course-fe", E.Active, 78, "2026-05-14T08:00:00Z")],
   ),
-  learner(
+  member(
     "l-03",
     "Su Myat",
     S.Active,
@@ -133,7 +133,7 @@ const SEED_LEARNERS: Learner[] = [
       enrollment("e-05", "course-n2", E.Active, 18, "2026-08-01T08:00:00Z"),
     ],
   ),
-  learner(
+  member(
     "l-04",
     "Htet Aung",
     S.Active,
@@ -142,7 +142,7 @@ const SEED_LEARNERS: Learner[] = [
     [1, 12, 40, 0],
     [enrollment("e-06", "course-react", E.Active, 40, "2026-06-16T08:00:00Z")],
   ),
-  learner(
+  member(
     "l-05",
     "Nandar Win",
     S.Active,
@@ -151,7 +151,7 @@ const SEED_LEARNERS: Learner[] = [
     [2, 55, 70, 9],
     [enrollment("e-07", "course-eng", E.Active, 55, "2026-06-21T08:00:00Z")],
   ),
-  learner(
+  member(
     "l-06",
     "Zaw Lin",
     S.Invited,
@@ -159,7 +159,7 @@ const SEED_LEARNERS: Learner[] = [
     null,
     [0, 0, 0, 0],
   ),
-  learner(
+  member(
     "l-07",
     "Phyo Wai",
     S.Active,
@@ -168,7 +168,7 @@ const SEED_LEARNERS: Learner[] = [
     [1, 18, 30, 2],
     [enrollment("e-08", "course-n5", E.Active, 90, "2026-07-04T08:00:00Z")],
   ),
-  learner(
+  member(
     "l-08",
     "Hnin Si",
     S.Disabled,
@@ -185,7 +185,7 @@ const SEED_LEARNERS: Learner[] = [
       ),
     ],
   ),
-  learner(
+  member(
     "l-09",
     "Thiha Soe",
     S.Active,
@@ -197,7 +197,7 @@ const SEED_LEARNERS: Learner[] = [
       enrollment("e-11", "course-eng", E.Pending, 0, "2026-09-20T08:00:00Z"),
     ],
   ),
-  learner(
+  member(
     "l-10",
     "Ei Mon",
     S.Invited,
@@ -205,7 +205,7 @@ const SEED_LEARNERS: Learner[] = [
     null,
     [0, 0, 0, 0],
   ),
-  learner(
+  member(
     "l-11",
     "Kaung Myat",
     S.Active,
@@ -214,7 +214,7 @@ const SEED_LEARNERS: Learner[] = [
     [1, 7, 24, 1],
     [enrollment("e-12", "course-n2", E.Active, 12, "2026-08-10T08:00:00Z")],
   ),
-  learner(
+  member(
     "l-12",
     "Yadanar Oo",
     S.Active,
@@ -225,7 +225,7 @@ const SEED_LEARNERS: Learner[] = [
   ),
 ];
 
-export interface InviteLearnerInput {
+export interface InviteMemberInput {
   Email: string;
   RoleId: string;
   CustomPermissions: PermissionCode[] | null;
@@ -233,7 +233,7 @@ export interface InviteLearnerInput {
   Name?: string;
 }
 
-export interface UpdateLearnerInput {
+export interface UpdateMemberInput {
   Name?: string;
   Email?: string;
   RoleId?: string;
@@ -241,7 +241,7 @@ export interface UpdateLearnerInput {
 }
 
 function displayNameFromEmail(email: string) {
-  const local = email.split("@")[0]?.trim() || "Learner";
+  const local = email.split("@")[0]?.trim() || "Member";
   return local
     .replace(/[._+-]+/g, " ")
     .replace(/\s+/g, " ")
@@ -249,34 +249,34 @@ function displayNameFromEmail(email: string) {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-interface LearnersState {
-  learners: Learner[];
-  inviteLearner: (input: InviteLearnerInput) => Learner;
-  updateLearner: (id: string, patch: UpdateLearnerInput) => void;
-  setStatus: (id: string, status: LearnerStatus) => void;
-  deleteLearner: (id: string) => void;
-  enroll: (learnerId: string, courseId: string) => void;
-  unenroll: (learnerId: string, enrollmentId: string) => void;
+interface MembersState {
+  members: Member[];
+  inviteMember: (input: InviteMemberInput) => Member;
+  updateMember: (id: string, patch: UpdateMemberInput) => void;
+  setStatus: (id: string, status: MemberStatus) => void;
+  deleteMember: (id: string) => void;
+  enroll: (memberId: string, courseId: string) => void;
+  unenroll: (memberId: string, enrollmentId: string) => void;
 }
 
-function patchLearner(
-  learners: Learner[],
+function patchMember(
+  members: Member[],
   id: string,
-  update: (learner: Learner) => Learner,
+  update: (member: Member) => Member,
 ) {
-  return learners.map((item) => (item.Id === id ? update(item) : item));
+  return members.map((item) => (item.Id === id ? update(item) : item));
 }
 
-export const useLearnersStore = create<LearnersState>()((set) => ({
-  learners: SEED_LEARNERS,
-  inviteLearner: ({ Name, Email, RoleId, CustomPermissions }) => {
-    const created: Learner = {
+export const useMembersStore = create<MembersState>()((set) => ({
+  members: SEED_MEMBERS,
+  inviteMember: ({ Name, Email, RoleId, CustomPermissions }) => {
+    const created: Member = {
       Id: crypto.randomUUID(),
       Name: Name?.trim() || displayNameFromEmail(Email),
       Email: Email.trim(),
       RoleId,
       CustomPermissions,
-      Status: LearnerStatus.Invited,
+      Status: MemberStatus.Invited,
       JoinedAt: new Date().toISOString(),
       LastLoginAt: null,
       ActiveGoals: 0,
@@ -285,30 +285,30 @@ export const useLearnersStore = create<LearnersState>()((set) => ({
       StreakDays: 0,
       Enrollments: [],
     };
-    set((state) => ({ learners: [created, ...state.learners] }));
+    set((state) => ({ members: [created, ...state.members] }));
     return created;
   },
-  updateLearner: (id, patch) =>
+  updateMember: (id, patch) =>
     set((state) => ({
-      learners: patchLearner(state.learners, id, (item) => ({
+      members: patchMember(state.members, id, (item) => ({
         ...item,
         ...patch,
       })),
     })),
   setStatus: (id, status) =>
     set((state) => ({
-      learners: patchLearner(state.learners, id, (item) => ({
+      members: patchMember(state.members, id, (item) => ({
         ...item,
         Status: status,
       })),
     })),
-  deleteLearner: (id) =>
+  deleteMember: (id) =>
     set((state) => ({
-      learners: state.learners.filter((item) => item.Id !== id),
+      members: state.members.filter((item) => item.Id !== id),
     })),
-  enroll: (learnerId, courseId) =>
+  enroll: (memberId, courseId) =>
     set((state) => ({
-      learners: patchLearner(state.learners, learnerId, (item) => {
+      members: patchMember(state.members, memberId, (item) => {
         if (item.Enrollments.some((e) => e.CourseId === courseId)) return item;
         return {
           ...item,
@@ -325,9 +325,9 @@ export const useLearnersStore = create<LearnersState>()((set) => ({
         };
       }),
     })),
-  unenroll: (learnerId, enrollmentId) =>
+  unenroll: (memberId, enrollmentId) =>
     set((state) => ({
-      learners: patchLearner(state.learners, learnerId, (item) => ({
+      members: patchMember(state.members, memberId, (item) => ({
         ...item,
         Enrollments: item.Enrollments.filter((e) => e.Id !== enrollmentId),
       })),

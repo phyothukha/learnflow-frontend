@@ -16,9 +16,9 @@ import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import { useAdminUsersStore } from "@/store/client/mock/admin-users-store";
-import { useLearnersStore } from "@/store/client/mock/learners-store";
+import { useMembersStore } from "@/store/client/mock/members-store";
 import {
-  LEARNER_ROLE_ID,
+  MEMBER_ROLE_ID,
   useRolesStore,
   type Role,
 } from "@/store/client/mock/roles-store";
@@ -26,7 +26,7 @@ import {
 export function RoleRowActions({ role }: { role: Role }) {
   const deleteRole = useRolesStore((state) => state.deleteRole);
   const adminUsers = useAdminUsersStore((state) => state.users);
-  const learners = useLearnersStore((state) => state.learners);
+  const members = useMembersStore((state) => state.members);
   const { hasPermission } = usePermission();
   const canDelete = hasPermission(PERMISSIONS.ROLES_DELETE);
   const { confirmDelete, dialogProps } = useConfirmDialog();
@@ -57,13 +57,12 @@ export function RoleRowActions({ role }: { role: Role }) {
               <DropdownMenuItem
                 variant="destructive"
                 onClick={() => {
-                  const members =
-                    role.Id === LEARNER_ROLE_ID
-                      ? learners.filter((user) => user.RoleId === role.Id)
-                          .length
+                  const assignedCount =
+                    role.Id === MEMBER_ROLE_ID
+                      ? members.filter((user) => user.RoleId === role.Id).length
                       : adminUsers.filter((user) => user.RoleId === role.Id)
                           .length;
-                  if (members > 0) {
+                  if (assignedCount > 0) {
                     toast.error("Move users on this role before deleting it.");
                     return;
                   }

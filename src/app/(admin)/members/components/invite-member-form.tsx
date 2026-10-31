@@ -18,11 +18,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import type { PermissionCode } from "@/lib/permissions";
-import { useLearnersStore } from "@/store/client/mock/learners-store";
-import {
-  LEARNER_ROLE_ID,
-  useRolesStore,
-} from "@/store/client/mock/roles-store";
+import { useMembersStore } from "@/store/client/mock/members-store";
+import { MEMBER_ROLE_ID, useRolesStore } from "@/store/client/mock/roles-store";
 import {
   mergePortalCustom,
   PortalAccessAllSwitch,
@@ -39,13 +36,13 @@ type InviteFormValues = z.infer<typeof inviteSchema>;
 
 const EMPTY_PERMISSIONS: PermissionCode[] = [];
 
-export function InviteLearnerForm() {
-  const learners = useLearnersStore((state) => state.learners);
-  const inviteLearner = useLearnersStore((state) => state.inviteLearner);
-  const learnerRole = useRolesStore((state) =>
-    state.roles.find((role) => role.Id === LEARNER_ROLE_ID),
+export function InviteMemberForm() {
+  const members = useMembersStore((state) => state.members);
+  const inviteMember = useMembersStore((state) => state.inviteMember);
+  const memberRole = useRolesStore((state) =>
+    state.roles.find((role) => role.Id === MEMBER_ROLE_ID),
   );
-  const rolePermissions = learnerRole?.Permissions ?? EMPTY_PERMISSIONS;
+  const rolePermissions = memberRole?.Permissions ?? EMPTY_PERMISSIONS;
 
   const form = useForm<InviteFormValues>({
     resolver: zodResolver(inviteSchema),
@@ -58,8 +55,8 @@ export function InviteLearnerForm() {
   const [submitting, setSubmitting] = useState(false);
 
   function onSubmit(values: InviteFormValues) {
-    const duplicate = learners.some(
-      (learner) => learner.Email.toLowerCase() === values.Email.toLowerCase(),
+    const duplicate = members.some(
+      (member) => member.Email.toLowerCase() === values.Email.toLowerCase(),
     );
     if (duplicate) {
       form.setError("Email", { message: "This email is already in use" });
@@ -68,9 +65,9 @@ export function InviteLearnerForm() {
 
     setSubmitting(true);
     const matchesRole = portalSelectionMatchesRole(selected, rolePermissions);
-    inviteLearner({
+    inviteMember({
       Email: values.Email,
-      RoleId: LEARNER_ROLE_ID,
+      RoleId: MEMBER_ROLE_ID,
       CustomPermissions: matchesRole
         ? null
         : mergePortalCustom(rolePermissions, [...selected]),
@@ -98,7 +95,7 @@ export function InviteLearnerForm() {
             <PortalAccessAllSwitch
               selected={selected}
               onChange={setSelected}
-              idPrefix="invite-learner"
+              idPrefix="invite-member"
             />
           </div>
           <FormField
@@ -126,16 +123,16 @@ export function InviteLearnerForm() {
           <PortalAccessFields
             selected={selected}
             onChange={setSelected}
-            idPrefix="invite-learner"
+            idPrefix="invite-member"
             showHeader={false}
           />
         </div>
 
         <div className="flex shrink-0 flex-col-reverse gap-2 border-t p-4 sm:flex-row sm:items-center sm:justify-end sm:px-5">
           <Button type="button" variant="ghost" asChild>
-            <Link href="/learners">
+            <Link href="/members">
               <ArrowLeft />
-              Back to learners
+              Back to members
             </Link>
           </Button>
           <Button type="submit" disabled={submitting}>

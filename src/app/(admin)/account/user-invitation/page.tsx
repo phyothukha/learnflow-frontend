@@ -33,10 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAdminUsersStore } from "@/store/client/mock/admin-users-store";
-import {
-  LEARNER_ROLE_ID,
-  useRolesStore,
-} from "@/store/client/mock/roles-store";
+import { MEMBER_ROLE_ID, useRolesStore } from "@/store/client/mock/roles-store";
 
 const inviteSchema = z.object({
   Email: z.string().trim().email("Email is required"),
@@ -50,7 +47,7 @@ export default function UserInvitationPage() {
   const inviteUser = useAdminUsersStore((state) => state.inviteUser);
   const roles = useRolesStore((state) => state.roles);
   const staffRoles = useMemo(
-    () => roles.filter((role) => role.Id !== LEARNER_ROLE_ID),
+    () => roles.filter((role) => role.Id !== MEMBER_ROLE_ID),
     [roles],
   );
   const defaultRoleId = useMemo(
@@ -71,9 +68,9 @@ export default function UserInvitationPage() {
   });
 
   function onSubmit(values: InviteFormValues) {
-    if (values.RoleId === LEARNER_ROLE_ID) {
+    if (values.RoleId === MEMBER_ROLE_ID) {
       form.setError("RoleId", {
-        message: "Choose an admin role — learners are invited from Learners.",
+        message: "Choose an admin role — members are invited from Members.",
       });
       return;
     }
@@ -102,7 +99,7 @@ export default function UserInvitationPage() {
         <CardHeader>
           <CardTitle>Invite User</CardTitle>
           <CardDescription>
-            Invite an admin or staff user — not learners
+            Invite an admin or staff user — not members
           </CardDescription>
         </CardHeader>
         <Form {...form}>

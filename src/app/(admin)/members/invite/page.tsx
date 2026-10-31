@@ -3,10 +3,10 @@
 import { PageHeader } from "@/components/page-header";
 import { PERMISSIONS } from "@/lib/permissions";
 import { useRequirePermission } from "@/hooks/use-require-permission";
-import { InviteLearnerForm } from "../components/invite-learner-form";
+import { InviteMemberForm } from "../components/invite-member-form";
 
-export default function InviteLearnerPage() {
-  const canCreate = useRequirePermission(PERMISSIONS.LEARNERS_CREATE);
+export default function InviteMemberPage() {
+  const canCreate = useRequirePermission(PERMISSIONS.MEMBERS_CREATE);
 
   if (!canCreate) return null;
 
@@ -14,11 +14,11 @@ export default function InviteLearnerPage() {
     <div className="flex h-full min-h-0 flex-col gap-6 overflow-hidden">
       <PageHeader
         className="shrink-0"
-        title="Invite Learner"
-        description="Invite by email. They get the Learner role — set portal access below."
+        title="Invite Member"
+        description="Invite by email. They get the Member role — set portal access below."
       />
       <div className="min-h-0 flex-1">
-        <InviteLearnerForm />
+        <InviteMemberForm />
       </div>
     </div>
   );

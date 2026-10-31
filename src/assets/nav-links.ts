@@ -35,11 +35,11 @@ export const navLinks: NavLinks = {
       requiredPermissions: [PERMISSIONS.DASHBOARD_VIEW],
     },
     {
-      link: "learners",
-      label: "Learners",
-      title: "Learners",
+      link: "members",
+      label: "Members",
+      title: "Members",
       icon: GraduationCap,
-      requiredPermissions: [PERMISSIONS.LEARNERS_VIEW],
+      requiredPermissions: [PERMISSIONS.MEMBERS_VIEW],
     },
     {
       link: "courses",

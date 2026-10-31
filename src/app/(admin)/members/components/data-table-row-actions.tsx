@@ -24,23 +24,23 @@ import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import {
-  LearnerStatus,
-  useLearnersStore,
-  type Learner,
-} from "@/store/client/mock/learners-store";
-import { LearnersDialogType, useLearners } from "../context/learners-context";
+  MemberStatus,
+  useMembersStore,
+  type Member,
+} from "@/store/client/mock/members-store";
+import { MembersDialogType, useMembers } from "../context/members-context";
 
-export function DataTableRowActions({ learner }: { learner: Learner }) {
-  const { openDialog } = useLearners();
+export function DataTableRowActions({ member }: { member: Member }) {
+  const { openDialog } = useMembers();
   const { hasPermission } = usePermission();
-  const setStatus = useLearnersStore((state) => state.setStatus);
-  const deleteLearner = useLearnersStore((state) => state.deleteLearner);
+  const setStatus = useMembersStore((state) => state.setStatus);
+  const deleteMember = useMembersStore((state) => state.deleteMember);
   const { confirmDelete, dialogProps } = useConfirmDialog();
 
-  const canUpdate = hasPermission(PERMISSIONS.LEARNERS_UPDATE);
+  const canUpdate = hasPermission(PERMISSIONS.MEMBERS_UPDATE);
   const canEnroll = hasPermission(PERMISSIONS.ENROLLMENTS_CREATE);
-  const canDelete = hasPermission(PERMISSIONS.LEARNERS_DELETE);
-  const isDisabled = learner.Status === LearnerStatus.Disabled;
+  const canDelete = hasPermission(PERMISSIONS.MEMBERS_DELETE);
+  const isDisabled = member.Status === MemberStatus.Disabled;
 
   return (
     <div onClick={(event) => event.stopPropagation()}>
@@ -57,42 +57,42 @@ export function DataTableRowActions({ learner }: { learner: Learner }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem asChild>
-            <Link href={`/learners/${learner.Id}`}>
+            <Link href={`/members/${member.Id}`}>
               <Eye />
-              View learner
+              View member
             </Link>
           </DropdownMenuItem>
           {canUpdate && (
             <DropdownMenuItem asChild>
-              <Link href={`/learners/${learner.Id}/edit`}>
+              <Link href={`/members/${member.Id}/edit`}>
                 <Pencil />
-                Edit learner
+                Edit member
               </Link>
             </DropdownMenuItem>
           )}
           {canEnroll && (
             <DropdownMenuItem
               disabled={isDisabled}
-              onClick={() => openDialog(LearnersDialogType.Enroll, learner.Id)}
+              onClick={() => openDialog(MembersDialogType.Enroll, member.Id)}
             >
               <BookPlus />
-              Enroll learner
+              Enroll member
             </DropdownMenuItem>
           )}
           {canUpdate && (
             <DropdownMenuItem
               onClick={() => {
                 const next = isDisabled
-                  ? LearnerStatus.Active
-                  : LearnerStatus.Disabled;
-                setStatus(learner.Id, next);
+                  ? MemberStatus.Active
+                  : MemberStatus.Disabled;
+                setStatus(member.Id, next);
                 toast.success(
-                  isDisabled ? "Learner enabled." : "Learner disabled.",
+                  isDisabled ? "Member enabled." : "Member disabled.",
                 );
               }}
             >
               {isDisabled ? <CircleCheck /> : <Ban />}
-              {isDisabled ? "Enable learner" : "Disable learner"}
+              {isDisabled ? "Enable member" : "Disable member"}
             </DropdownMenuItem>
           )}
           {canDelete && (
@@ -102,15 +102,15 @@ export function DataTableRowActions({ learner }: { learner: Learner }) {
                 variant="destructive"
                 onClick={() =>
                   confirmDelete({
-                    title: "Delete learner?",
-                    description: `This will permanently remove ${learner.Name} and their enrollments. This action cannot be undone.`,
-                    successMessage: "Learner deleted.",
-                    onConfirm: () => deleteLearner(learner.Id),
+                    title: "Delete member?",
+                    description: `This will permanently remove ${member.Name} and their enrollments. This action cannot be undone.`,
+                    successMessage: "Member deleted.",
+                    onConfirm: () => deleteMember(member.Id),
                   })
                 }
               >
                 <Trash2 />
-                Delete learner
+                Delete member
               </DropdownMenuItem>
             </>
           )}

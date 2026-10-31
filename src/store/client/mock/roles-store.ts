@@ -14,7 +14,7 @@ export interface Role {
 }
 
 export const SUPER_ADMIN_ROLE_ID = "role-super-admin";
-export const LEARNER_ROLE_ID = "role-learner";
+export const MEMBER_ROLE_ID = "role-member";
 
 const P = PERMISSIONS;
 
@@ -71,14 +71,14 @@ const SEED_ROLES: Role[] = [
   {
     Id: "role-support",
     Name: "Support",
-    Description: "Helps learners and manages their enrollments.",
+    Description: "Helps members and manages their enrollments.",
     IsSystem: false,
     IsLocked: false,
     Permissions: [
       P.DASHBOARD_VIEW,
       P.ANALYTICS_VIEW,
-      P.LEARNERS_VIEW,
-      P.LEARNERS_UPDATE,
+      P.MEMBERS_VIEW,
+      P.MEMBERS_UPDATE,
       P.COURSES_VIEW,
       P.ENROLLMENTS_VIEW,
       P.ENROLLMENTS_CREATE,
@@ -87,9 +87,9 @@ const SEED_ROLES: Role[] = [
     ],
   },
   {
-    Id: LEARNER_ROLE_ID,
-    Name: "Learner",
-    Description: "Default role for people using the learner portal.",
+    Id: MEMBER_ROLE_ID,
+    Name: "Member",
+    Description: "Default role for people using the member portal.",
     IsSystem: true,
     IsLocked: false,
     Permissions: [

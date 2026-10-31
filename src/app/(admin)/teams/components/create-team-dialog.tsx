@@ -97,7 +97,7 @@ export function CreateTeamDialog() {
         <DialogHeader>
           <DialogTitle>Create a team</DialogTitle>
           <DialogDescription>
-            Add a logo and name. Learners share notes inside the team.
+            Add a logo and name. Members share notes inside the team.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">

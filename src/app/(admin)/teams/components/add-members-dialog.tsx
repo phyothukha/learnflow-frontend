@@ -18,10 +18,10 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useTeamsStore } from "@/store/client/teams-store";
 import {
-  LearnerStatus,
-  type Learner,
-  useLearnersStore,
-} from "@/store/client/mock/learners-store";
+  MemberStatus,
+  type Member,
+  useMembersStore,
+} from "@/store/client/mock/members-store";
 import type { Team } from "@/store/server/teams/interface";
 import { getInitials } from "@/utils/string";
 
@@ -36,13 +36,13 @@ function splitEmails(raw: string) {
 
 interface EmailEntry {
   email: string;
-  learner: Learner | null;
+  member: Member | null;
   existing: boolean;
 }
 
 export function AddMembersDialog({ team }: { team: Team }) {
   const addMember = useTeamsStore((state) => state.addMember);
-  const learners = useLearnersStore((state) => state.learners);
+  const members = useMembersStore((state) => state.members);
   const [open, setOpen] = useState(false);
   const [entries, setEntries] = useState<EmailEntry[]>([]);
   const [draft, setDraft] = useState("");
@@ -58,11 +58,11 @@ export function AddMembersDialog({ team }: { team: Team }) {
     [entries],
   );
 
-  const candidates = learners.filter(
-    (learner) =>
-      learner.Status !== LearnerStatus.Disabled &&
-      !memberEmails.has(learner.Email.toLowerCase()) &&
-      !selectedEmails.has(learner.Email.toLowerCase()),
+  const candidates = members.filter(
+    (member) =>
+      member.Status !== MemberStatus.Disabled &&
+      !memberEmails.has(member.Email.toLowerCase()) &&
+      !selectedEmails.has(member.Email.toLowerCase()),
   );
 
   const suggestions = useMemo(() => {
@@ -70,24 +70,24 @@ export function AddMembersDialog({ team }: { team: Team }) {
     if (!q) return [];
     return candidates
       .filter(
-        (learner) =>
-          learner.Email.toLowerCase().includes(q) ||
-          learner.Name.toLowerCase().includes(q),
+        (member) =>
+          member.Email.toLowerCase().includes(q) ||
+          member.Name.toLowerCase().includes(q),
       )
       .slice(0, 6);
   }, [candidates, draft]);
 
-  const validEntries = entries.filter((e) => e.learner && !e.existing);
+  const validEntries = entries.filter((e) => e.member && !e.existing);
 
   const resolveEmail = (raw: string): EmailEntry | null => {
     const email = raw.trim().toLowerCase();
     if (!email || !EMAIL_RE.test(email)) return null;
     if (selectedEmails.has(email)) return null;
-    const learner =
-      learners.find((item) => item.Email.toLowerCase() === email) ?? null;
+    const member =
+      members.find((item) => item.Email.toLowerCase() === email) ?? null;
     return {
       email,
-      learner,
+      member,
       existing: memberEmails.has(email),
     };
   };
@@ -121,20 +121,20 @@ export function AddMembersDialog({ team }: { team: Team }) {
 
   const submit = () => {
     if (validEntries.length === 0) {
-      toast.error("Add at least one registered learner email.");
+      toast.error("Add at least one registered member email.");
       return;
     }
     for (const entry of validEntries) {
-      if (!entry.learner) continue;
+      if (!entry.member) continue;
       addMember(team.Id, {
-        LearnerId: entry.learner.Id,
-        Name: entry.learner.Name,
-        Email: entry.learner.Email,
+        MemberId: entry.member.Id,
+        Name: entry.member.Name,
+        Email: entry.member.Email,
         CanAccessNotes: canAccessNotes,
       });
     }
     toast.success(
-      `Added ${validEntries.length} learner${validEntries.length === 1 ? "" : "s"}${
+      `Added ${validEntries.length} member${validEntries.length === 1 ? "" : "s"}${
         canAccessNotes ? " with notes access" : ""
       }.`,
     );
@@ -153,12 +153,12 @@ export function AddMembersDialog({ team }: { team: Team }) {
       <DialogTrigger asChild>
         <Button>
           <UserPlus />
-          Add learners
+          Add members
         </Button>
       </DialogTrigger>
       <DialogContent className="gap-0 overflow-visible p-0 sm:max-w-2xl">
         <DialogHeader className="space-y-0 px-6 pt-6 pb-2">
-          <DialogTitle className="text-xl">Add Learners</DialogTitle>
+          <DialogTitle className="text-xl">Add Members</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-5 px-6 py-4">
@@ -180,15 +180,15 @@ export function AddMembersDialog({ team }: { team: Team }) {
                     "inline-flex max-w-full items-center gap-1.5 rounded-full border bg-muted/50 px-2 py-1 text-xs",
                     entry.existing &&
                       "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
-                    !entry.learner &&
+                    !entry.member &&
                       !entry.existing &&
                       "border-destructive/30 bg-destructive/10 text-destructive",
                   )}
                 >
-                  {entry.learner ? (
+                  {entry.member ? (
                     <Avatar className="size-4">
                       <AvatarFallback className="text-[9px]">
-                        {getInitials(entry.learner.Name)}
+                        {getInitials(entry.member.Name)}
                       </AvatarFallback>
                     </Avatar>
                   ) : (
@@ -252,25 +252,25 @@ export function AddMembersDialog({ team }: { team: Team }) {
                   "max-h-48 overflow-y-auto rounded-xl border bg-popover py-1 shadow-lg",
                 )}
               >
-                {suggestions.map((learner) => (
-                  <li key={learner.Id}>
+                {suggestions.map((member) => (
+                  <li key={member.Id}>
                     <button
                       type="button"
                       className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm hover:bg-accent"
                       onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => addEmails([learner.Email])}
+                      onClick={() => addEmails([member.Email])}
                     >
                       <Avatar className="size-7">
                         <AvatarFallback className="text-[10px]">
-                          {getInitials(learner.Name)}
+                          {getInitials(member.Name)}
                         </AvatarFallback>
                       </Avatar>
                       <span className="min-w-0">
                         <span className="block truncate font-medium">
-                          {learner.Name}
+                          {member.Name}
                         </span>
                         <span className="block truncate text-xs text-muted-foreground">
-                          {learner.Email}
+                          {member.Email}
                         </span>
                       </span>
                     </button>
@@ -333,8 +333,8 @@ export function AddMembersDialog({ team }: { team: Team }) {
           </Button>
           <Button disabled={validEntries.length === 0} onClick={submit}>
             {validEntries.length === 0
-              ? "Add Learners"
-              : `Add ${validEntries.length} Learner${validEntries.length === 1 ? "" : "s"}`}
+              ? "Add Members"
+              : `Add ${validEntries.length} Member${validEntries.length === 1 ? "" : "s"}`}
           </Button>
         </DialogFooter>
       </DialogContent>

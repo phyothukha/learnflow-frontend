@@ -59,17 +59,17 @@ export function MembersTable({ team, canUpdate }: MembersTableProps) {
     () =>
       createMemberColumns({
         canUpdate,
-        onToggleNotes: (teamId, learnerId, checked, name) => {
-          setMemberNotesAccess(teamId, learnerId, checked);
+        onToggleNotes: (teamId, memberId, checked, name) => {
+          setMemberNotesAccess(teamId, memberId, checked);
           notifyNotesAccess(checked, name);
         },
-        onRemove: (teamId, learnerId, name) => {
+        onRemove: (teamId, memberId, name) => {
           void confirmDelete({
             title: "Remove member?",
             description: `Remove ${name} from ${team.Name}? They will lose access to this team's shared notes.`,
             confirmText: "Remove",
             successMessage: `${name} removed.`,
-            onConfirm: () => removeMember(teamId, learnerId),
+            onConfirm: () => removeMember(teamId, memberId),
           });
         },
       }),
@@ -81,7 +81,7 @@ export function MembersTable({ team, canUpdate }: MembersTableProps) {
       <DataTable
         columns={columns}
         data={pageRows}
-        getRowId={(member) => member.LearnerId}
+        getRowId={(member) => member.MemberId}
         title={`Members (${filtered.length})`}
         search={search}
         onSearchChange={(value) => {
@@ -98,7 +98,7 @@ export function MembersTable({ team, canUpdate }: MembersTableProps) {
           setPage(0);
         }}
         emptyIcon={UsersRound}
-        emptyTitle={hasQuery ? "No matching members" : "No learners yet"}
+        emptyTitle={hasQuery ? "No matching members" : "No members yet"}
         emptyDescription={
           hasQuery
             ? "Try a different name or email."

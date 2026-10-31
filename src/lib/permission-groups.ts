@@ -26,8 +26,8 @@ function crud(
   ];
 }
 
-/** Tabs a learner can see in the learner portal (managed per learner or via role). */
-export const LEARNER_PORTAL_PERMISSION_GROUPS: PermissionGroup[] = [
+/** Tabs a member can see in the member portal (managed per member or via role). */
+export const MEMBER_PORTAL_PERMISSION_GROUPS: PermissionGroup[] = [
   {
     key: "dashboard",
     label: "Dashboard",
@@ -69,7 +69,7 @@ export const LEARNER_PORTAL_PERMISSION_GROUPS: PermissionGroup[] = [
   },
 ];
 
-export const LEARNER_PORTAL_VIEW_CODES = [
+export const MEMBER_PORTAL_VIEW_CODES = [
   PERMISSIONS.DASHBOARD_VIEW,
   PERMISSIONS.SCHEDULE_VIEW,
   PERMISSIONS.NOTES_VIEW,
@@ -87,14 +87,14 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     ],
   },
   {
-    key: "learners",
-    label: "Learners",
-    description: "Invite and manage learner accounts",
+    key: "members",
+    label: "Members",
+    description: "Invite and manage member accounts",
     items: crud(
-      PERMISSIONS.LEARNERS_VIEW,
-      PERMISSIONS.LEARNERS_CREATE,
-      PERMISSIONS.LEARNERS_UPDATE,
-      PERMISSIONS.LEARNERS_DELETE,
+      PERMISSIONS.MEMBERS_VIEW,
+      PERMISSIONS.MEMBERS_CREATE,
+      PERMISSIONS.MEMBERS_UPDATE,
+      PERMISSIONS.MEMBERS_DELETE,
     ),
   },
   {
@@ -122,7 +122,7 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
   {
     key: "enrollments",
     label: "Enrollments",
-    description: "Enroll learners into courses",
+    description: "Enroll members into courses",
     items: [
       ...crud(
         PERMISSIONS.ENROLLMENTS_VIEW,
@@ -132,7 +132,7 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
       ),
       {
         code: PERMISSIONS.ENROLLMENT_INFO_EMAIL_VIEW,
-        label: "See learner email",
+        label: "See member email",
       },
     ],
   },

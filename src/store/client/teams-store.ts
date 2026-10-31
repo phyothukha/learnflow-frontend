@@ -9,7 +9,7 @@ import {
 } from "@/store/server/teams/interface";
 import { TEAM_COLORS } from "@/lib/team-meta";
 
-/** Demo identity placeholder (admin manages teams; not a learner member). */
+/** Demo identity placeholder (admin manages teams; not a portal member). */
 export const CURRENT_USER_ID = "user-me";
 export const CURRENT_USER_NAME = "You";
 export const CURRENT_USER_EMAIL = "you@learnflow.app";
@@ -25,10 +25,10 @@ export interface TeamsActions {
   addMember: (teamId: string, input: AddTeamMemberInput) => void;
   setMemberNotesAccess: (
     teamId: string,
-    learnerId: string,
+    memberId: string,
     canAccessNotes: boolean,
   ) => void;
-  removeMember: (teamId: string, learnerId: string) => void;
+  removeMember: (teamId: string, memberId: string) => void;
   resetDemo: () => void;
 }
 
@@ -39,7 +39,7 @@ function createId(prefix: string) {
 }
 
 function member(
-  LearnerId: string,
+  MemberId: string,
   Name: string,
   Email: string,
   Role: TeamMemberRole,
@@ -47,7 +47,7 @@ function member(
   joinedDaysAgo: number,
 ): TeamMember {
   return {
-    LearnerId,
+    MemberId,
     Name,
     Email,
     Role,
@@ -194,8 +194,7 @@ export const useTeamsStore = create<TeamsState>()(
       addMember: (teamId, input) => {
         const existing = get().teams.find((team) => team.Id === teamId);
         if (!existing) return;
-        if (existing.Members.some((m) => m.LearnerId === input.LearnerId))
-          return;
+        if (existing.Members.some((m) => m.MemberId === input.MemberId)) return;
         set((state) => ({
           teams: state.teams.map((team) =>
             team.Id !== teamId
@@ -206,7 +205,7 @@ export const useTeamsStore = create<TeamsState>()(
                   Members: [
                     ...team.Members,
                     member(
-                      input.LearnerId,
+                      input.MemberId,
                       input.Name,
                       input.Email,
                       input.Role ?? TeamMemberRole.Member,
@@ -219,7 +218,7 @@ export const useTeamsStore = create<TeamsState>()(
         }));
       },
 
-      setMemberNotesAccess: (teamId, learnerId, canAccessNotes) =>
+      setMemberNotesAccess: (teamId, memberId, canAccessNotes) =>
         set((state) => ({
           teams: state.teams.map((team) =>
             team.Id !== teamId
@@ -228,7 +227,7 @@ export const useTeamsStore = create<TeamsState>()(
                   ...team,
                   UpdatedAt: new Date().toISOString(),
                   Members: team.Members.map((item) =>
-                    item.LearnerId === learnerId
+                    item.MemberId === memberId
                       ? { ...item, CanAccessNotes: canAccessNotes }
                       : item,
                   ),
@@ -236,11 +235,11 @@ export const useTeamsStore = create<TeamsState>()(
           ),
         })),
 
-      removeMember: (teamId, learnerId) =>
+      removeMember: (teamId, memberId) =>
         set((state) => ({
           teams: state.teams.map((team) => {
             if (team.Id !== teamId) return team;
-            const next = team.Members.filter((m) => m.LearnerId !== learnerId);
+            const next = team.Members.filter((m) => m.MemberId !== memberId);
             if (next.length === team.Members.length) return team;
             return {
               ...team,
@@ -285,23 +284,23 @@ export const useTeamsStore = create<TeamsState>()(
   ),
 );
 
-export function isTeamMember(team: Team, learnerId = CURRENT_USER_ID) {
-  return team.Members.some((item) => item.LearnerId === learnerId);
+export function isTeamMember(team: Team, memberId = CURRENT_USER_ID) {
+  return team.Members.some((item) => item.MemberId === memberId);
 }
 
-export function canAccessTeamNotes(team: Team, learnerId = CURRENT_USER_ID) {
+export function canAccessTeamNotes(team: Team, memberId = CURRENT_USER_ID) {
   return team.Members.some(
-    (item) => item.LearnerId === learnerId && item.CanAccessNotes,
+    (item) => item.MemberId === memberId && item.CanAccessNotes,
   );
 }
 
 export function notesAccessibleTeamIds(
   teams: Team[],
-  learnerId = CURRENT_USER_ID,
+  memberId = CURRENT_USER_ID,
 ) {
   return new Set(
     teams
-      .filter((team) => canAccessTeamNotes(team, learnerId))
+      .filter((team) => canAccessTeamNotes(team, memberId))
       .map((team) => team.Id),
   );
 }

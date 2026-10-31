@@ -14,15 +14,15 @@ import type { Team } from "@/store/server/teams/interface";
 
 const VISIBLE = 2;
 
-export function TeamsCell({ learnerId }: { learnerId: string }) {
+export function TeamsCell({ memberId }: { memberId: string }) {
   const ready = useWorkspaceNotesHydration();
   const allTeams = useTeamsStore((state) => state.teams);
   const teams = useMemo(
     () =>
       allTeams.filter((team) =>
-        team.Members.some((member) => member.LearnerId === learnerId),
+        team.Members.some((member) => member.MemberId === memberId),
       ),
-    [allTeams, learnerId],
+    [allTeams, memberId],
   );
 
   if (!ready) {

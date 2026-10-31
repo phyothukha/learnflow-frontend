@@ -24,9 +24,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  useLearnersStore,
-  type Learner,
-} from "@/store/client/mock/learners-store";
+  useMembersStore,
+  type Member,
+} from "@/store/client/mock/members-store";
 import {
   SUPER_ADMIN_ROLE_ID,
   useRolesStore,
@@ -47,10 +47,10 @@ const editSchema = z.object({
 
 type EditFormValues = z.infer<typeof editSchema>;
 
-export function EditLearnerForm({ learner }: { learner: Learner }) {
+export function EditMemberForm({ member }: { member: Member }) {
   const router = useRouter();
-  const learners = useLearnersStore((state) => state.learners);
-  const updateLearner = useLearnersStore((state) => state.updateLearner);
+  const members = useMembersStore((state) => state.members);
+  const updateMember = useMembersStore((state) => state.updateMember);
   const allRoles = useRolesStore((state) => state.roles);
   const roles = useMemo(
     () => allRoles.filter((role) => role.Id !== SUPER_ADMIN_ROLE_ID),
@@ -60,9 +60,9 @@ export function EditLearnerForm({ learner }: { learner: Learner }) {
   const form = useForm<EditFormValues>({
     resolver: zodResolver(editSchema),
     defaultValues: {
-      Name: learner.Name,
-      Email: learner.Email,
-      RoleId: learner.RoleId,
+      Name: member.Name,
+      Email: member.Email,
+      RoleId: member.RoleId,
     },
   });
 
@@ -70,8 +70,8 @@ export function EditLearnerForm({ learner }: { learner: Learner }) {
     () =>
       new Set(
         portalCodesFrom(
-          learner.CustomPermissions ??
-            allRoles.find((role) => role.Id === learner.RoleId)?.Permissions,
+          member.CustomPermissions ??
+            allRoles.find((role) => role.Id === member.RoleId)?.Permissions,
         ),
       ),
   );
@@ -81,27 +81,27 @@ export function EditLearnerForm({ learner }: { learner: Learner }) {
 
   useEffect(() => {
     form.reset({
-      Name: learner.Name,
-      Email: learner.Email,
-      RoleId: learner.RoleId,
+      Name: member.Name,
+      Email: member.Email,
+      RoleId: member.RoleId,
     });
     setSelected(
       new Set(
         portalCodesFrom(
-          learner.CustomPermissions ??
+          member.CustomPermissions ??
             useRolesStore
               .getState()
-              .roles.find((role) => role.Id === learner.RoleId)?.Permissions,
+              .roles.find((role) => role.Id === member.RoleId)?.Permissions,
         ),
       ),
     );
-  }, [learner, form]);
+  }, [member, form]);
 
   function onSubmit(values: EditFormValues) {
-    const duplicate = learners.some(
+    const duplicate = members.some(
       (item) =>
         item.Email.toLowerCase() === values.Email.toLowerCase() &&
-        item.Id !== learner.Id,
+        item.Id !== member.Id,
     );
     if (duplicate) {
       form.setError("Email", { message: "This email is already in use" });
@@ -110,7 +110,7 @@ export function EditLearnerForm({ learner }: { learner: Learner }) {
 
     const rolePermissions = selectedRole?.Permissions ?? [];
     const matchesRole = portalSelectionMatchesRole(selected, rolePermissions);
-    updateLearner(learner.Id, {
+    updateMember(member.Id, {
       Name: values.Name,
       Email: values.Email,
       RoleId: values.RoleId,
@@ -118,8 +118,8 @@ export function EditLearnerForm({ learner }: { learner: Learner }) {
         ? null
         : mergePortalCustom(rolePermissions, [...selected]),
     });
-    toast.success("Learner updated.");
-    router.push(`/learners/${learner.Id}`);
+    toast.success("Member updated.");
+    router.push(`/members/${member.Id}`);
   }
 
   return (
@@ -131,7 +131,7 @@ export function EditLearnerForm({ learner }: { learner: Learner }) {
         <div className="shrink-0 space-y-4 border-b p-4 sm:p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <p className="text-sm font-medium">Learner details</p>
+              <p className="text-sm font-medium">Member details</p>
               <p className="text-xs text-muted-foreground">
                 Update profile details and portal tab access.
               </p>
@@ -139,7 +139,7 @@ export function EditLearnerForm({ learner }: { learner: Learner }) {
             <PortalAccessAllSwitch
               selected={selected}
               onChange={setSelected}
-              idPrefix="edit-learner"
+              idPrefix="edit-member"
             />
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-5">
@@ -204,7 +204,7 @@ export function EditLearnerForm({ learner }: { learner: Learner }) {
           <PortalAccessFields
             selected={selected}
             onChange={setSelected}
-            idPrefix="edit-learner"
+            idPrefix="edit-member"
             showHeader={false}
           />
         </div>
@@ -213,7 +213,7 @@ export function EditLearnerForm({ learner }: { learner: Learner }) {
           <Button
             type="button"
             variant="secondary"
-            onClick={() => router.push(`/learners/${learner.Id}`)}
+            onClick={() => router.push(`/members/${member.Id}`)}
           >
             Cancel
           </Button>

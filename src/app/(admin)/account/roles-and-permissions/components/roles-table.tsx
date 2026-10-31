@@ -9,9 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import { useAdminUsersStore } from "@/store/client/mock/admin-users-store";
-import { useLearnersStore } from "@/store/client/mock/learners-store";
+import { useMembersStore } from "@/store/client/mock/members-store";
 import {
-  LEARNER_ROLE_ID,
+  MEMBER_ROLE_ID,
   useRolesStore,
   type Role,
 } from "@/store/client/mock/roles-store";
@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 export function RolesTable() {
   const roles = useRolesStore((state) => state.roles);
   const adminUsers = useAdminUsersStore((state) => state.users);
-  const learners = useLearnersStore((state) => state.learners);
+  const members = useMembersStore((state) => state.members);
   const { hasPermission } = usePermission();
   const canCreate = hasPermission(PERMISSIONS.ROLES_CREATE);
 
@@ -77,8 +77,8 @@ export function RolesTable() {
         cell: ({ row }) => {
           const roleId = row.original.Id;
           const count =
-            roleId === LEARNER_ROLE_ID
-              ? learners.filter((user) => user.RoleId === roleId).length
+            roleId === MEMBER_ROLE_ID
+              ? members.filter((user) => user.RoleId === roleId).length
               : adminUsers.filter((user) => user.RoleId === roleId).length;
           return <span className="tabular-nums font-medium">{count}</span>;
         },
@@ -99,7 +99,7 @@ export function RolesTable() {
         cell: ({ row }) => <RoleRowActions role={row.original} />,
       },
     ],
-    [adminUsers, learners],
+    [adminUsers, members],
   );
 
   return (

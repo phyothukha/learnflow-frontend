@@ -22,30 +22,30 @@ import { Button } from "@/components/ui/button";
 import { usePermission } from "@/hooks/use-permission";
 import { useWorkspaceNotesHydration } from "@/hooks/use-workspace-notes-hydration";
 import { ENROLLMENT_STATUS_VARIANT } from "@/lib/enrollment-status";
-import { LEARNER_PORTAL_PERMISSION_GROUPS } from "@/lib/permission-groups";
-import { LEARNER_STATUS_VARIANT } from "@/lib/learner-status";
+import { MEMBER_PORTAL_PERMISSION_GROUPS } from "@/lib/permission-groups";
+import { MEMBER_STATUS_VARIANT } from "@/lib/member-status";
 import { PERMISSIONS } from "@/lib/permissions";
 import { useRequirePermission } from "@/hooks/use-require-permission";
 import {
-  LearnerStatus,
-  useLearnersStore,
-} from "@/store/client/mock/learners-store";
+  MemberStatus,
+  useMembersStore,
+} from "@/store/client/mock/members-store";
 import { useRolesStore } from "@/store/client/mock/roles-store";
 import { useTeamsStore } from "@/store/client/teams-store";
-import { taskPercent } from "@/utils/learner";
+import { taskPercent } from "@/utils/member";
 import { getInitials } from "@/utils/string";
 import {
   portalAccessLabel,
   portalCodesFrom,
 } from "../components/portal-access-fields";
 import { EnrollDialog } from "../components/enroll-dialog";
-import LearnersProvider, {
-  LearnersDialogType,
-  useLearners,
-} from "../context/learners-context";
+import MembersProvider, {
+  MembersDialogType,
+  useMembers,
+} from "../context/members-context";
 
-interface LearnerDetailPageProps {
-  params: Promise<{ learnerId: string }>;
+interface MemberDetailPageProps {
+  params: Promise<{ memberId: string }>;
 }
 
 function Stat({ label, value }: { label: string; value: string | number }) {
@@ -57,15 +57,15 @@ function Stat({ label, value }: { label: string; value: string | number }) {
   );
 }
 
-function LearnerTeamsSection({ learnerId }: { learnerId: string }) {
+function MemberTeamsSection({ memberId }: { memberId: string }) {
   const ready = useWorkspaceNotesHydration();
   const allTeams = useTeamsStore((state) => state.teams);
   const teams = useMemo(
     () =>
       allTeams.filter((team) =>
-        team.Members.some((member) => member.LearnerId === learnerId),
+        team.Members.some((member) => member.MemberId === memberId),
       ),
-    [allTeams, learnerId],
+    [allTeams, memberId],
   );
 
   return (
@@ -82,7 +82,7 @@ function LearnerTeamsSection({ learnerId }: { learnerId: string }) {
       ) : (
         <ul className="grid gap-2 sm:grid-cols-2">
           {teams.map((team) => {
-            const member = team.Members.find((m) => m.LearnerId === learnerId);
+            const member = team.Members.find((m) => m.MemberId === memberId);
             return (
               <li key={team.Id}>
                 <Link
@@ -114,43 +114,43 @@ function LearnerTeamsSection({ learnerId }: { learnerId: string }) {
   );
 }
 
-function LearnerDetailContent({ learnerId }: { learnerId: string }) {
+function MemberDetailContent({ memberId }: { memberId: string }) {
   const router = useRouter();
-  const { openDialog } = useLearners();
+  const { openDialog } = useMembers();
   const { hasPermission } = usePermission();
-  const learner = useLearnersStore((state) =>
-    state.learners.find((item) => item.Id === learnerId),
+  const member = useMembersStore((state) =>
+    state.members.find((item) => item.Id === memberId),
   );
-  const setStatus = useLearnersStore((state) => state.setStatus);
-  const unenroll = useLearnersStore((state) => state.unenroll);
+  const setStatus = useMembersStore((state) => state.setStatus);
+  const unenroll = useMembersStore((state) => state.unenroll);
   const role = useRolesStore((state) =>
-    state.roles.find((item) => item.Id === learner?.RoleId),
+    state.roles.find((item) => item.Id === member?.RoleId),
   );
   const roleName = role?.Name;
-  const permissions = learner?.CustomPermissions ?? role?.Permissions ?? [];
+  const permissions = member?.CustomPermissions ?? role?.Permissions ?? [];
 
-  const canUpdate = hasPermission(PERMISSIONS.LEARNERS_UPDATE);
+  const canUpdate = hasPermission(PERMISSIONS.MEMBERS_UPDATE);
   const canEnroll = hasPermission(PERMISSIONS.ENROLLMENTS_CREATE);
   const canUnenroll = hasPermission(PERMISSIONS.ENROLLMENTS_DELETE);
-  const isDisabled = learner?.Status === LearnerStatus.Disabled;
+  const isDisabled = member?.Status === MemberStatus.Disabled;
 
-  if (!learner) {
+  if (!member) {
     return (
       <div className="flex flex-col items-center gap-3 py-20 text-center">
-        <p className="text-sm font-medium">Learner not found</p>
+        <p className="text-sm font-medium">Member not found</p>
         <Button variant="subtle" asChild>
-          <Link href="/learners">Back to learners</Link>
+          <Link href="/members">Back to members</Link>
         </Button>
       </div>
     );
   }
 
   const title =
-    learner.Status === LearnerStatus.Invited ? learner.Email : learner.Name;
+    member.Status === MemberStatus.Invited ? member.Email : member.Name;
   const subtitle =
-    learner.Status === LearnerStatus.Invited
+    member.Status === MemberStatus.Invited
       ? "Invite pending — name set on accept"
-      : learner.Email;
+      : member.Email;
 
   return (
     <div className="flex flex-col gap-8">
@@ -162,7 +162,7 @@ function LearnerDetailContent({ learnerId }: { learnerId: string }) {
             className="size-9 shrink-0"
             asChild
           >
-            <Link href="/learners">
+            <Link href="/members">
               <ArrowLeft className="size-4" />
             </Link>
           </Button>
@@ -170,9 +170,9 @@ function LearnerDetailContent({ learnerId }: { learnerId: string }) {
             <Avatar className="size-12 shrink-0">
               <AvatarFallback>
                 {getInitials(
-                  learner.Status === LearnerStatus.Invited
-                    ? learner.Email
-                    : learner.Name,
+                  member.Status === MemberStatus.Invited
+                    ? member.Email
+                    : member.Name,
                 )}
               </AvatarFallback>
             </Avatar>
@@ -186,14 +186,14 @@ function LearnerDetailContent({ learnerId }: { learnerId: string }) {
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <Badge
                   variant={
-                    LEARNER_STATUS_VARIANT.get(learner.Status) ?? "status-slate"
+                    MEMBER_STATUS_VARIANT.get(member.Status) ?? "status-slate"
                   }
                 >
-                  {learner.Status}
+                  {member.Status}
                 </Badge>
                 <Badge variant="outline">{roleName ?? "No role"}</Badge>
                 <span className="text-xs text-muted-foreground">
-                  Joined {dayjs(learner.JoinedAt).format("DD MMM YYYY")}
+                  Joined {dayjs(member.JoinedAt).format("DD MMM YYYY")}
                 </span>
               </div>
             </div>
@@ -202,25 +202,25 @@ function LearnerDetailContent({ learnerId }: { learnerId: string }) {
         {canUpdate && (
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" asChild>
-              <Link href={`/learners/${learner.Id}/edit`}>
+              <Link href={`/members/${member.Id}/edit`}>
                 <Pencil />
-                Edit learner
+                Edit member
               </Link>
             </Button>
             <Button
               variant={isDisabled ? "default" : "outline"}
               onClick={() => {
                 setStatus(
-                  learner.Id,
-                  isDisabled ? LearnerStatus.Active : LearnerStatus.Disabled,
+                  member.Id,
+                  isDisabled ? MemberStatus.Active : MemberStatus.Disabled,
                 );
                 toast.success(
-                  isDisabled ? "Learner enabled." : "Learner disabled.",
+                  isDisabled ? "Member enabled." : "Member disabled.",
                 );
               }}
             >
               {isDisabled ? <CircleCheck /> : <Ban />}
-              {isDisabled ? "Enable learner" : "Disable learner"}
+              {isDisabled ? "Enable member" : "Disable member"}
             </Button>
           </div>
         )}
@@ -228,12 +228,12 @@ function LearnerDetailContent({ learnerId }: { learnerId: string }) {
 
       <div className="grid gap-8 lg:grid-cols-[1.2fr_1fr]">
         <div className="space-y-8">
-          <LearnerTeamsSection learnerId={learner.Id} />
+          <MemberTeamsSection memberId={member.Id} />
 
           <section className="space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold">
-                Enrollments ({learner.Enrollments.length})
+                Enrollments ({member.Enrollments.length})
               </h2>
               {canEnroll && (
                 <Button
@@ -241,7 +241,7 @@ function LearnerDetailContent({ learnerId }: { learnerId: string }) {
                   variant="outline"
                   disabled={isDisabled}
                   onClick={() =>
-                    openDialog(LearnersDialogType.Enroll, learner.Id)
+                    openDialog(MembersDialogType.Enroll, member.Id)
                   }
                 >
                   <BookPlus />
@@ -249,13 +249,13 @@ function LearnerDetailContent({ learnerId }: { learnerId: string }) {
                 </Button>
               )}
             </div>
-            {learner.Enrollments.length === 0 ? (
+            {member.Enrollments.length === 0 ? (
               <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
                 Not enrolled in any course yet.
               </p>
             ) : (
               <ul className="space-y-2">
-                {learner.Enrollments.map((item) => (
+                {member.Enrollments.map((item) => (
                   <li key={item.Id} className="space-y-2 rounded-lg border p-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
@@ -283,7 +283,7 @@ function LearnerDetailContent({ learnerId }: { learnerId: string }) {
                             className="size-6"
                             title="Remove enrollment"
                             onClick={() => {
-                              unenroll(learner.Id, item.Id);
+                              unenroll(member.Id, item.Id);
                               toast.success("Enrollment removed.");
                             }}
                           >
@@ -314,20 +314,17 @@ function LearnerDetailContent({ learnerId }: { learnerId: string }) {
           <section className="space-y-3">
             <h2 className="text-sm font-semibold">Learning activity</h2>
             <div className="grid grid-cols-2 gap-3">
-              <Stat label="Active goals" value={learner.ActiveGoals} />
-              <Stat label="Day streak" value={learner.StreakDays} />
+              <Stat label="Active goals" value={member.ActiveGoals} />
+              <Stat label="Day streak" value={member.StreakDays} />
               <Stat
                 label="Tasks done"
-                value={`${learner.TasksDone}/${learner.TasksTotal}`}
+                value={`${member.TasksDone}/${member.TasksTotal}`}
               />
-              <Stat
-                label="Task completion"
-                value={`${taskPercent(learner)}%`}
-              />
+              <Stat label="Task completion" value={`${taskPercent(member)}%`} />
             </div>
             <p className="text-xs text-muted-foreground">
-              {learner.LastLoginAt
-                ? `Last active ${formatRelative(learner.LastLoginAt)}`
+              {member.LastLoginAt
+                ? `Last active ${formatRelative(member.LastLoginAt)}`
                 : "Has not signed in yet"}
             </p>
           </section>
@@ -337,21 +334,21 @@ function LearnerDetailContent({ learnerId }: { learnerId: string }) {
               <h2 className="text-sm font-semibold">Portal access</h2>
               <Badge variant="outline">
                 {portalAccessLabel(portalCodesFrom(permissions), {
-                  isCustom: learner.CustomPermissions !== null,
+                  isCustom: member.CustomPermissions !== null,
                   roleName: roleName ?? "role",
                 })}
               </Badge>
             </div>
             <PermissionSummary
               permissions={portalCodesFrom(permissions)}
-              groups={LEARNER_PORTAL_PERMISSION_GROUPS}
-              emptyLabel="No learner-portal tabs granted."
+              groups={MEMBER_PORTAL_PERMISSION_GROUPS}
+              emptyLabel="No member-portal tabs granted."
             />
             {canUpdate && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => router.push(`/learners/${learner.Id}/edit`)}
+                onClick={() => router.push(`/members/${member.Id}/edit`)}
               >
                 Change access
               </Button>
@@ -363,16 +360,16 @@ function LearnerDetailContent({ learnerId }: { learnerId: string }) {
   );
 }
 
-export default function LearnerDetailPage({ params }: LearnerDetailPageProps) {
-  const { learnerId } = use(params);
-  const canView = useRequirePermission(PERMISSIONS.LEARNERS_VIEW);
+export default function MemberDetailPage({ params }: MemberDetailPageProps) {
+  const { memberId } = use(params);
+  const canView = useRequirePermission(PERMISSIONS.MEMBERS_VIEW);
 
   if (!canView) return null;
 
   return (
-    <LearnersProvider>
-      <LearnerDetailContent learnerId={learnerId} />
+    <MembersProvider>
+      <MemberDetailContent memberId={memberId} />
       <EnrollDialog />
-    </LearnersProvider>
+    </MembersProvider>
   );
 }

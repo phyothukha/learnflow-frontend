@@ -20,11 +20,11 @@ interface MemberColumnsOptions {
   canUpdate: boolean;
   onToggleNotes: (
     teamId: string,
-    learnerId: string,
+    memberId: string,
     canAccessNotes: boolean,
     name: string,
   ) => void;
-  onRemove: (teamId: string, learnerId: string, name: string) => void;
+  onRemove: (teamId: string, memberId: string, name: string) => void;
 }
 
 export function createMemberColumns({
@@ -90,7 +90,7 @@ export function createMemberColumns({
               onCheckedChange={(checked) =>
                 onToggleNotes(
                   member.TeamId,
-                  member.LearnerId,
+                  member.MemberId,
                   checked,
                   member.Name,
                 )
@@ -114,7 +114,7 @@ export function createMemberColumns({
               size="sm"
               aria-label={`Remove ${member.Name}`}
               onClick={() =>
-                onRemove(member.TeamId, member.LearnerId, member.Name)
+                onRemove(member.TeamId, member.MemberId, member.Name)
               }
             >
               <UserMinus />

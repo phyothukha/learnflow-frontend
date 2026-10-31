@@ -4,7 +4,7 @@ export enum TeamMemberRole {
 }
 
 export interface TeamMember {
-  LearnerId: string;
+  MemberId: string;
   Name: string;
   Email: string;
   Role: TeamMemberRole;
@@ -31,7 +31,7 @@ export type TeamInput = Omit<
 >;
 
 export interface AddTeamMemberInput {
-  LearnerId: string;
+  MemberId: string;
   Name: string;
   Email: string;
   CanAccessNotes: boolean;

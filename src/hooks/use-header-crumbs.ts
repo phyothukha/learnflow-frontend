@@ -1,8 +1,8 @@
 import { accountNavItems, dashboardNavItems } from "@/assets/nav-links";
 import {
-  LearnerStatus,
-  useLearnersStore,
-} from "@/store/client/mock/learners-store";
+  MemberStatus,
+  useMembersStore,
+} from "@/store/client/mock/members-store";
 import { useRolesStore } from "@/store/client/mock/roles-store";
 import { useNotesStore } from "@/store/client/notes-store";
 import { useTeamsStore } from "@/store/client/teams-store";
@@ -35,8 +35,8 @@ export function useHeaderCrumbs(pathname: string) {
   const noteId =
     section === "notes" && parts[1] && parts[1] !== "new" ? parts[1] : null;
   const teamId = section === "teams" && parts[1] ? parts[1] : null;
-  const learnerId =
-    section === "learners" &&
+  const memberId =
+    section === "members" &&
     parts[1] &&
     parts[1] !== "invite" &&
     parts[1] !== "new"
@@ -51,10 +51,8 @@ export function useHeaderCrumbs(pathname: string) {
   const team = useTeamsStore((state) =>
     teamId ? state.teams.find((item) => item.Id === teamId) : undefined,
   );
-  const learner = useLearnersStore((state) =>
-    learnerId
-      ? state.learners.find((item) => item.Id === learnerId)
-      : undefined,
+  const member = useMembersStore((state) =>
+    memberId ? state.members.find((item) => item.Id === memberId) : undefined,
   );
 
   const accountRoleId =
@@ -151,16 +149,16 @@ export function useHeaderCrumbs(pathname: string) {
     crumbs.push({ label: note?.Title ?? "Note" });
   }
 
-  if (section === "learners" && parts[1] === "invite") {
+  if (section === "members" && parts[1] === "invite") {
     crumbs.push({ label: "Invite" });
-  } else if (learnerId) {
+  } else if (memberId) {
     const label =
-      learner?.Status === LearnerStatus.Invited
-        ? (learner.Email ?? "Learner")
-        : (learner?.Name ?? "Learner");
+      member?.Status === MemberStatus.Invited
+        ? (member.Email ?? "Member")
+        : (member?.Name ?? "Member");
     crumbs.push({
       label,
-      href: parts[2] ? `/learners/${learnerId}` : undefined,
+      href: parts[2] ? `/members/${memberId}` : undefined,
     });
     if (parts[2] === "edit") {
       crumbs.push({ label: "Edit" });

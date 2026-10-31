@@ -6,16 +6,16 @@ import { usePermission } from "@/hooks/use-permission";
 import { PERMISSIONS } from "@/lib/permissions";
 import { Button } from "@/components/ui/button";
 
-export function LearnersPrimaryButtons() {
+export function MembersPrimaryButtons() {
   const { hasPermission } = usePermission();
 
-  if (!hasPermission(PERMISSIONS.LEARNERS_CREATE)) return null;
+  if (!hasPermission(PERMISSIONS.MEMBERS_CREATE)) return null;
 
   return (
     <Button asChild>
-      <Link href="/learners/invite">
+      <Link href="/members/invite">
         <UserPlus />
-        Invite learner
+        Invite member
       </Link>
     </Button>
   );

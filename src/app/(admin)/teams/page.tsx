@@ -48,7 +48,7 @@ export default function TeamsPage() {
     <div className="flex h-full min-h-0 flex-col gap-6">
       <PageHeader
         title="Teams"
-        description="Create teams and add learners. Learners share notes among themselves."
+        description="Create teams and add members. Members share notes among themselves."
         badge={
           <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary tabular-nums">
             {teams.length} teams
@@ -72,7 +72,7 @@ export default function TeamsPage() {
           </div>
           <p className="text-sm font-medium">No teams yet</p>
           <p className="max-w-sm text-xs text-muted-foreground">
-            Create a team to start adding learners by email.
+            Create a team to start adding members by email.
           </p>
         </div>
       ) : visibleTeams.length === 0 ? (

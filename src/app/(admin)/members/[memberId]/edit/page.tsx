@@ -7,37 +7,37 @@ import { Button } from "@/components/ui/button";
 import { PERMISSIONS } from "@/lib/permissions";
 import { useRequirePermission } from "@/hooks/use-require-permission";
 import {
-  LearnerStatus,
-  useLearnersStore,
-} from "@/store/client/mock/learners-store";
-import { EditLearnerForm } from "../../components/edit-learner-form";
+  MemberStatus,
+  useMembersStore,
+} from "@/store/client/mock/members-store";
+import { EditMemberForm } from "../../components/edit-member-form";
 
-interface EditLearnerPageProps {
-  params: Promise<{ learnerId: string }>;
+interface EditMemberPageProps {
+  params: Promise<{ memberId: string }>;
 }
 
-export default function EditLearnerPage({ params }: EditLearnerPageProps) {
-  const { learnerId } = use(params);
-  const canUpdate = useRequirePermission(PERMISSIONS.LEARNERS_UPDATE);
-  const learner = useLearnersStore((state) =>
-    state.learners.find((item) => item.Id === learnerId),
+export default function EditMemberPage({ params }: EditMemberPageProps) {
+  const { memberId } = use(params);
+  const canUpdate = useRequirePermission(PERMISSIONS.MEMBERS_UPDATE);
+  const member = useMembersStore((state) =>
+    state.members.find((item) => item.Id === memberId),
   );
 
   if (!canUpdate) return null;
 
-  if (!learner) {
+  if (!member) {
     return (
       <div className="flex flex-col items-center gap-3 py-20 text-center">
-        <p className="text-sm font-medium">Learner not found</p>
+        <p className="text-sm font-medium">Member not found</p>
         <Button variant="subtle" asChild>
-          <Link href="/learners">Back to learners</Link>
+          <Link href="/members">Back to members</Link>
         </Button>
       </div>
     );
   }
 
   const label =
-    learner.Status === LearnerStatus.Invited ? learner.Email : learner.Name;
+    member.Status === MemberStatus.Invited ? member.Email : member.Name;
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-6 overflow-hidden">
@@ -48,12 +48,12 @@ export default function EditLearnerPage({ params }: EditLearnerPageProps) {
           className="size-9 shrink-0"
           asChild
         >
-          <Link href={`/learners/${learner.Id}`}>
+          <Link href={`/members/${member.Id}`}>
             <ArrowLeft className="size-4" />
           </Link>
         </Button>
         <div className="min-w-0">
-          <h1 className="text-xl font-semibold tracking-tight">Edit learner</h1>
+          <h1 className="text-xl font-semibold tracking-tight">Edit member</h1>
           <p className="mt-1 max-w-xl truncate text-sm text-muted-foreground">
             {label} · role and portal access
           </p>
@@ -61,7 +61,7 @@ export default function EditLearnerPage({ params }: EditLearnerPageProps) {
       </div>
 
       <div className="min-h-0 flex-1">
-        <EditLearnerForm learner={learner} />
+        <EditMemberForm member={member} />
       </div>
     </div>
   );

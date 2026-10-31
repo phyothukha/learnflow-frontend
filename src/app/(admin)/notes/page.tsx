@@ -57,7 +57,7 @@ function NotesPageInner() {
       </p>
       <p className="max-w-sm text-xs">
         {team
-          ? `Notes shared with ${team.Name}. Everyone in the team can open them in LearnFlow Learner too.`
+          ? `Notes shared with ${team.Name}. Everyone in the team can open them in LearnFlow Member too.`
           : "Create a private note for yourself, or a team note that members can access."}
       </p>
       {canCreate && (

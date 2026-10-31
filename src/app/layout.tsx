@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     template: "%s · LearnFlow",
   },
   description:
-    "LearnFlow admin dashboard for managing courses, enrollments, and learner progress.",
+    "LearnFlow admin dashboard for managing courses, enrollments, and member progress.",
   applicationName: "LearnFlow",
   keywords: [
     "LearnFlow",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "LearnFlow Admin",
     description:
-      "LearnFlow admin dashboard for managing courses, enrollments, and learner progress.",
+      "LearnFlow admin dashboard for managing courses, enrollments, and member progress.",
     siteName: "LearnFlow",
     type: "website",
   },

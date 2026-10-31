@@ -8,41 +8,41 @@ import {
   DataTableFacetedFilter,
   type FacetedFilterOption,
 } from "@/components/data-table-faceted-filter";
-import { LEARNER_STATUS_DOT } from "@/lib/learner-status";
+import { MEMBER_STATUS_DOT } from "@/lib/member-status";
 import {
-  LearnerStatus,
-  useLearnersStore,
-} from "@/store/client/mock/learners-store";
+  MemberStatus,
+  useMembersStore,
+} from "@/store/client/mock/members-store";
 import { columns } from "./columns";
-import { LearnersPrimaryButtons } from "./learners-primary-buttons";
+import { MembersPrimaryButtons } from "./members-primary-buttons";
 
-const STATUS_OPTIONS: FacetedFilterOption<LearnerStatus>[] = Object.values(
-  LearnerStatus,
+const STATUS_OPTIONS: FacetedFilterOption<MemberStatus>[] = Object.values(
+  MemberStatus,
 ).map((status) => ({
   value: status,
   label: status,
-  dotClass: LEARNER_STATUS_DOT.get(status),
+  dotClass: MEMBER_STATUS_DOT.get(status),
 }));
 
-export function LearnersTable() {
+export function MembersTable() {
   const router = useRouter();
-  const learners = useLearnersStore((state) => state.learners);
+  const members = useMembersStore((state) => state.members);
 
   const [page, setPage] = useState(0);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
-  const [statuses, setStatuses] = useState<LearnerStatus[]>([]);
+  const [statuses, setStatuses] = useState<MemberStatus[]>([]);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return learners.filter(
-      (learner) =>
-        (statuses.length === 0 || statuses.includes(learner.Status)) &&
+    return members.filter(
+      (member) =>
+        (statuses.length === 0 || statuses.includes(member.Status)) &&
         (!query ||
-          learner.Name.toLowerCase().includes(query) ||
-          learner.Email.toLowerCase().includes(query)),
+          member.Name.toLowerCase().includes(query) ||
+          member.Email.toLowerCase().includes(query)),
     );
-  }, [learners, search, statuses]);
+  }, [members, search, statuses]);
 
   const maxPage = Math.max(0, Math.ceil(filtered.length / limit) - 1);
   const safePage = Math.min(page, maxPage);
@@ -62,8 +62,8 @@ export function LearnersTable() {
     <DataTable
       columns={columns}
       data={rows}
-      getRowId={(learner) => learner.Id}
-      title={`Total Learners (${filtered.length})`}
+      getRowId={(member) => member.Id}
+      title={`Total Members (${filtered.length})`}
       search={search}
       onSearchChange={withPageReset(setSearch)}
       searchPlaceholder="Search by name or email"
@@ -88,15 +88,15 @@ export function LearnersTable() {
       limit={limit}
       onPageChange={setPage}
       onLimitChange={withPageReset(setLimit)}
-      onRowClick={(learner) => router.push(`/learners/${learner.Id}`)}
+      onRowClick={(member) => router.push(`/members/${member.Id}`)}
       emptyIcon={GraduationCap}
-      emptyTitle={hasQuery ? "No matching learners" : "No learners yet"}
+      emptyTitle={hasQuery ? "No matching members" : "No members yet"}
       emptyDescription={
         hasQuery
           ? "Try a different name, email or status."
           : "Invite someone by email to get started."
       }
-      emptyAction={!hasQuery ? <LearnersPrimaryButtons /> : undefined}
+      emptyAction={!hasQuery ? <MembersPrimaryButtons /> : undefined}
     />
   );
 }

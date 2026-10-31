@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import {
-  LEARNER_ROLE_ID,
+  MEMBER_ROLE_ID,
   SUPER_ADMIN_ROLE_ID,
 } from "@/store/client/mock/roles-store";
 
@@ -42,8 +42,8 @@ function displayNameFromEmail(email: string) {
 }
 
 function assertStaffRole(roleId: string) {
-  if (roleId === LEARNER_ROLE_ID) {
-    throw new Error("Admin users cannot use the Learner role.");
+  if (roleId === MEMBER_ROLE_ID) {
+    throw new Error("Admin users cannot use the Member role.");
   }
 }
 

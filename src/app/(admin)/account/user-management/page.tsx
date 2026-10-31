@@ -12,7 +12,7 @@ export default function UserManagementPage() {
       <PageHeader
         className="shrink-0"
         title="User Management"
-        description="Manage admin and staff accounts — learners live under Learners"
+        description="Manage admin and staff accounts — members live under Members"
         actions={
           <Button asChild>
             <Link href="/account/user-invitation">

@@ -4,10 +4,10 @@ import { useMemo } from "react";
 import { PermissionChecklist } from "@/components/permission-checklist";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { LEARNER_PORTAL_PERMISSION_GROUPS } from "@/lib/permission-groups";
+import { MEMBER_PORTAL_PERMISSION_GROUPS } from "@/lib/permission-groups";
 import type { PermissionCode } from "@/lib/permissions";
 
-const PORTAL_CODES = LEARNER_PORTAL_PERMISSION_GROUPS.flatMap((group) =>
+const PORTAL_CODES = MEMBER_PORTAL_PERMISSION_GROUPS.flatMap((group) =>
   group.items.map((item) => item.code),
 );
 
@@ -129,7 +129,7 @@ export function PortalAccessFields({
         onChange={onChange}
         readOnly={readOnly}
         idPrefix={idPrefix}
-        groups={LEARNER_PORTAL_PERMISSION_GROUPS}
+        groups={MEMBER_PORTAL_PERMISSION_GROUPS}
       />
     </div>
   );
